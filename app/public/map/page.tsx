@@ -1,11 +1,12 @@
 'use client';
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback } from 'react';
+import dynamic from 'next/dynamic';
 import {
   Box, Typography, Card, CardContent, Chip, IconButton,
   CircularProgress, useMediaQuery, Snackbar, Alert,
   Drawer, Slider, FormControl, InputLabel, Select, MenuItem,
-  Button, Divider, Toolbar, TextField, Stack, Pagination,
+  Button, Divider, Toolbar, TextField, Pagination,
   Tooltip
 } from '@mui/material';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -20,19 +21,6 @@ import {
 import api from '@/app/utils/api';
 import { House, PropertyType, PaginationData } from '@/types/houses';
 
-// Using Leaflet for maps
-import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
-import L from 'leaflet';
-import 'leaflet/dist/leaflet.css';
-
-// Fix for default marker icons
-delete (L.Icon.Default.prototype as any)._getIconUrl;
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
-  iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
-  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
-});
-
 const propertyTypeLabels: Record<PropertyType, string> = {
   [PropertyType.APARTMENT]: 'Apartment',
   [PropertyType.VILLA]: 'Villa',
@@ -41,8 +29,54 @@ const propertyTypeLabels: Record<PropertyType, string> = {
   [PropertyType.LAND]: 'Land'
 };
 
+// Dynamically import Leaflet components with no SSR
+const MapContainer = dynamic(
+  () => import('react-leaflet').then((mod) => mod.MapContainer),
+  { ssr: false, loading: () => (
+    <Box sx={{ height: '100%', width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', bgcolor: '#1a1a2e' }}>
+      <CircularProgress sx={{ color: '#00ffff' }} />
+    </Box>
+  )}
+);
+
+const TileLayer = dynamic(
+  () => import('react-leaflet').then((mod) => mod.TileLayer),
+  { ssr: false }
+);
+
+const Marker = dynamic(
+  () => import('react-leaflet').then((mod) => mod.Marker),
+  { ssr: false }
+);
+
+const Popup = dynamic(
+  () => import('react-leaflet').then((mod) => mod.Popup),
+  { ssr: false }
+);
+
+// Import Leaflet CSS only on client side
+if (typeof window !== 'undefined') {
+  require('leaflet/dist/leaflet.css');
+}
+
+// Fix for default marker icons
+const fixLeafletIcons = () => {
+  if (typeof window !== 'undefined') {
+    const L = require('leaflet');
+    delete (L.Icon.Default.prototype as any)._getIconUrl;
+    L.Icon.Default.mergeOptions({
+      iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
+      iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
+      shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
+    });
+  }
+};
+
 // Create custom marker icons
 const createMarkerIcon = (type: PropertyType, isSelected: boolean = false) => {
+  if (typeof window === 'undefined') return null;
+  
+  const L = require('leaflet');
   const color = isSelected ? '#ff6b6b' : '#4a90e2';
   return L.divIcon({
     className: 'custom-marker',
@@ -69,17 +103,25 @@ const createMarkerIcon = (type: PropertyType, isSelected: boolean = false) => {
   });
 };
 
+// Custom hook to get map instance (useMap is a hook, not a component)
+const useMapHook = () => {
+  const { useMap } = require('react-leaflet');
+  return useMap();
+};
+
 // Map Controller Component
 const MapController = ({ center, zoom, onMapMove }: { center?: [number, number]; zoom?: number; onMapMove?: (center: [number, number], zoom: number) => void }) => {
-  const map = useMap();
+  const map = useMapHook();
   
   useEffect(() => {
-    if (center) {
+    if (center && map) {
       map.setView(center, zoom || map.getZoom());
     }
   }, [center, map, zoom]);
   
   useEffect(() => {
+    if (!map) return;
+    
     const handleMoveEnd = () => {
       const newCenter = map.getCenter();
       const newZoom = map.getZoom();
@@ -99,9 +141,9 @@ const MapController = ({ center, zoom, onMapMove }: { center?: [number, number];
 const MapViewPage = () => {
   const { theme } = useTheme();
   const isMobile = useMediaQuery('(max-width: 1024px)');
+  const [isClient, setIsClient] = useState(false);
   
   const [houses, setHouses] = useState<House[]>([]);
-  const [allHouses, setAllHouses] = useState<House[]>([]);
   const [selectedHouse, setSelectedHouse] = useState<House | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -121,7 +163,7 @@ const MapViewPage = () => {
     search: '',
     propertyType: '',
     minPrice: 0,
-    maxPrice: 10000000000,
+    maxPrice: 50000000,
     minBedrooms: 0,
     minBathrooms: 0,
     sortBy: 'created_at',
@@ -129,6 +171,11 @@ const MapViewPage = () => {
     page: 1,
     limit: 10
   });
+
+  useEffect(() => {
+    setIsClient(true);
+    fixLeafletIcons();
+  }, []);
 
   const getImageUrl = (houseId: string): string => {
     const serverUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
@@ -152,7 +199,6 @@ const MapViewPage = () => {
 
       const response = await api.get(`/public/houses?${params}`);
       setHouses(response.data.data.houses || []);
-      setAllHouses(response.data.data.houses || []);
       setPagination(response.data.data.pagination);
       setError('');
     } catch (error: any) {
@@ -180,7 +226,7 @@ const MapViewPage = () => {
       search: '',
       propertyType: '',
       minPrice: 0,
-      maxPrice: 1000000,
+      maxPrice: 500000000,
       minBedrooms: 0,
       minBathrooms: 0,
       sortBy: 'created_at',
@@ -248,8 +294,8 @@ const MapViewPage = () => {
           handleFilterChange('maxPrice', max);
         }}
         min={0}
-        max={1000000}
-        step={10000}
+        max={50000000}
+        step={100000}
         valueLabelDisplay="auto"
         valueLabelFormat={(value) => formatPrice(value)}
         sx={{ mb: 2 }}
@@ -352,9 +398,10 @@ const MapViewPage = () => {
           borderRadius: 3,
           overflow: 'hidden',
           boxShadow: theme === 'dark' ? '0 4px 12px rgba(0,0,0,0.3)' : '0 4px 12px rgba(0,0,0,0.1)',
-          position: 'relative'
+          position: 'relative',
+          bgcolor: '#1a1a2e'
         }}>
-          {typeof window !== 'undefined' && (
+          {isClient && !loading && houses.length > 0 && (
             <MapContainer
               center={mapCenter}
               zoom={mapZoom}
@@ -374,11 +421,14 @@ const MapViewPage = () => {
                   return null;
                 }
                 
+                const icon = createMarkerIcon(house.propertyType, selectedHouse?._id === house._id);
+                if (!icon) return null;
+                
                 return (
                   <Marker
                     key={house._id}
                     position={[lat, lng]}
-                    icon={createMarkerIcon(house.propertyType, selectedHouse?._id === house._id)}
+                    icon={icon}
                     eventHandlers={{
                       click: () => setSelectedHouse(house)
                     }}
@@ -408,8 +458,24 @@ const MapViewPage = () => {
                 );
               })}
               
-              <MapController center={mapCenter} zoom={mapZoom} />
+              <MapController center={mapCenter} zoom={mapZoom} onMapMove={(center, zoom) => {
+                setMapCenter(center);
+                setMapZoom(zoom);
+              }} />
             </MapContainer>
+          )}
+          
+          {loading && (
+            <Box sx={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', bgcolor: '#1a1a2e' }}>
+              <CircularProgress size={60} sx={{ color: theme === 'dark' ? '#00ffff' : '#007bff' }} />
+            </Box>
+          )}
+          
+          {!loading && houses.length === 0 && isClient && (
+            <Box sx={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', bgcolor: '#1a1a2e' }}>
+              <Home sx={{ fontSize: 64, color: '#334155', mb: 2 }} />
+              <Typography color="text.secondary">No properties to display on map</Typography>
+            </Box>
           )}
           
           {/* Map Controls */}

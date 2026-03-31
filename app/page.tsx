@@ -24,19 +24,20 @@ import {
   FaShieldAlt,
   FaStar,
   FaFire,
-  FaLeaf,
   FaBed,
   FaBath,
   FaSquare,
   FaSearch,
-  FaKey,
   FaUsers,
   FaClock,
   FaAward,
+  FaFileContract,
+  FaHandHoldingUsd,
+  FaKey,
 } from 'react-icons/fa';
 import api from '@/app/utils/api';
 
-// Define types for house
+// Define types for house - MATCH PublicHousesPage
 interface House {
   _id: string;
   title: string;
@@ -44,18 +45,21 @@ interface House {
   propertyType: 'APARTMENT' | 'VILLA' | 'CONDO' | 'HOUSE' | 'LAND';
   price: number;
   view: number;
-  status: 'AVAILABLE' | 'SOLD' | 'RENTED' | 'UNAVAILABLE';
+  status: string;
+  approvalStatus?: string;
   details: {
     bedrooms: number;
     bathrooms: number;
     area: number;
     parkingSpaces: number;
     furnished: boolean;
+    amenities?: string[];
   };
   location: {
     city: string;
     state: string;
   };
+  images?: Array<{ data?: any; contentType?: string }>;
   created_at: string;
 }
 
@@ -138,10 +142,10 @@ export default function Home() {
   
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Get image URL using the same endpoint as house list page
-  const getImageUrl = (propertyId: string): string => {
+  // Get image URL - SAME AS PublicHousesPage
+  const getImageUrl = (houseId: string): string => {
     const serverUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
-    return `${serverUrl}/api/public/houses/${propertyId}/image`;
+    return `${serverUrl}/api/public/houses/${houseId}/image`;
   };
 
   const handleImageError = (propertyId: string) => {
@@ -230,31 +234,47 @@ export default function Home() {
     }
   };
 
-  // Fetch featured properties
-  useEffect(() => {
-    const fetchFeaturedProperties = async () => {
-      try {
-        setLoadingProperties(true);
-        const params = new URLSearchParams({
-          limit: '3',
-          sortBy: 'views',
-          sortOrder: 'desc',
-          status: 'AVAILABLE'
-        });
-        
-        const response = await api.get(`/public/houses?${params}`);
-        setFeaturedProperties(response.data.data.houses || []);
-        setImageErrors({});
-      } catch (error) {
-        console.error('Error fetching featured properties:', error);
-        setFeaturedProperties([]);
-      } finally {
-        setLoadingProperties(false);
-      }
-    };
+  // Fetch featured properties - SAME AS PublicHousesPage (no status filters)
+ // In your home page, replace the fetchFeaturedProperties with this:
 
-    fetchFeaturedProperties();
-  }, []);
+useEffect(() => {
+  const fetchFeaturedProperties = async () => {
+    try {
+      setLoadingProperties(true);
+      console.log('🔍 Fetching featured properties...');
+      
+      // Fetch without any filters - get all houses
+      const response = await api.get(`/public/houses?limit=3&sortBy=views&sortOrder=desc`);
+      
+      console.log('📦 API Response:', response.data);
+      
+      const houses = response.data.data.houses || [];
+      const pagination = response.data.data.pagination;
+      
+      // console.log(`🏠 Houses returned: ${houses.length}`);
+      // console.log(`📊 Total houses in DB: ${pagination?.totalHouses || 0}`);
+      
+      // if (houses.length === 0) {
+      //   console.log('⚠️ No houses found. Trying to fetch without limit...');
+      //   // Try to fetch all houses to see if any exist
+      //   const allResponse = await api.get(`/public/houses?limit=100`);
+      //   console.log('📦 All houses response:', allResponse.data);
+      //   console.log(`🏠 All houses count: ${allResponse.data.data.houses?.length || 0}`);
+      // }
+      
+      setFeaturedProperties(houses);
+      setImageErrors({});
+    } catch (error: any) {
+      console.error('❌ Error fetching featured properties:', error);
+      console.error('Error details:', error.response?.data);
+      setFeaturedProperties([]);
+    } finally {
+      setLoadingProperties(false);
+    }
+  };
+
+  fetchFeaturedProperties();
+}, []);
 
   // Handle URL parameters
   useEffect(() => {
@@ -465,8 +485,67 @@ export default function Home() {
           </div>
         </section>
 
-        {/* Property Types Section */}
+        {/* Services Section */}
         <section className={`py-16 px-4 ${theme === 'dark' ? 'bg-gray-800/30' : 'bg-gray-50'}`}>
+          <div className="container mx-auto">
+            <motion.div
+              initial={{ y: 50, opacity: 0 }}
+              whileInView={{ y: 0, opacity: 1 }}
+              transition={{ duration: 1 }}
+              viewport={{ once: true }}
+              className="text-center mb-12"
+            >
+              <h2 className={`text-3xl font-bold mb-4 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+                Our Services
+              </h2>
+              <p className={`text-xl ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'} max-w-3xl mx-auto`}>
+                Comprehensive real estate services tailored to your needs
+              </p>
+            </motion.div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {/* Services cards - keep as is */}
+              {[
+                { icon: <FaSearch className="text-3xl" />, title: "Property Search", description: "Find your perfect property with our advanced search tools and expert guidance.", color: "from-blue-500 to-blue-700" },
+                { icon: <FaChartLine className="text-3xl" />, title: "Market Analysis", description: "Get detailed market insights and property value assessments.", color: "from-green-500 to-green-700" },
+                { icon: <FaFileContract className="text-3xl" />, title: "Legal Support", description: "Full legal assistance for property transactions.", color: "from-purple-500 to-purple-700" },
+                { icon: <FaHandHoldingUsd className="text-3xl" />, title: "Investment Advice", description: "Smart investment strategies to maximize returns.", color: "from-orange-500 to-orange-700" },
+                { icon: <FaKey className="text-3xl" />, title: "Property Management", description: "Complete property management services.", color: "from-red-500 to-red-700" },
+                { icon: <FaHandshake className="text-3xl" />, title: "Consultation", description: "Free consultation with experienced professionals.", color: "from-teal-500 to-teal-700" },
+              ].map((service, index) => (
+                <motion.div
+                  key={index}
+                  initial={{ y: 50, opacity: 0 }}
+                  whileInView={{ y: 0, opacity: 1 }}
+                  transition={{ duration: 0.5, delay: index * 0.1 }}
+                  viewport={{ once: true }}
+                  whileHover={{ y: -8 }}
+                  className={`p-6 rounded-xl ${
+                    theme === 'dark' ? 'bg-gray-800' : 'bg-white'
+                  } shadow-lg hover:shadow-xl transition-all duration-300 text-center`}
+                >
+                  <div className={`inline-flex items-center justify-center w-16 h-16 rounded-full mb-4 bg-gradient-to-r ${service.color}`}>
+                    <div className="text-white">{service.icon}</div>
+                  </div>
+                  <h3 className={`text-xl font-bold mb-3 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>{service.title}</h3>
+                  <p className={theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}>{service.description}</p>
+                </motion.div>
+              ))}
+            </div>
+             <div className="text-center mt-12">
+              <Link
+                href="/services"
+                className="inline-flex items-center px-6 py-3 border-2 border-blue-600 hover:bg-blue-600 text-blue-600 hover:text-white rounded-lg font-medium transition-colors duration-300 text-base"
+              >
+               Read More About Our Services
+                <span className="ml-2">→</span>
+              </Link>
+            </div>
+          </div>
+        </section>
+
+        {/* Property Types Section */}
+        <section className={`py-16 px-4 ${theme === 'dark' ? 'bg-transparent' : 'bg-white'}`}>
           <div className="container mx-auto">
             <h2 className={`text-3xl font-bold text-center mb-12 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
               Property Types
@@ -486,13 +565,9 @@ export default function Home() {
                   <div className={`inline-flex items-center justify-center w-16 h-16 rounded-full mb-4 ${
                     theme === 'dark' ? 'bg-blue-500/20' : 'bg-blue-100'
                   }`}>
-                    <div className="text-2xl text-blue-600">
-                      {type.icon}
-                    </div>
+                    <div className="text-2xl text-blue-600">{type.icon}</div>
                   </div>
-                  <h3 className={`font-semibold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
-                    {type.label}
-                  </h3>
+                  <h3 className={`font-semibold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>{type.label}</h3>
                 </motion.div>
               ))}
             </div>
@@ -500,7 +575,7 @@ export default function Home() {
         </section>
 
         {/* Featured Properties Section */}
-        <section className={`py-16 px-4 ${theme === 'dark' ? 'bg-transparent' : 'bg-white'}`}>
+        <section className={`py-16 px-4 ${theme === 'dark' ? 'bg-gray-800/30' : 'bg-gray-50'}`}>
           <div className="container mx-auto">
             <h2 className={`text-3xl font-bold text-center mb-12 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
               Featured Properties
@@ -523,7 +598,7 @@ export default function Home() {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                 {featuredProperties.map((property, index) => {
                   const imageUrl = getImageUrl(property._id);
-                  const hasImageError = imageErrors[property._id];
+                  const hasImageError = imageErrors[property._id] || !imageUrl;
                   
                   return (
                     <motion.div
@@ -540,7 +615,7 @@ export default function Home() {
                       <Link href={`/public/houses/${property._id}`} className="block">
                         {/* Property Image */}
                         <div className="relative h-48 overflow-hidden bg-gray-200 dark:bg-gray-700">
-                          {!hasImageError ? (
+                          {!hasImageError && imageUrl ? (
                             <img
                               src={imageUrl}
                               alt={property.title}
@@ -678,260 +753,93 @@ export default function Home() {
         </section>
 
         {/* Why Choose Us Section */}
-        <section className={`py-16 px-4 ${theme === 'dark' ? 'bg-gray-800/30' : 'bg-gray-50'}`}>
+        <section className={`py-16 px-4 ${theme === 'dark' ? 'bg-transparent' : 'bg-white'}`}>
           <div className="container mx-auto">
             <h2 className={`text-3xl font-bold text-center mb-12 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
               Why Choose Us
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-              <motion.div
-                initial={{ y: 50, opacity: 0 }}
-                whileInView={{ y: 0, opacity: 1 }}
-                transition={{ duration: 0.5 }}
-                viewport={{ once: true }}
-                className="text-center"
-              >
-                <div className={`inline-flex items-center justify-center w-12 h-12 rounded-full mb-4 ${
-                  theme === 'dark' ? 'bg-blue-500/20' : 'bg-blue-100'
-                }`}>
-                  <FaUsers className="text-blue-600 text-xl" />
-                </div>
-                <h3 className={`text-xl font-bold mb-2 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
-                  Expert Agents
-                </h3>
-                <p className={theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}>
-                  Our experienced agents provide personalized guidance throughout your journey.
-                </p>
-              </motion.div>
-
-              <motion.div
-                initial={{ y: 50, opacity: 0 }}
-                whileInView={{ y: 0, opacity: 1 }}
-                transition={{ duration: 0.5, delay: 0.2 }}
-                viewport={{ once: true }}
-                className="text-center"
-              >
-                <div className={`inline-flex items-center justify-center w-12 h-12 rounded-full mb-4 ${
-                  theme === 'dark' ? 'bg-blue-500/20' : 'bg-blue-100'
-                }`}>
-                  <FaChartLine className="text-blue-600 text-xl" />
-                </div>
-                <h3 className={`text-xl font-bold mb-2 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
-                  Market Expertise
-                </h3>
-                <p className={theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}>
-                  Deep local market knowledge and data-driven insights to guide your decisions.
-                </p>
-              </motion.div>
-
-              <motion.div
-                initial={{ y: 50, opacity: 0 }}
-                whileInView={{ y: 0, opacity: 1 }}
-                transition={{ duration: 0.5, delay: 0.4 }}
-                viewport={{ once: true }}
-                className="text-center"
-              >
-                <div className={`inline-flex items-center justify-center w-12 h-12 rounded-full mb-4 ${
-                  theme === 'dark' ? 'bg-blue-500/20' : 'bg-blue-100'
-                }`}>
-                  <FaHandshake className="text-blue-600 text-xl" />
-                </div>
-                <h3 className={`text-xl font-bold mb-2 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
-                  Integrity First
-                </h3>
-                <p className={theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}>
-                  Transparent, honest, and ethical practices in every transaction.
-                </p>
-              </motion.div>
-
-              <motion.div
-                initial={{ y: 50, opacity: 0 }}
-                whileInView={{ y: 0, opacity: 1 }}
-                transition={{ duration: 0.5, delay: 0.6 }}
-                viewport={{ once: true }}
-                className="text-center"
-              >
-                <div className={`inline-flex items-center justify-center w-12 h-12 rounded-full mb-4 ${
-                  theme === 'dark' ? 'bg-blue-500/20' : 'bg-blue-100'
-                }`}>
-                  <FaAward className="text-blue-600 text-xl" />
-                </div>
-                <h3 className={`text-xl font-bold mb-2 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
-                  Proven Track Record
-                </h3>
-                <p className={theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}>
-                  Thousands of satisfied clients and successful transactions.
-                </p>
-              </motion.div>
+              {[
+                { icon: <FaUsers />, title: "Expert Agents", desc: "Our experienced agents provide personalized guidance." },
+                { icon: <FaChartLine />, title: "Market Expertise", desc: "Deep local market knowledge and data-driven insights." },
+                { icon: <FaHandshake />, title: "Integrity First", desc: "Transparent, honest, and ethical practices." },
+                { icon: <FaAward />, title: "Proven Track Record", desc: "Thousands of satisfied clients and successful transactions." }
+              ].map((item, index) => (
+                <motion.div
+                  key={index}
+                  initial={{ y: 50, opacity: 0 }}
+                  whileInView={{ y: 0, opacity: 1 }}
+                  transition={{ duration: 0.5, delay: index * 0.1 }}
+                  viewport={{ once: true }}
+                  className="text-center"
+                >
+                  <div className={`inline-flex items-center justify-center w-12 h-12 rounded-full mb-4 ${
+                    theme === 'dark' ? 'bg-blue-500/20' : 'bg-blue-100'
+                  }`}>
+                    <div className="text-blue-600 text-xl">{item.icon}</div>
+                  </div>
+                  <h3 className={`text-xl font-bold mb-2 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>{item.title}</h3>
+                  <p className={theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}>{item.desc}</p>
+                </motion.div>
+              ))}
             </div>
           </div>
         </section>
 
         {/* Contact Section */}
-        <section className={`py-16 px-4 ${theme === 'dark' ? 'bg-transparent' : 'bg-white'}`}>
+        <section className={`py-16 px-4 ${theme === 'dark' ? 'bg-gray-800/30' : 'bg-gray-50'}`}>
           <div className="container mx-auto">
             <h2 className={`text-3xl font-bold text-center mb-12 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
               Get In Touch
             </h2>
             
-            {/* Contact Info */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
-              <motion.div
-                initial={{ y: 50, opacity: 0 }}
-                whileInView={{ y: 0, opacity: 1 }}
-                transition={{ duration: 1 }}
-                viewport={{ once: true }}
-                className="text-center"
-              >
-                <div className={`inline-flex items-center justify-center w-12 h-12 rounded-full mb-4 ${
-                  theme === 'dark' ? 'bg-blue-500/20' : 'bg-blue-100'
-                }`}>
+              <motion.div initial={{ y: 50, opacity: 0 }} whileInView={{ y: 0, opacity: 1 }} transition={{ duration: 1 }} viewport={{ once: true }} className="text-center">
+                <div className={`inline-flex items-center justify-center w-12 h-12 rounded-full mb-4 ${theme === 'dark' ? 'bg-blue-500/20' : 'bg-blue-100'}`}>
                   <FaMapMarker className="text-blue-600 text-xl" />
                 </div>
-                <h3 className={`text-lg font-semibold mb-2 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
-                  Visit Our Office
-                </h3>
-                <p className={theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}>
-                  123 Real Estate Avenue<br />
-                  Downtown District<br />
-                  City Center, CC 12345
-                </p>
+                <h3 className={`text-lg font-semibold mb-2 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Visit Our Office</h3>
+                <p className={theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}>123 Real Estate Avenue<br />Downtown District<br />City Center, CC 12345</p>
               </motion.div>
 
-              <motion.div
-                initial={{ y: 50, opacity: 0 }}
-                whileInView={{ y: 0, opacity: 1 }}
-                transition={{ duration: 1 }}
-                viewport={{ once: true }}
-                className="text-center"
-              >
-                <div className={`inline-flex items-center justify-center w-12 h-12 rounded-full mb-4 ${
-                  theme === 'dark' ? 'bg-blue-500/20' : 'bg-blue-100'
-                }`}>
+              <motion.div initial={{ y: 50, opacity: 0 }} whileInView={{ y: 0, opacity: 1 }} transition={{ duration: 1 }} viewport={{ once: true }} className="text-center">
+                <div className={`inline-flex items-center justify-center w-12 h-12 rounded-full mb-4 ${theme === 'dark' ? 'bg-blue-500/20' : 'bg-blue-100'}`}>
                   <FaClock className="text-blue-600 text-xl" />
                 </div>
-                <h3 className={`text-lg font-semibold mb-2 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
-                  Office Hours
-                </h3>
-                <p className={theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}>
-                  Monday - Friday: 9:00 AM - 6:00 PM<br />
-                  Saturday: 10:00 AM - 4:00 PM<br />
-                  Sunday: By Appointment
-                </p>
+                <h3 className={`text-lg font-semibold mb-2 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Office Hours</h3>
+                <p className={theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}>Mon-Fri: 9:00 AM - 6:00 PM<br />Sat: 10:00 AM - 4:00 PM<br />Sun: By Appointment</p>
               </motion.div>
 
-              <motion.div
-                initial={{ y: 50, opacity: 0 }}
-                whileInView={{ y: 0, opacity: 1 }}
-                transition={{ duration: 1 }}
-                viewport={{ once: true }}
-                className="text-center"
-              >
-                <div className={`inline-flex items-center justify-center w-12 h-12 rounded-full mb-4 ${
-                  theme === 'dark' ? 'bg-blue-500/20' : 'bg-blue-100'
-                }`}>
+              <motion.div initial={{ y: 50, opacity: 0 }} whileInView={{ y: 0, opacity: 1 }} transition={{ duration: 1 }} viewport={{ once: true }} className="text-center">
+                <div className={`inline-flex items-center justify-center w-12 h-12 rounded-full mb-4 ${theme === 'dark' ? 'bg-blue-500/20' : 'bg-blue-100'}`}>
                   <FaPhone className="text-blue-600 text-xl" />
                 </div>
-                <h3 className={`text-lg font-semibold mb-2 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
-                  Contact Us
-                </h3>
-                <p className={theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}>
-                  (123) 456-7890<br />
-                  info@realestatepro.com
-                </p>
+                <h3 className={`text-lg font-semibold mb-2 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Contact Us</h3>
+                <p className={theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}>(123) 456-7890<br />info@realestatepro.com</p>
               </motion.div>
             </div>
 
-            {/* Map and Contact Form */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-              {/* Map */}
-              <motion.div
-                initial={{ x: -100, opacity: 0 }}
-                whileInView={{ x: 0, opacity: 1 }}
-                transition={{ duration: 1 }}
-                viewport={{ once: true }}
-                className="rounded-xl overflow-hidden shadow-xl"
-              >
+              <motion.div initial={{ x: -100, opacity: 0 }} whileInView={{ x: 0, opacity: 1 }} transition={{ duration: 1 }} viewport={{ once: true }} className="rounded-xl overflow-hidden shadow-xl">
                 <div className="h-96">
-                  <iframe
-                    src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3022.215209132579!2d-73.98784468459363!3d40.75797897932689!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x89c25855c6480299%3A0x55194ec5a1ae072e!2sTimes%20Square!5e0!3m2!1sen!2sus!4v1648062964726!5m2!1sen!2sus"
-                    width="100%"
-                    height="100%"
-                    style={{ border: 0 }}
-                    allowFullScreen
-                    loading="lazy"
-                  ></iframe>
+                  <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3022.215209132579!2d-73.98784468459363!3d40.75797897932689!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x89c25855c6480299%3A0x55194ec5a1ae072e!2sTimes%20Square!5e0!3m2!1sen!2sus!4v1648062964726!5m2!1sen!2sus" width="100%" height="100%" style={{ border: 0 }} allowFullScreen loading="lazy"></iframe>
                 </div>
               </motion.div>
 
-              {/* Contact Form */}
-              <motion.div
-                initial={{ x: 100, opacity: 0 }}
-                whileInView={{ x: 0, opacity: 1 }}
-                transition={{ duration: 1 }}
-                viewport={{ once: true }}
-              >
-                <h3 className={`text-2xl font-bold mb-6 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
-                  Have Questions?
-                </h3>
-                <p className={`mb-6 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
-                  Send us a message and one of our agents will get back to you as soon as possible.
-                </p>
+              <motion.div initial={{ x: 100, opacity: 0 }} whileInView={{ x: 0, opacity: 1 }} transition={{ duration: 1 }} viewport={{ once: true }}>
+                <h3 className={`text-2xl font-bold mb-6 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Have Questions?</h3>
+                <p className={`mb-6 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>Send us a message and one of our agents will get back to you as soon as possible.</p>
                 <form onSubmit={handleContactSubmit} className="space-y-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <input
-                        type="text"
-                        id="name"
-                        name="name"
-                        required
-                        value={formData.name}
-                        onChange={handleContactChange}
-                        className={`w-full px-4 py-3 rounded-lg border text-base focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors duration-300 ${
-                          theme === 'dark' 
-                            ? 'bg-gray-800/50 border-gray-700 text-white placeholder-gray-400' 
-                            : 'bg-white border-gray-300 text-gray-900'
-                        }`}
-                        placeholder="Full Name *"
-                      />
+                      <input type="text" name="name" required value={formData.name} onChange={handleContactChange} className={`w-full px-4 py-3 rounded-lg border text-base focus:outline-none focus:ring-2 focus:ring-blue-500 ${theme === 'dark' ? 'bg-gray-800/50 border-gray-700 text-white' : 'bg-white border-gray-300 text-gray-900'}`} placeholder="Full Name *" />
                     </div>
-
                     <div>
-                      <input
-                        type="text"
-                        id="contact"
-                        name="contact"
-                        value={formData.email || formData.phone}
-                        onChange={(e) => {
-                          const value = e.target.value;
-                          if (value.includes('@')) {
-                            setFormData({...formData, email: value, phone: ''});
-                          } else {
-                            setFormData({...formData, phone: value, email: ''});
-                          }
-                        }}
-                        className={`w-full px-4 py-3 rounded-lg border text-base focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors duration-300 ${
-                          theme === 'dark' 
-                            ? 'bg-gray-800/50 border-gray-700 text-white placeholder-gray-400' 
-                            : 'bg-white border-gray-300 text-gray-900'
-                        }`}
-                        placeholder="Email or Phone *"
-                      />
+                      <input type="text" name="contact" value={formData.email || formData.phone} onChange={(e) => { const value = e.target.value; if (value.includes('@')) { setFormData({...formData, email: value, phone: ''}); } else { setFormData({...formData, phone: value, email: ''}); } }} className={`w-full px-4 py-3 rounded-lg border text-base focus:outline-none focus:ring-2 focus:ring-blue-500 ${theme === 'dark' ? 'bg-gray-800/50 border-gray-700 text-white' : 'bg-white border-gray-300 text-gray-900'}`} placeholder="Email or Phone *" />
                     </div>
                   </div>
                   <div>
-                    <select
-                      id="subject"
-                      name="subject"
-                      required
-                      value={formData.subject}
-                      onChange={handleContactChange}
-                      className={`w-full px-4 py-3 rounded-lg border text-base focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors duration-300 ${
-                        theme === 'dark' 
-                          ? 'bg-gray-800/50 border-gray-700 text-white' 
-                          : 'bg-white border-gray-300 text-gray-900'
-                      }`}
-                    >
+                    <select name="subject" required value={formData.subject} onChange={handleContactChange} className={`w-full px-4 py-3 rounded-lg border text-base focus:outline-none focus:ring-2 focus:ring-blue-500 ${theme === 'dark' ? 'bg-gray-800/50 border-gray-700 text-white' : 'bg-white border-gray-300 text-gray-900'}`}>
                       <option value="Real Estate Inquiry">Real Estate Inquiry</option>
                       <option value="Property Viewing">Schedule Property Viewing</option>
                       <option value="Selling Property">Selling Property</option>
@@ -941,40 +849,10 @@ export default function Home() {
                     </select>
                   </div>
                   <div>
-                    <textarea
-                      name="message"
-                      required
-                      rows={5}
-                      value={formData.message}
-                      onChange={handleContactChange}
-                      placeholder="Tell us about your property needs or questions *"
-                      className={`w-full px-4 py-3 rounded-lg border text-base focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors duration-300 ${
-                        theme === 'dark' 
-                          ? 'bg-gray-800/50 border-gray-700 text-white placeholder-gray-400' 
-                          : 'bg-white border-gray-300 text-gray-900'
-                      }`}
-                    ></textarea>
+                    <textarea name="message" required rows={5} value={formData.message} onChange={handleContactChange} placeholder="Tell us about your property needs or questions *" className={`w-full px-4 py-3 rounded-lg border text-base focus:outline-none focus:ring-2 focus:ring-blue-500 ${theme === 'dark' ? 'bg-gray-800/50 border-gray-700 text-white' : 'bg-white border-gray-300 text-gray-900'}`}></textarea>
                   </div>
-                  <button
-                    type="submit"
-                    disabled={isSubmitting}
-                    className={`w-full px-6 py-3 rounded-lg font-medium text-base transition-colors duration-300 flex items-center justify-center ${
-                      theme === 'dark' 
-                        ? 'bg-gradient-to-r from-blue-600 to-blue-800 hover:from-blue-700 hover:to-blue-900 text-white' 
-                        : 'bg-gradient-to-r from-blue-600 to-blue-800 hover:from-blue-700 hover:to-blue-900 text-white'
-                    } disabled:opacity-50 disabled:cursor-not-allowed`}
-                  >
-                    {isSubmitting ? (
-                      <>
-                        <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                        </svg>
-                        Sending...
-                      </>
-                    ) : (
-                      'Send Message'
-                    )}
+                  <button type="submit" disabled={isSubmitting} className={`w-full px-6 py-3 rounded-lg font-medium text-base transition-colors duration-300 flex items-center justify-center ${theme === 'dark' ? 'bg-gradient-to-r from-blue-600 to-blue-800 hover:from-blue-700 hover:to-blue-900 text-white' : 'bg-gradient-to-r from-blue-600 to-blue-800 hover:from-blue-700 hover:to-blue-900 text-white'} disabled:opacity-50`}>
+                    {isSubmitting ? (<><svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>Sending...</>) : 'Send Message'}
                   </button>
                 </form>
               </motion.div>
@@ -983,37 +861,14 @@ export default function Home() {
         </section>
 
         {/* CTA Section */}
-        <section className={`py-16 px-4 ${
-          theme === 'dark' 
-            ? 'bg-gradient-to-r from-blue-800 to-blue-900' 
-            : 'bg-gradient-to-r from-blue-600 to-blue-800'
-        }`}>
+        <section className={`py-16 px-4 ${theme === 'dark' ? 'bg-gradient-to-r from-blue-800 to-blue-900' : 'bg-gradient-to-r from-blue-600 to-blue-800'}`}>
           <div className="container mx-auto text-center">
-            <motion.div
-              initial={{ y: 50, opacity: 0 }}
-              whileInView={{ y: 0, opacity: 1 }}
-              transition={{ duration: 1 }}
-              viewport={{ once: true }}
-            >
-              <h2 className="text-3xl font-bold mb-6 text-white">
-                Ready to Find Your Dream Home?
-              </h2>
-              <p className="text-xl mb-8 max-w-2xl mx-auto text-white/90">
-                Let our expert team guide you through the exciting journey of buying or selling your property.
-              </p>
+            <motion.div initial={{ y: 50, opacity: 0 }} whileInView={{ y: 0, opacity: 1 }} transition={{ duration: 1 }} viewport={{ once: true }}>
+              <h2 className="text-3xl font-bold mb-6 text-white">Ready to Find Your Dream Home?</h2>
+              <p className="text-xl mb-8 max-w-2xl mx-auto text-white/90">Let our expert team guide you through the exciting journey of buying or selling your property.</p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Link
-                  href="/public/houses"
-                  className="px-8 py-3 bg-white hover:bg-gray-100 text-blue-600 rounded-lg font-medium text-lg transition-colors duration-300 shadow-lg"
-                >
-                  Browse Properties
-                </Link>
-                <Link
-                  href="/contact"
-                  className="px-8 py-3 border-2 border-white hover:bg-white/10 text-white rounded-lg font-medium text-lg transition-colors duration-300"
-                >
-                  Contact an Agent
-                </Link>
+                <Link href="/public/houses" className="px-8 py-3 bg-white hover:bg-gray-100 text-blue-600 rounded-lg font-medium text-lg transition-colors duration-300 shadow-lg">Browse Properties</Link>
+                <Link href="/contact" className="px-8 py-3 border-2 border-white hover:bg-white/10 text-white rounded-lg font-medium text-lg transition-colors duration-300">Contact an Agent</Link>
               </div>
             </motion.div>
           </div>

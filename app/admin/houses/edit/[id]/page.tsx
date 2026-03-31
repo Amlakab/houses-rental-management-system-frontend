@@ -453,12 +453,20 @@ const EditHousePage = () => {
             label="Latitude"
             type="number"
             value={formData.location.coordinates.lat}
-            onChange={(e) => handleCoordinatesChange('lat', parseFloat(e.target.value))}
+            onChange={(e) =>
+              handleCoordinatesChange('lat', parseFloat(e.target.value))
+            }
             required
-            InputProps={{ step: 0.000001, startAdornment: <Map sx={{ mr: 1, fontSize: 16 }} /> }}
+            InputProps={{
+              startAdornment: <Map sx={{ mr: 1, fontSize: 16 }} />
+            }}
+            inputProps={{
+              step: 0.000001
+            }}
             helperText="e.g., 9.03"
             sx={textFieldStyle}
           />
+
         </Box>
         <Box sx={{ flex: 1, minWidth: '150px' }}>
           <TextField
@@ -466,9 +474,16 @@ const EditHousePage = () => {
             label="Longitude"
             type="number"
             value={formData.location.coordinates.lng}
-            onChange={(e) => handleCoordinatesChange('lng', parseFloat(e.target.value))}
+            onChange={(e) =>
+              handleCoordinatesChange('lng', parseFloat(e.target.value))
+            }
             required
-            InputProps={{ step: 0.000001, startAdornment: <Map sx={{ mr: 1, fontSize: 16 }} /> }}
+            InputProps={{
+              startAdornment: <Map sx={{ mr: 1, fontSize: 16 }} />
+            }}
+            inputProps={{
+              step: 0.000001
+            }}
             helperText="e.g., 38.74"
             sx={textFieldStyle}
           />
