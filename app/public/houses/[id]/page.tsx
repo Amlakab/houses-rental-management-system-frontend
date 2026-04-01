@@ -776,8 +776,23 @@ const PublicHouseDetailPage = () => {
                     py: 1.5
                   }}
                 >
-                  Make Inquiry / Apply
+                Apply Physical Tour
                 </Button>
+
+                <Button
+                    fullWidth
+                    variant="contained"
+                    startIcon={<Payment />}
+                    onClick={() => setPaymentModalOpen(true)}
+                    sx={{
+                      mb: 2,
+                      background: theme === 'dark' ? 'linear-gradient(135deg, #ff9900, #ff6600)' : 'linear-gradient(135deg, #ff9900, #ff6600)',
+                      borderRadius: 2,
+                      py: 1.5
+                    }}
+                  >
+                    Proceed Payment ({formatPrice(house.pricing.price)})
+                  </Button>
                 
                   <Button
                     fullWidth
@@ -793,21 +808,6 @@ const PublicHouseDetailPage = () => {
                     }}
                   >
                     Send Message
-                  </Button>
-
-                  <Button
-                    fullWidth
-                    variant="contained"
-                    startIcon={<Payment />}
-                    onClick={() => setPaymentModalOpen(true)}
-                    sx={{
-                      mb: 2,
-                      background: theme === 'dark' ? 'linear-gradient(135deg, #ff9900, #ff6600)' : 'linear-gradient(135deg, #ff9900, #ff6600)',
-                      borderRadius: 2,
-                      py: 1.5
-                    }}
-                  >
-                    Make Payment ({formatPrice(house.pricing.price)})
                   </Button>
                 
                 <Button
