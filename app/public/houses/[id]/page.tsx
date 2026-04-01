@@ -23,12 +23,14 @@ import {
   Email, Phone, WhatsApp, Send,
   Close, Image as ImageIcon, Chat, Person,
   ArrowForwardIos,
-  ArrowBackIos
+  ArrowBackIos,
+  Payment
 } from '@mui/icons-material';
 import api from '@/app/utils/api';
 import { House, PropertyType, OrderType, OrderStatus } from '@/types/houses';
 import MessageModal from '@/components/MessageModal';
 import ThreeViewer from '@/components/ThreeViewer';
+import PaymentModal from '@/components/PaymentModal';
 
 const propertyTypeIcons: Record<PropertyType, React.ReactElement> = {
   [PropertyType.APARTMENT]: <Apartment />,
@@ -77,6 +79,7 @@ const PublicHouseDetailPage = () => {
   const [chatMessage, setChatMessage] = useState('');
   const [chatMessages, setChatMessages] = useState<Array<{ sender: string; message: string; time: Date }>>([]);
   const [sendingMessage, setSendingMessage] = useState(false);
+  const [paymentModalOpen, setPaymentModalOpen] = useState(false);
   
   const [orderForm, setOrderForm] = useState({
     orderType: OrderType.INQUIRY,
@@ -791,6 +794,21 @@ const PublicHouseDetailPage = () => {
                   >
                     Send Message
                   </Button>
+
+                  <Button
+                    fullWidth
+                    variant="contained"
+                    startIcon={<Payment />}
+                    onClick={() => setPaymentModalOpen(true)}
+                    sx={{
+                      mb: 2,
+                      background: theme === 'dark' ? 'linear-gradient(135deg, #ff9900, #ff6600)' : 'linear-gradient(135deg, #ff9900, #ff6600)',
+                      borderRadius: 2,
+                      py: 1.5
+                    }}
+                  >
+                    Make Payment ({formatPrice(house.pricing.price)})
+                  </Button>
                 
                 <Button
                   fullWidth
@@ -1120,6 +1138,14 @@ const PublicHouseDetailPage = () => {
         onClose={() => setMessageModalOpen(false)}
         houseId={houseId}
         houseTitle={house?.title || ''}
+      />
+
+      <PaymentModal
+        open={paymentModalOpen}
+        onClose={() => setPaymentModalOpen(false)}
+        houseId={houseId}
+        houseTitle={house?.title || ''}
+        amount={house?.pricing?.price || 0}
       />
     </div>
   );

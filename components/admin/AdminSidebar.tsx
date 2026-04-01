@@ -59,6 +59,12 @@ const allMenuItems: MenuItem[] = [
     allowedRoles: ['admin', 'Priesedant', 'Vice-Priesedant', 'accountant', 'Secretary', 'Limat'] 
   },
   { 
+    name: 'Acounts', 
+    href: '/admin/payments',
+    icon: WalletIcon,
+    allowedRoles: ['admin', 'Priesedant', 'Vice-Priesedant', 'accountant', 'Secretary', 'Limat'] 
+  },
+  { 
     name: 'House', 
     href: '/admin/houses', 
     icon: FileTextIcon,
@@ -81,6 +87,24 @@ const allMenuItems: MenuItem[] = [
     href: '/admin/customer/orders',
     icon: FileText,
     allowedRoles: ['admin', 'Priesedant', 'Vice-Priesedant', 'accountant', 'Secretary'] 
+  },
+  { 
+    name: 'Transactions', 
+    href: '/admin/transactions/complete', 
+    icon: FileTextIcon,
+    allowedRoles: ['admin', 'accountant'] 
+  },
+  { 
+    name: 'Approve Transactions', 
+    href: '/admin/transactions/approve', 
+    icon: FileTextIcon,
+    allowedRoles: ['admin', 'accountant'] 
+  },
+  { 
+    name: 'Calculator', 
+    href: '/admin/calculator', 
+    icon: FileTextIcon,
+    allowedRoles: ['admin', 'accountant'] 
   },
   { 
     name: 'Wallet', 
