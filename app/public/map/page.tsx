@@ -178,8 +178,8 @@ const MapViewPage = () => {
   }, []);
 
   const getImageUrl = (houseId: string): string => {
-    const serverUrl = process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:3001';
-    return `${serverUrl}/api/public/houses/${houseId}/image`;
+    const serverUrl = process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:3001/api';
+    return `${serverUrl}/public/houses/${houseId}/image`;
   };
 
   const handleImageError = (houseId: string) => {
