@@ -586,11 +586,51 @@ const TransactionReportsPage = () => {
 
         {/* Charts Section */}
         <Box sx={{ display: 'flex', flexDirection: { xs: 'column', lg: 'row' }, gap: 3, mt: 3 }}>
-          <Card sx={{ flex: 1, borderRadius: 3, backgroundColor: themeStyles.cardBg }}>
-            <CardContent><Typography variant="h6" sx={{ mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}><PieChartIcon /> Transaction Type Distribution</Typography>
-              <Box sx={{ height: 300 }}><ResponsiveContainer width="100%" height="100%"><PieChart><Pie data={typeData} cx="50%" cy="50%" outerRadius={80} dataKey="value" label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}><Cell fill={COLORS[0]} /><Cell fill={COLORS[1]} /></Pie><Tooltip /></PieChart></ResponsiveContainer></Box>
+          <Card
+            sx={{
+              flex: 1,
+              borderRadius: 3,
+              backgroundColor: themeStyles.cardBg,
+            }}
+          >
+            <CardContent>
+              <Typography
+                variant="h6"
+                sx={{
+                  mb: 2,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 1,
+                }}
+              >
+                <PieChartIcon />
+                Transaction Type Distribution
+              </Typography>
+
+              <Box sx={{ height: 300 }}>
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={typeData}
+                      cx="50%"
+                      cy="50%"
+                      outerRadius={80}
+                      dataKey="value"
+                      label={({ name, percent = 0 }) =>
+                        `${name}: ${(percent * 100).toFixed(0)}%`
+                      }
+                    >
+                      <Cell fill={COLORS[0]} />
+                      <Cell fill={COLORS[1]} />
+                    </Pie>
+
+                    <Tooltip />
+                  </PieChart>
+                </ResponsiveContainer>
+              </Box>
             </CardContent>
           </Card>
+
           <Card sx={{ flex: 1, borderRadius: 3, backgroundColor: themeStyles.cardBg }}>
             <CardContent><Typography variant="h6" sx={{ mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}><BarChartIcon /> Payment Status Distribution</Typography>
               <Box sx={{ height: 300 }}><ResponsiveContainer width="100%" height="100%"><BarChart data={statusData}><CartesianGrid strokeDasharray="3 3" /><XAxis dataKey="name" /><YAxis /><Tooltip /><Bar dataKey="count" fill={themeStyles.primaryColor} /></BarChart></ResponsiveContainer></Box>
