@@ -173,14 +173,14 @@ const Navbar: React.FC = () => {
                 <span className="text-text-secondary dark:text-text-secondary text-base px-3">
                   Welcome, {user.name || user.email}
                 </span>
-                {user.role === 'admin' && (
+                {/* {user.role === 'admin' && (
                   <Link
                     href="/admin"
                     className="px-4 py-2 border border-primary dark:border-primary text-primary dark:text-primary hover:bg-primary dark:hover:bg-primary hover:text-surface dark:hover:text-surface rounded-lg font-medium transition-all duration-300 text-base hover:scale-105"
                   >
                     Admin
                   </Link>
-                )}
+                )} */}
                 <Link
                   href="/admin/dashboard"
                   className="px-4 py-2 border border-primary dark:border-primary text-primary dark:text-primary hover:bg-primary dark:hover:bg-primary hover:text-surface dark:hover:text-surface rounded-lg font-medium transition-all duration-300 text-base hover:scale-105"
@@ -353,7 +353,7 @@ const Navbar: React.FC = () => {
                       className={mobileNavLinkClasses('/admin/dashboard')}
                       onClick={() => setIsMenuOpen(false)}
                     >
-                      Admin Dashboard
+                      Dashboard
                     </Link>
                   )}
                   <Link
