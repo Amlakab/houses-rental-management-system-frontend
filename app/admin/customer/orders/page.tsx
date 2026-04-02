@@ -6,8 +6,7 @@ import {
   Dialog, DialogTitle, DialogContent, DialogActions, Button,
   Divider, CircularProgress, useMediaQuery, Snackbar, Alert,
   Tooltip, Avatar, LinearProgress,
-  Tabs,
-  Tab
+  Tabs, Tab, Grid, Paper, Stack
 } from '@mui/material';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTheme } from '@/lib/theme-context';
@@ -17,12 +16,15 @@ import {
   HourglassEmpty, LocalShipping, AttachMoney,
   Home, CalendarToday, Message, Refresh,
   TrendingUp, Phone, Email, Person,
-  Close
+  Close, Payment as PaymentIcon, Receipt,
+  LocationOn, Bed, Bathtub, SquareFoot,
+  AccessTime, Description, WhatsApp
 } from '@mui/icons-material';
 import api from '@/app/utils/api';
 import { Order, OrderStatus, OrderType, House } from '@/types/houses';
 import { format } from 'date-fns';
 import MessageConversation from '@/components/MessageConversation';
+import PaymentModal from '@/components/PaymentModal';
 
 const statusColors: Record<OrderStatus, 'success' | 'warning' | 'error' | 'info' | 'default'> = {
   [OrderStatus.PENDING]: 'warning',
@@ -62,6 +64,7 @@ const CustomerOrdersPage = () => {
   const [openViewDialog, setOpenViewDialog] = useState(false);
   const [openCancelDialog, setOpenCancelDialog] = useState(false);
   const [openMessageDialog, setOpenMessageDialog] = useState(false);
+  const [openPaymentModal, setOpenPaymentModal] = useState(false);
   const [selectedOrderForMessage, setSelectedOrderForMessage] = useState<Order | null>(null);
   const [stats, setStats] = useState<any>(null);
 
@@ -114,7 +117,8 @@ const CustomerOrdersPage = () => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: 'USD',
-      minimumFractionDigits: 0
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0
     }).format(price);
   };
 
@@ -151,6 +155,13 @@ const CustomerOrdersPage = () => {
 
   const filteredOrders = getFilteredOrders();
 
+  const getPaymentStatusColor = (status: OrderStatus) => {
+    if (status === OrderStatus.APPROVED || status === OrderStatus.COMPLETED) {
+      return '#00ff00';
+    }
+    return '#ff9900';
+  };
+
   return (
     <div className={`min-h-screen transition-colors duration-300 ${
       theme === 'dark' 
@@ -174,7 +185,7 @@ const CustomerOrdersPage = () => {
           </Typography>
         </motion.div>
         
-        {/* Statistics Cards - No Grid */}
+        {/* Statistics Cards */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -347,109 +358,288 @@ const CustomerOrdersPage = () => {
           </Box>
         )}
         
-        {/* View Order Dialog */}
+        {/* View Order Dialog - Enhanced with Payment Button */}
         <Dialog
           open={openViewDialog}
           onClose={() => setOpenViewDialog(false)}
           maxWidth="md"
           fullWidth
-          PaperProps={{ sx: { borderRadius: 3, backgroundColor: theme === 'dark' ? '#0f172a' : 'white', maxHeight: '80vh' } }}
+          fullScreen={isMobile}
+          PaperProps={{ sx: { borderRadius: 3, backgroundColor: theme === 'dark' ? '#0f172a' : 'white', maxHeight: '90vh' } }}
         >
           {selectedOrder && (
             <>
-              <DialogTitle>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <Typography variant="h6">Order Details</Typography>
-                  <IconButton onClick={() => setOpenViewDialog(false)}><Close /></IconButton>
-                </Box>
-              </DialogTitle>
-              <DialogContent dividers>
-                {/* Order Status */}
-                <Box sx={{ mb: 3, p: 2, bgcolor: theme === 'dark' ? '#1e293b' : '#f8f9fa', borderRadius: 2 }}>
-                  <Typography variant="subtitle2" sx={{ color: theme === 'dark' ? '#00ffff' : '#007bff', mb: 1 }}>
-                    Current Status
+              <DialogTitle sx={{ 
+                borderBottom: 1, 
+                borderColor: 'divider',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                py: 2
+              }}>
+                <Box>
+                  <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
+                    Order Details
                   </Typography>
-                  <Chip
-                    label={selectedOrder.status}
-                    icon={statusIcons[selectedOrder.status]}
-                    color={statusColors[selectedOrder.status]}
-                    sx={{ fontSize: '1rem', p: 1 }}
-                  />
+                  <Typography variant="caption" color="text.secondary">
+                    Order ID: {selectedOrder._id.slice(-8)}
+                  </Typography>
+                </Box>
+                <IconButton onClick={() => setOpenViewDialog(false)}>
+                  <Close />
+                </IconButton>
+              </DialogTitle>
+              
+              <DialogContent dividers sx={{ p: 0 }}>
+                {/* Order Status Header */}
+                <Box sx={{ 
+                  p: 3, 
+                  background: theme === 'dark' 
+                    ? 'linear-gradient(135deg, #1e293b, #0f172a)' 
+                    : 'linear-gradient(135deg, #f8f9fa, #ffffff)',
+                  borderBottom: 1,
+                  borderColor: 'divider'
+                }}>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 2 }}>
+                    <Box>
+                      <Typography variant="subtitle2" color="text.secondary">Current Status</Typography>
+                      <Chip
+                        label={selectedOrder.status}
+                        icon={statusIcons[selectedOrder.status]}
+                        color={statusColors[selectedOrder.status]}
+                        sx={{ mt: 0.5, fontSize: '0.9rem', p: 1 }}
+                      />
+                    </Box>
+                    <Box>
+                      <Typography variant="subtitle2" color="text.secondary">Order Date</Typography>
+                      <Typography variant="body2" sx={{ fontWeight: 500 }}>{formatDate(selectedOrder.created_at)}</Typography>
+                    </Box>
+                    <Box>
+                      <Typography variant="subtitle2" color="text.secondary">Order Type</Typography>
+                      <Chip label={orderTypeLabels[selectedOrder.orderType]} size="small" />
+                    </Box>
+                  </Box>
                   {selectedOrder.status === OrderStatus.UNDER_REVIEW && (
                     <LinearProgress sx={{ mt: 2 }} />
                   )}
                 </Box>
                 
-                {/* Property Info */}
-                <Typography variant="subtitle2" sx={{ color: theme === 'dark' ? '#00ffff' : '#007bff', mb: 1 }}>Property Information</Typography>
-                <Box sx={{ mb: 3, p: 2, bgcolor: theme === 'dark' ? '#1e293b' : '#f8f9fa', borderRadius: 2 }}>
-                  <Typography><strong>Property:</strong> {(selectedOrder.houseId as House)?.title}</Typography>
-                  <Typography><strong>Location:</strong> {(selectedOrder.houseId as House)?.location?.address}, {(selectedOrder.houseId as House)?.location?.city}</Typography>
-                  <Typography><strong>Price:</strong> {formatPrice((selectedOrder.houseId as House)?.pricing?.price || 0)}</Typography>
-                  <Button
-                    size="small"
-                    variant="outlined"
-                    href={`/public/houses/${(selectedOrder.houseId as House)?._id}`}
-                    sx={{ mt: 1 }}
-                  >
-                    View Property Details
-                  </Button>
+                {/* Property Information */}
+                <Box sx={{ p: 3, borderBottom: 1, borderColor: 'divider' }}>
+                  <Typography variant="subtitle1" sx={{ fontWeight: 'bold', color: theme === 'dark' ? '#00ffff' : '#007bff', mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <Home fontSize="small" /> Property Information
+                  </Typography>
+                  
+                  <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, gap: 3 }}>
+                    <Box sx={{ flex: 1 }}>
+                      <Typography variant="caption" color="text.secondary">Property Title</Typography>
+                      <Typography variant="body2" sx={{ fontWeight: 500, mb: 1 }}>
+                        {(selectedOrder.houseId as House)?.title}
+                      </Typography>
+                      
+                      <Typography variant="caption" color="text.secondary">Location</Typography>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mb: 1 }}>
+                        <LocationOn sx={{ fontSize: 14, color: 'text.secondary' }} />
+                        <Typography variant="body2">
+                          {(selectedOrder.houseId as House)?.location?.address}, {(selectedOrder.houseId as House)?.location?.city}
+                        </Typography>
+                      </Box>
+                      
+                      <Typography variant="caption" color="text.secondary">Property Details</Typography>
+                      <Box sx={{ display: 'flex', gap: 2, mt: 0.5 }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                          <Bed sx={{ fontSize: 14 }} />
+                          <Typography variant="body2">{(selectedOrder.houseId as House)?.details?.bedrooms} beds</Typography>
+                        </Box>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                          <Bathtub sx={{ fontSize: 14 }} />
+                          <Typography variant="body2">{(selectedOrder.houseId as House)?.details?.bathrooms} baths</Typography>
+                        </Box>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                          <SquareFoot sx={{ fontSize: 14 }} />
+                          <Typography variant="body2">{(selectedOrder.houseId as House)?.details?.area} sqft</Typography>
+                        </Box>
+                      </Box>
+                    </Box>
+                    
+                    <Box sx={{ flex: 1 }}>
+                      <Typography variant="caption" color="text.secondary">Price</Typography>
+                      <Typography variant="h5" sx={{ fontWeight: 'bold', color: theme === 'dark' ? '#00ffff' : '#007bff', mb: 1 }}>
+                        {formatPrice((selectedOrder.houseId as House)?.pricing?.price || 0)}
+                      </Typography>
+                      
+                      {(selectedOrder.houseId as House)?.pricing?.quantity > 1 && (
+                        <>
+                          <Typography variant="caption" color="text.secondary">Units Available</Typography>
+                          <Typography variant="body2" sx={{ mb: 1 }}>{(selectedOrder.houseId as House)?.pricing?.quantity} units</Typography>
+                        </>
+                      )}
+                      
+                      <Button
+                        size="small"
+                        variant="outlined"
+                        href={`/public/houses/${(selectedOrder.houseId as House)?._id}`}
+                        sx={{ mt: 1 }}
+                      >
+                        View Property Details
+                      </Button>
+                    </Box>
+                  </Box>
                 </Box>
                 
                 {/* Order Details */}
-                <Typography variant="subtitle2" sx={{ color: theme === 'dark' ? '#00ffff' : '#007bff', mb: 1 }}>Order Details</Typography>
-                <Box sx={{ mb: 3, p: 2, bgcolor: theme === 'dark' ? '#1e293b' : '#f8f9fa', borderRadius: 2 }}>
-                  <Typography><strong>Order Type:</strong> {orderTypeLabels[selectedOrder.orderType]}</Typography>
-                  <Typography><strong>Total Amount:</strong> {formatPrice(selectedOrder.totalAmount)}</Typography>
-                  <Typography><strong>Created:</strong> {formatDate(selectedOrder.created_at)}</Typography>
-                  {selectedOrder.details.visitDate && (
-                    <Typography><strong>Visit Date:</strong> {selectedOrder.details.visitDate} {selectedOrder.details.visitTime}</Typography>
-                  )}
-                  {selectedOrder.details.numberOfPeople && (
-                    <Typography><strong>Number of People:</strong> {selectedOrder.details.numberOfPeople}</Typography>
-                  )}
-                  {selectedOrder.details.specialRequests && (
-                    <Typography><strong>Special Requests:</strong> {selectedOrder.details.specialRequests}</Typography>
-                  )}
+                <Box sx={{ p: 3, borderBottom: 1, borderColor: 'divider' }}>
+                  <Typography variant="subtitle1" sx={{ fontWeight: 'bold', color: theme === 'dark' ? '#00ffff' : '#007bff', mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <Receipt fontSize="small" /> Order Summary
+                  </Typography>
+                  
+                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', pb: 1, borderBottom: 1, borderColor: 'divider' }}>
+                      <Typography variant="body2" color="text.secondary">Order Type</Typography>
+                      <Typography variant="body2" sx={{ fontWeight: 500 }}>{orderTypeLabels[selectedOrder.orderType]}</Typography>
+                    </Box>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', pb: 1, borderBottom: 1, borderColor: 'divider' }}>
+                      <Typography variant="body2" color="text.secondary">Total Amount</Typography>
+                      <Typography variant="h6" sx={{ fontWeight: 'bold', color: theme === 'dark' ? '#00ffff' : '#007bff' }}>
+                        {formatPrice(selectedOrder.totalAmount)}
+                      </Typography>
+                    </Box>
+                    {selectedOrder.details.quantity && selectedOrder.details.quantity > 1 && (
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', pb: 1, borderBottom: 1, borderColor: 'divider' }}>
+                        <Typography variant="body2" color="text.secondary">Quantity</Typography>
+                        <Typography variant="body2" sx={{ fontWeight: 500 }}>{selectedOrder.details.quantity} units</Typography>
+                      </Box>
+                    )}
+                  </Box>
                 </Box>
                 
-                {/* Contact Info */}
-                <Typography variant="subtitle2" sx={{ color: theme === 'dark' ? '#00ffff' : '#007bff', mb: 1 }}>Contact Information</Typography>
-                <Box sx={{ p: 2, bgcolor: theme === 'dark' ? '#1e293b' : '#f8f9fa', borderRadius: 2 }}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    <Person fontSize="small" />
-                    <Typography variant="body2">{(selectedOrder.houseId as House)?.agentName || 'Property Manager'}</Typography>
+                {/* Visit Details */}
+                {(selectedOrder.details.visitDate || selectedOrder.details.visitTime) && (
+                  <Box sx={{ p: 3, borderBottom: 1, borderColor: 'divider' }}>
+                    <Typography variant="subtitle1" sx={{ fontWeight: 'bold', color: theme === 'dark' ? '#00ffff' : '#007bff', mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <AccessTime fontSize="small" /> Visit Schedule
+                    </Typography>
+                    
+                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 3 }}>
+                      {selectedOrder.details.visitDate && (
+                        <Box>
+                          <Typography variant="caption" color="text.secondary">Visit Date</Typography>
+                          <Typography variant="body2" sx={{ fontWeight: 500 }}>{selectedOrder.details.visitDate}</Typography>
+                        </Box>
+                      )}
+                      {selectedOrder.details.visitTime && (
+                        <Box>
+                          <Typography variant="caption" color="text.secondary">Visit Time</Typography>
+                          <Typography variant="body2" sx={{ fontWeight: 500 }}>{selectedOrder.details.visitTime}</Typography>
+                        </Box>
+                      )}
+                      {selectedOrder.details.numberOfPeople && (
+                        <Box>
+                          <Typography variant="caption" color="text.secondary">Number of People</Typography>
+                          <Typography variant="body2" sx={{ fontWeight: 500 }}>{selectedOrder.details.numberOfPeople}</Typography>
+                        </Box>
+                      )}
+                    </Box>
+                    
+                    {selectedOrder.details.specialRequests && (
+                      <Box sx={{ mt: 2 }}>
+                        <Typography variant="caption" color="text.secondary">Special Requests</Typography>
+                        <Typography variant="body2" sx={{ fontStyle: 'italic' }}>{selectedOrder.details.specialRequests}</Typography>
+                      </Box>
+                    )}
                   </Box>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 1 }}>
-                    <Phone fontSize="small" />
-                    <Typography variant="body2">{(selectedOrder.houseId as House)?.agentContact || 'Contact for details'}</Typography>
-                  </Box>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 1 }}>
-                    <Email fontSize="small" />
-                    <Typography variant="body2">{(selectedOrder.houseId as House)?.agentId?.email || 'agent@example.com'}</Typography>
+                )}
+                
+                {/* Contact Information */}
+                <Box sx={{ p: 3, borderBottom: 1, borderColor: 'divider' }}>
+                  <Typography variant="subtitle1" sx={{ fontWeight: 'bold', color: theme === 'dark' ? '#00ffff' : '#007bff', mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <Person fontSize="small" /> Contact Information
+                  </Typography>
+                  
+                  <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, gap: 3 }}>
+                    <Box>
+                      <Typography variant="caption" color="text.secondary">Agent Name</Typography>
+                      <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                        {(selectedOrder.houseId as House)?.agentName || 'Property Manager'}
+                      </Typography>
+                    </Box>
+                    <Box>
+                      <Typography variant="caption" color="text.secondary">Phone</Typography>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                        <Phone sx={{ fontSize: 14 }} />
+                        <Typography variant="body2">{(selectedOrder.houseId as House)?.agentContact || 'Contact for details'}</Typography>
+                      </Box>
+                    </Box>
+                    <Box>
+                      <Typography variant="caption" color="text.secondary">Email</Typography>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                        <Email sx={{ fontSize: 14 }} />
+                        <Typography variant="body2">{(selectedOrder.houseId as House)?.agentId?.email || 'agent@example.com'}</Typography>
+                      </Box>
+                    </Box>
                   </Box>
                 </Box>
                 
                 {/* Timeline */}
                 {selectedOrder.timeline && selectedOrder.timeline.length > 0 && (
-                  <>
-                    <Typography variant="subtitle2" sx={{ color: theme === 'dark' ? '#00ffff' : '#007bff', mt: 3, mb: 1 }}>Timeline</Typography>
-                    <Box sx={{ p: 2, bgcolor: theme === 'dark' ? '#1e293b' : '#f8f9fa', borderRadius: 2, maxHeight: 200, overflow: 'auto' }}>
+                  <Box sx={{ p: 3 }}>
+                    <Typography variant="subtitle1" sx={{ fontWeight: 'bold', color: theme === 'dark' ? '#00ffff' : '#007bff', mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <AccessTime fontSize="small" /> Timeline
+                    </Typography>
+                    
+                    <Box sx={{ maxHeight: 250, overflow: 'auto' }}>
                       {selectedOrder.timeline.map((event, index) => (
-                        <Box key={index} sx={{ mb: 1, pb: 1, borderBottom: index < selectedOrder.timeline.length - 1 ? 1 : 0, borderColor: 'divider' }}>
-                          <Typography variant="body2"><strong>{event.status}</strong></Typography>
-                          <Typography variant="caption" color="text.secondary">{formatDate(event.timestamp)}</Typography>
-                          {event.comment && <Typography variant="caption" display="block">{event.comment}</Typography>}
+                        <Box key={index} sx={{ 
+                          mb: 2, 
+                          pb: 2, 
+                          borderBottom: index < selectedOrder.timeline.length - 1 ? 1 : 0, 
+                          borderColor: 'divider',
+                          position: 'relative',
+                          pl: 3
+                        }}>
+                          <Box sx={{ 
+                            position: 'absolute', 
+                            left: 0, 
+                            top: 0,
+                            width: 8,
+                            height: 8,
+                            borderRadius: '50%',
+                            backgroundColor: statusColors[event.status] === 'success' ? '#00ff00' : 
+                                          statusColors[event.status] === 'warning' ? '#ff9900' :
+                                          statusColors[event.status] === 'error' ? '#ff0000' : '#00ffff'
+                          }} />
+                          <Typography variant="body2" sx={{ fontWeight: 'bold' }}>{event.status}</Typography>
+                          <Typography variant="caption" color="text.secondary" display="block">
+                            {formatDate(event.timestamp)}
+                          </Typography>
+                          {event.comment && (
+                            <Typography variant="caption" display="block" sx={{ mt: 0.5, color: theme === 'dark' ? '#a8b2d1' : '#666666' }}>
+                              {event.comment}
+                            </Typography>
+                          )}
                         </Box>
                       ))}
                     </Box>
-                  </>
+                  </Box>
                 )}
               </DialogContent>
-              <DialogActions>
+              
+              <DialogActions sx={{ p: 3, gap: 2, flexWrap: 'wrap' }}>
                 <Button onClick={() => setOpenViewDialog(false)}>Close</Button>
                 <Button
-                  variant="contained"
+                  variant="outlined"
+                  startIcon={<WhatsApp />}
+                  onClick={() => {
+                    const phone = (selectedOrder.houseId as House)?.agentContact;
+                    if (phone) {
+                      window.open(`https://wa.me/${phone.replace(/[^0-9]/g, '')}`, '_blank');
+                    }
+                  }}
+                >
+                  WhatsApp
+                </Button>
+                <Button
+                  variant="outlined"
                   startIcon={<Message />}
                   onClick={() => { 
                     setOpenViewDialog(false); 
@@ -459,10 +649,27 @@ const CustomerOrdersPage = () => {
                 >
                   Send Message
                 </Button>
+                <Button
+                  variant="contained"
+                  startIcon={<PaymentIcon />}
+                  onClick={() => {
+                    setOpenViewDialog(false);
+                    setOpenPaymentModal(true);
+                  }}
+                  sx={{
+                    background: theme === 'dark' ? 'linear-gradient(135deg, #ff9900, #ff6600)' : 'linear-gradient(135deg, #ff9900, #ff6600)',
+                    '&:hover': {
+                      background: theme === 'dark' ? 'linear-gradient(135deg, #ff8800, #ff5500)' : 'linear-gradient(135deg, #ff8800, #ff5500)'
+                    }
+                  }}
+                >
+                  Make Payment ({formatPrice(selectedOrder.totalAmount)})
+                </Button>
                 {(selectedOrder.status === OrderStatus.PENDING || selectedOrder.status === OrderStatus.UNDER_REVIEW) && (
                   <Button
                     variant="contained"
                     color="error"
+                    startIcon={<Cancel />}
                     onClick={() => { setOpenViewDialog(false); setOpenCancelDialog(true); }}
                   >
                     Cancel Order
@@ -503,10 +710,24 @@ const CustomerOrdersPage = () => {
           userRole="customer"
         />
         
-        <Snackbar open={!!error} autoHideDuration={6000} onClose={() => setError('')}>
+        {/* Payment Modal */}
+        {selectedOrder && (
+          <PaymentModal
+            open={openPaymentModal}
+            onClose={() => {
+              setOpenPaymentModal(false);
+              setSelectedOrder(null);
+            }}
+            houseId={(selectedOrder.houseId as House)?._id || ''}
+            houseTitle={(selectedOrder.houseId as House)?.title || ''}
+            amount={selectedOrder.totalAmount}
+          />
+        )}
+        
+        <Snackbar open={!!error} autoHideDuration={6000} onClose={() => setError('')} anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}>
           <Alert severity="error" onClose={() => setError('')}>{error}</Alert>
         </Snackbar>
-        <Snackbar open={!!success} autoHideDuration={6000} onClose={() => setSuccess('')}>
+        <Snackbar open={!!success} autoHideDuration={6000} onClose={() => setSuccess('')} anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}>
           <Alert severity="success" onClose={() => setSuccess('')}>{success}</Alert>
         </Snackbar>
       </Box>

@@ -52,12 +52,12 @@ const allMenuItems: MenuItem[] = [
     icon: Users,
     allowedRoles: ['admin']
   },
-  { 
-    name: 'Payments', 
-    href: '/admin/payments',
-    icon: WalletIcon,
-    allowedRoles: ['admin', 'Priesedant', 'Vice-Priesedant', 'accountant', 'Secretary', 'Limat'] 
-  },
+  // { 
+  //   name: 'Payments', 
+  //   href: '/admin/payments',
+  //   icon: WalletIcon,
+  //   allowedRoles: ['admin', 'Priesedant', 'Vice-Priesedant', 'accountant', 'Secretary', 'Limat'] 
+  // },
   { 
     name: 'Acounts', 
     href: '/admin/payments',
@@ -89,6 +89,12 @@ const allMenuItems: MenuItem[] = [
     allowedRoles: ['admin', 'Priesedant', 'Vice-Priesedant', 'accountant', 'Secretary'] 
   },
   { 
+    name: 'My Payments',
+    href: '/admin/customer/payments',
+    icon: FileText,
+    allowedRoles: ['admin', 'Priesedant', 'Vice-Priesedant', 'accountant', 'Secretary'] 
+  },
+  { 
     name: 'Transactions', 
     href: '/admin/transactions/complete', 
     icon: FileTextIcon,
@@ -106,27 +112,27 @@ const allMenuItems: MenuItem[] = [
     icon: FileTextIcon,
     allowedRoles: ['admin', 'accountant'] 
   },
-  { 
-    name: 'Wallet', 
-    href: '/admin/wallet',
-    icon: Wallet,
-    allowedRoles: ['admin', 'Priesedant', 'accountant', 'Limat'] 
-  },
+  // { 
+  //   name: 'Wallet', 
+  //   href: '/admin/wallet',
+  //   icon: Wallet,
+  //   allowedRoles: ['admin', 'Priesedant', 'accountant', 'Limat'] 
+  // },
   { 
     name: 'Messages', 
     href: '/admin/manager/messages',
     icon: MessageSquare,
     allowedRoles: ['admin', 'Priesedant', 'Vice-Priesedant', 'Secretary'] 
   },
-  { 
-    name: 'QR code', 
-    href: '/admin/qrcode', 
-    icon: QrCode,
-    allowedRoles: ['admin', 'Priesedant', 'Vice-Priesedant', 'accountant', 'Secretary'] 
-  },
+  // { 
+  //   name: 'QR code', 
+  //   href: '/admin/qrcode', 
+  //   icon: QrCode,
+  //   allowedRoles: ['admin', 'Priesedant', 'Vice-Priesedant', 'accountant', 'Secretary'] 
+  // },
   { 
     name: 'Reports', 
-    href: '/admin/reports', 
+    href: '/admin/reports/transactions', 
     icon: TrendingUp,
     allowedRoles: ['admin', 'Priesedant', 'accountant', 'Limat', 'Audite'] 
   },

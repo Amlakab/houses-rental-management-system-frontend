@@ -342,13 +342,13 @@ export default function CompleteTransactionsPage() {
       color: theme === 'dark' ? '#00ff00' : '#28a745',
       description: 'All time deposits'
     },
-    {
-      title: 'Total Withdrawals',
-      value: walletStats?.totalWithdrawal || 0,
-      icon: <WithdrawIcon sx={{ fontSize: 28 }} />,
-      color: theme === 'dark' ? '#ff0000' : '#dc3545',
-      description: 'All time withdrawals'
-    },
+    // {
+    //   title: 'Total Withdrawals',
+    //   value: walletStats?.totalWithdrawal || 0,
+    //   icon: <WithdrawIcon sx={{ fontSize: 28 }} />,
+    //   color: theme === 'dark' ? '#ff0000' : '#dc3545',
+    //   description: 'All time withdrawals'
+    // },
     {
       title: 'Daily Deposits',
       value: dailyDeposits,
@@ -356,13 +356,13 @@ export default function CompleteTransactionsPage() {
       color: theme === 'dark' ? '#00b3b3' : '#17a2b8',
       description: "Today's deposits"
     },
-    {
-      title: 'Daily Withdrawals',
-      value: dailyWithdrawals,
-      icon: <CalendarIcon sx={{ fontSize: 28 }} />,
-      color: theme === 'dark' ? '#ff9900' : '#ffc107',
-      description: "Today's withdrawals"
-    }
+    // {
+    //   title: 'Daily Withdrawals',
+    //   value: dailyWithdrawals,
+    //   icon: <CalendarIcon sx={{ fontSize: 28 }} />,
+    //   color: theme === 'dark' ? '#ff9900' : '#ffc107',
+    //   description: "Today's withdrawals"
+    // }
   ];
 
   return (

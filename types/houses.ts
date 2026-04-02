@@ -134,6 +134,7 @@ export interface OrderDetails {
   numberOfPeople?: number;
   specialRequests?: string;
   preferredContactMethod: string[];
+  quantity: number; // ADD THIS LINE
 }
 
 export interface Order {
