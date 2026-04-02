@@ -4,7 +4,6 @@ export interface User {
   email: string;
   phone: string;
   background?: string;
-  studentId: string; // or mongoose.Types.ObjectId if using mongoose
   role:
     | 'user'
     | 'disk-user'
@@ -91,6 +90,7 @@ export interface Winning {
 
 // types/index.ts
 // types/index.ts
+// types/index.ts
 export interface AuthContextType {
   user: User | null;
   login: (phone: string, password: string) => Promise<User>;
@@ -100,13 +100,13 @@ export interface AuthContextType {
     email: string;
     phone: string;
     background?: string;
-    studentId: string;
     password: string;
     role?: User['role'];
   }) => Promise<User>;
+  socialLogin: (provider: 'google' | 'microsoft' | 'github' | 'apple') => Promise<User>; // Add this line
   logout: () => void;
   isLoading: boolean;
-  fetchUserProfile: () => Promise<User | null>; // Add this line
+  fetchUserProfile: () => Promise<User | null>;
 }
 
 //st of your types remain the same

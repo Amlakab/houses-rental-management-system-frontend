@@ -7,25 +7,25 @@ import {
   Dialog, DialogTitle, DialogContent, DialogActions, Button,
   Divider, CircularProgress, useMediaQuery, Snackbar, Alert,
   Tooltip, TextField, FormControl, InputLabel, Select, MenuItem,
-  Stepper, Step, StepLabel, Paper, Avatar
+  Stepper, Step, StepLabel, Avatar, Paper
 } from '@mui/material';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTheme } from '@/lib/theme-context';
 import {
-  Home, LocationOn, AttachMoney, Bed, Bathtub,
+  Home, LocationOn, Bed, Bathtub,
   SquareFoot, ArrowBack, Visibility, ShoppingCart,
   CheckCircle, Cancel, Apartment, Villa, Landscape,
   Pool, FitnessCenter, Security, LocalParking, Wifi,
-  ThreeDRotation, CalendarToday, AccessTime, LocalOffer,
-  Description, PhotoCamera, Share, Favorite, FavoriteBorder,
+  ThreeDRotation, CalendarToday,
   Email, Phone, WhatsApp, Send,
   Close, Image as ImageIcon, Chat, Person,
-  ArrowForwardIos, ArrowBackIos
+  ArrowForwardIos, ArrowBackIos, Payment
 } from '@mui/icons-material';
 import api from '@/app/utils/api';
-import { House, PropertyType, OrderType, OrderStatus } from '@/types/houses';
+import { House, PropertyType, OrderType } from '@/types/houses';
 import MessageModal from '@/components/MessageModal';
 import ThreeViewer from '@/components/ThreeViewer';
+import PaymentModal from '@/components/PaymentModal';
 
 const propertyTypeIcons: Record<PropertyType, React.ReactElement> = {
   [PropertyType.APARTMENT]: <Apartment />,
@@ -69,9 +69,14 @@ const PublicHouseDetailPage = ({ houseId, onBack }: PublicHouseDetailPageProps) 
   const [activeTab, setActiveTab] = useState<'images' | '3d' | 'virtual'>('images');
   const [open3DDialog, setOpen3DDialog] = useState(false);
   const [openOrderDialog, setOpenOrderDialog] = useState(false);
+  const [openChatDialog, setOpenChatDialog] = useState(false);
   const [activeStep, setActiveStep] = useState(0);
   const [orderLoading, setOrderLoading] = useState(false);
   const [quantity, setQuantity] = useState(1);
+  const [chatMessage, setChatMessage] = useState('');
+  const [chatMessages, setChatMessages] = useState<Array<{ sender: string; message: string; time: Date }>>([]);
+  const [sendingMessage, setSendingMessage] = useState(false);
+  const [paymentModalOpen, setPaymentModalOpen] = useState(false);
   
   const [orderForm, setOrderForm] = useState({
     orderType: OrderType.INQUIRY,
@@ -85,6 +90,7 @@ const PublicHouseDetailPage = ({ houseId, onBack }: PublicHouseDetailPageProps) 
   });
 
   const threeDViewerRef = useRef<HTMLDivElement>(null);
+  const chatEndRef = useRef<HTMLDivElement>(null);
 
   const getImageUrl = (image: any, index: number): string | null => {
     if (house?.images && house.images[index] && house.images[index].data) {
@@ -114,6 +120,12 @@ const PublicHouseDetailPage = ({ houseId, onBack }: PublicHouseDetailPageProps) 
     }
   }, [houseId]);
 
+  useEffect(() => {
+    if (chatEndRef.current) {
+      chatEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [chatMessages]);
+
   const handleOrderSubmit = async () => {
     if (!house) return;
     
@@ -135,10 +147,46 @@ const PublicHouseDetailPage = ({ houseId, onBack }: PublicHouseDetailPageProps) 
       setSuccess('Application submitted successfully! The agent will contact you soon.');
       setOpenOrderDialog(false);
       setQuantity(1);
+      setActiveStep(0);
     } catch (error: any) {
       setError(error.response?.data?.message || 'Failed to submit application');
     } finally {
       setOrderLoading(false);
+    }
+  };
+
+  const handleSendChatMessage = async () => {
+    if (!chatMessage.trim() || !house) return;
+    
+    try {
+      setSendingMessage(true);
+      
+      const newMessage = {
+        sender: 'You',
+        message: chatMessage,
+        time: new Date()
+      };
+      setChatMessages(prev => [...prev, newMessage]);
+      
+      const response = await api.post('/messages/send', {
+        orderId: house._id,
+        content: chatMessage
+      });
+      
+      setTimeout(() => {
+        setChatMessages(prev => [...prev, {
+          sender: house.agentName || 'Agent',
+          message: 'Thank you for your message. I will get back to you shortly.',
+          time: new Date()
+        }]);
+      }, 1000);
+      
+      setChatMessage('');
+    } catch (error: any) {
+      setError(error.response?.data?.message || 'Failed to send message');
+      setChatMessages(prev => prev.slice(0, -1));
+    } finally {
+      setSendingMessage(false);
     }
   };
 
@@ -267,7 +315,12 @@ const PublicHouseDetailPage = ({ houseId, onBack }: PublicHouseDetailPageProps) 
                       <img 
                         src={getImageUrl(house, selectedImage)!} 
                         alt={`${house.title} - Image ${selectedImage + 1}`}
-                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                        style={{ 
+                          width: '100%', 
+                          height: '100%', 
+                          objectFit: 'cover',
+                          transition: 'transform 0.3s ease'
+                        }}
                       />
                     ) : (
                       <Box sx={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -291,7 +344,11 @@ const PublicHouseDetailPage = ({ houseId, onBack }: PublicHouseDetailPageProps) 
                         transform: 'translateY(-50%)',
                         backgroundColor: 'rgba(0,0,0,0.5)',
                         color: 'white',
-                        '&:hover': { backgroundColor: 'rgba(0,0,0,0.7)' },
+                        '&:hover': {
+                          backgroundColor: 'rgba(0,0,0,0.7)',
+                          transform: 'translateY(-50%) scale(1.1)'
+                        },
+                        transition: 'all 0.2s ease',
                         zIndex: 2
                       }}
                     >
@@ -309,7 +366,11 @@ const PublicHouseDetailPage = ({ houseId, onBack }: PublicHouseDetailPageProps) 
                         transform: 'translateY(-50%)',
                         backgroundColor: 'rgba(0,0,0,0.5)',
                         color: 'white',
-                        '&:hover': { backgroundColor: 'rgba(0,0,0,0.7)' },
+                        '&:hover': {
+                          backgroundColor: 'rgba(0,0,0,0.7)',
+                          transform: 'translateY(-50%) scale(1.1)'
+                        },
+                        transition: 'all 0.2s ease',
                         zIndex: 2
                       }}
                     >
@@ -344,20 +405,34 @@ const PublicHouseDetailPage = ({ houseId, onBack }: PublicHouseDetailPageProps) 
                   '&::-webkit-scrollbar-thumb': { backgroundColor: theme === 'dark' ? '#00ffff' : '#007bff', borderRadius: 4 }
                 }}>
                   {house.images.map((_, index) => (
-                    <motion.div key={index} whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                    <motion.div
+                      key={index}
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                    >
                       <Box
                         onClick={() => setSelectedImage(index)}
                         sx={{
-                          width: 80, height: 60, borderRadius: 1, overflow: 'hidden',
+                          width: 80, 
+                          height: 60, 
+                          borderRadius: 1, 
+                          overflow: 'hidden',
                           cursor: 'pointer', 
                           border: selectedImage === index ? `2px solid ${theme === 'dark' ? '#00ffff' : '#007bff'}` : '2px solid transparent',
                           opacity: selectedImage === index ? 1 : 0.6,
                           transition: 'all 0.2s ease',
-                          '&:hover': { opacity: 1, transform: 'translateY(-2px)' }
+                          '&:hover': {
+                            opacity: 1,
+                            transform: 'translateY(-2px)'
+                          }
                         }}
                       >
                         {getImageUrl(house, index) ? (
-                          <img src={getImageUrl(house, index)!} alt={`Thumbnail ${index + 1}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                          <img 
+                            src={getImageUrl(house, index)!} 
+                            alt={`Thumbnail ${index + 1}`}
+                            style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+                          />
                         ) : (
                           <Box sx={{ width: '100%', height: '100%', backgroundColor: theme === 'dark' ? '#334155' : '#e5e7eb' }} />
                         )}
@@ -371,7 +446,14 @@ const PublicHouseDetailPage = ({ houseId, onBack }: PublicHouseDetailPageProps) 
           
           {/* 3D Model View */}
           {activeTab === '3d' && has3DModels && (
-            <Box sx={{ width: '100%', height: 500, position: 'relative', overflow: 'hidden', backgroundColor: '#111827', borderRadius: 2 }}>
+            <Box sx={{ 
+              width: '100%', 
+              height: 520,
+              position: 'relative',
+              overflow: 'hidden',
+              backgroundColor: '#111827',
+              borderRadius: 2
+            }}>
               {house?.threeDModels && house.threeDModels.length > 0 && house.threeDModels[0].data ? (
                 (() => {
                   try {
@@ -447,6 +529,11 @@ const PublicHouseDetailPage = ({ houseId, onBack }: PublicHouseDetailPageProps) 
                   }}
                 />
               </Box>
+              {house.virtualTour.embedCode && (
+                <Typography variant="caption" sx={{ mt: 1, display: 'block', color: theme === 'dark' ? '#a8b2d1' : '#666666', textAlign: 'center' }}>
+                  Interactive Virtual Tour Available
+                </Typography>
+              )}
             </Box>
           )}
         </Card>
@@ -566,6 +653,31 @@ const PublicHouseDetailPage = ({ houseId, onBack }: PublicHouseDetailPageProps) 
                 </Box>
               </Card>
             )}
+            
+            {/* Additional Details */}
+            <Card sx={{ borderRadius: 3, p: 3, backgroundColor: theme === 'dark' ? '#0f172a80' : 'white' }}>
+              <Typography variant="h6" sx={{ fontWeight: 'bold', color: theme === 'dark' ? '#00ffff' : '#007bff', mb: 2 }}>
+                Additional Details
+              </Typography>
+              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
+                <Box sx={{ flex: 1, minWidth: 150 }}>
+                  <Typography variant="caption" color={theme === 'dark' ? '#a8b2d1' : '#666666'}>Year Built</Typography>
+                  <Typography variant="body2">{house.details.yearBuilt || 'N/A'}</Typography>
+                </Box>
+                <Box sx={{ flex: 1, minWidth: 150 }}>
+                  <Typography variant="caption" color={theme === 'dark' ? '#a8b2d1' : '#666666'}>Floors</Typography>
+                  <Typography variant="body2">{house.details.floors}</Typography>
+                </Box>
+                <Box sx={{ flex: 1, minWidth: 150 }}>
+                  <Typography variant="caption" color={theme === 'dark' ? '#a8b2d1' : '#666666'}>Lot Size</Typography>
+                  <Typography variant="body2">{house.details.lotSize ? `${house.details.lotSize} sqft` : 'N/A'}</Typography>
+                </Box>
+                <Box sx={{ flex: 1, minWidth: 150 }}>
+                  <Typography variant="caption" color={theme === 'dark' ? '#a8b2d1' : '#666666'}>Furnished</Typography>
+                  <Typography variant="body2">{house.details.furnished ? 'Yes' : 'No'}</Typography>
+                </Box>
+              </Box>
+            </Card>
           </Box>
           
           {/* Sidebar */}
@@ -610,7 +722,22 @@ const PublicHouseDetailPage = ({ houseId, onBack }: PublicHouseDetailPageProps) 
                   py: 1.5
                 }}
               >
-                Make Inquiry / Apply
+                Apply Physical Tour
+              </Button>
+
+              <Button
+                fullWidth
+                variant="contained"
+                startIcon={<Payment />}
+                onClick={() => setPaymentModalOpen(true)}
+                sx={{
+                  mb: 2,
+                  background: theme === 'dark' ? 'linear-gradient(135deg, #ff9900, #ff6600)' : 'linear-gradient(135deg, #ff9900, #ff6600)',
+                  borderRadius: 2,
+                  py: 1.5
+                }}
+              >
+                Proceed Payment ({formatPrice(house.pricing.price)})
               </Button>
               
               <Button
@@ -629,6 +756,15 @@ const PublicHouseDetailPage = ({ houseId, onBack }: PublicHouseDetailPageProps) 
                 Send Message
               </Button>
               
+              <Button
+                fullWidth
+                variant="outlined"
+                startIcon={<WhatsApp />}
+                sx={{ borderRadius: 2, py: 1.5 }}
+              >
+                Chat on WhatsApp
+              </Button>
+              
               <Divider sx={{ my: 2 }} />
               
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -645,6 +781,29 @@ const PublicHouseDetailPage = ({ houseId, onBack }: PublicHouseDetailPageProps) 
           </Box>
         </Box>
       </motion.div>
+      
+      {/* 3D Viewer Dialog */}
+      <Dialog
+        open={open3DDialog}
+        onClose={() => setOpen3DDialog(false)}
+        maxWidth="lg"
+        fullWidth
+        fullScreen={isMobile}
+        PaperProps={{ sx: { borderRadius: 3, backgroundColor: '#000', height: '80vh' } }}
+      >
+        <DialogTitle sx={{ backgroundColor: '#000', color: 'white', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <Typography component="div">3D Virtual Tour</Typography>
+          <IconButton onClick={() => setOpen3DDialog(false)} sx={{ color: 'white' }}>
+            <Close />
+          </IconButton>
+        </DialogTitle>
+        <DialogContent sx={{ p: 0, backgroundColor: '#000', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <Box ref={threeDViewerRef} sx={{ width: '100%', height: '100%', minHeight: 500, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <Typography color="white">3D Model Viewer would load here</Typography>
+            <Typography variant="caption" color="gray" sx={{ ml: 2 }}>Coming soon with Three.js integration</Typography>
+          </Box>
+        </DialogContent>
+      </Dialog>
       
       {/* Order/Inquiry Dialog */}
       <Dialog
@@ -759,22 +918,45 @@ const PublicHouseDetailPage = ({ houseId, onBack }: PublicHouseDetailPageProps) 
                 Preferred Contact Method:
               </Typography>
               <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
-                {['EMAIL', 'PHONE', 'WHATSAPP'].map(method => (
-                  <Chip
-                    key={method}
-                    label={method}
-                    onClick={() => setOrderForm(prev => ({
-                      ...prev,
-                      details: {
-                        ...prev.details,
-                        preferredContactMethod: prev.details.preferredContactMethod.includes(method)
-                          ? prev.details.preferredContactMethod.filter(m => m !== method)
-                          : [...prev.details.preferredContactMethod, method]
-                      }
-                    }))}
-                    color={orderForm.details.preferredContactMethod.includes(method) ? 'primary' : 'default'}
-                  />
-                ))}
+                <Chip
+                  label="Email"
+                  onClick={() => setOrderForm(prev => ({
+                    ...prev,
+                    details: {
+                      ...prev.details,
+                      preferredContactMethod: prev.details.preferredContactMethod.includes('EMAIL')
+                        ? prev.details.preferredContactMethod.filter(m => m !== 'EMAIL')
+                        : [...prev.details.preferredContactMethod, 'EMAIL']
+                    }
+                  }))}
+                  color={orderForm.details.preferredContactMethod.includes('EMAIL') ? 'primary' : 'default'}
+                />
+                <Chip
+                  label="Phone"
+                  onClick={() => setOrderForm(prev => ({
+                    ...prev,
+                    details: {
+                      ...prev.details,
+                      preferredContactMethod: prev.details.preferredContactMethod.includes('PHONE')
+                        ? prev.details.preferredContactMethod.filter(m => m !== 'PHONE')
+                        : [...prev.details.preferredContactMethod, 'PHONE']
+                    }
+                  }))}
+                  color={orderForm.details.preferredContactMethod.includes('PHONE') ? 'primary' : 'default'}
+                />
+                <Chip
+                  label="WhatsApp"
+                  onClick={() => setOrderForm(prev => ({
+                    ...prev,
+                    details: {
+                      ...prev.details,
+                      preferredContactMethod: prev.details.preferredContactMethod.includes('WHATSAPP')
+                        ? prev.details.preferredContactMethod.filter(m => m !== 'WHATSAPP')
+                        : [...prev.details.preferredContactMethod, 'WHATSAPP']
+                    }
+                  }))}
+                  color={orderForm.details.preferredContactMethod.includes('WHATSAPP') ? 'primary' : 'default'}
+                />
               </Box>
             </Box>
           )}
@@ -785,7 +967,10 @@ const PublicHouseDetailPage = ({ houseId, onBack }: PublicHouseDetailPageProps) 
             <Button onClick={() => setActiveStep(prev => prev - 1)}>Back</Button>
           )}
           {activeStep < 2 ? (
-            <Button variant="contained" onClick={() => setActiveStep(prev => prev + 1)}>
+            <Button
+              variant="contained"
+              onClick={() => setActiveStep(prev => prev + 1)}
+            >
               Next
             </Button>
           ) : (
@@ -802,12 +987,88 @@ const PublicHouseDetailPage = ({ houseId, onBack }: PublicHouseDetailPageProps) 
         </DialogActions>
       </Dialog>
       
-      <MessageModal
-        open={messageModalOpen}
-        onClose={() => setMessageModalOpen(false)}
-        houseId={houseId}
-        houseTitle={house?.title || ''}
-      />
+      {/* Chat with Agent Dialog */}
+      <Dialog
+        open={openChatDialog}
+        onClose={() => setOpenChatDialog(false)}
+        maxWidth="sm"
+        fullWidth
+        fullScreen={isMobile}
+        PaperProps={{ sx: { borderRadius: 3, backgroundColor: theme === 'dark' ? '#0f172a' : 'white', height: { xs: '100%', sm: '600px' }, display: 'flex', flexDirection: 'column' } }}
+      >
+        <DialogTitle sx={{ borderBottom: 1, borderColor: 'divider', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <Avatar sx={{ bgcolor: theme === 'dark' ? '#00ffff20' : '#007bff10', color: theme === 'dark' ? '#00ffff' : '#007bff' }}>
+              <Person />
+            </Avatar>
+            <Box>
+              <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>Chat with Agent</Typography>
+              <Typography variant="caption" color="text.secondary">{house.agentName || 'Property Manager'}</Typography>
+            </Box>
+          </Box>
+          <IconButton onClick={() => setOpenChatDialog(false)}>
+            <Close />
+          </IconButton>
+        </DialogTitle>
+        <DialogContent sx={{ flex: 1, overflowY: 'auto', p: 2 }}>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+            <Box sx={{ textAlign: 'center', mb: 2 }}>
+              <Typography variant="caption" color="text.secondary">
+                Start a conversation about {house.title}
+              </Typography>
+            </Box>
+            
+            <AnimatePresence>
+              {chatMessages.map((msg, idx) => (
+                <motion.div
+                  key={idx}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  style={{ display: 'flex', justifyContent: msg.sender === 'You' ? 'flex-end' : 'flex-start' }}
+                >
+                  <Paper
+                    sx={{
+                      maxWidth: '80%',
+                      p: 1.5,
+                      borderRadius: 2,
+                      backgroundColor: msg.sender === 'You'
+                        ? (theme === 'dark' ? '#00ffff20' : '#007bff10')
+                        : (theme === 'dark' ? '#1e293b' : '#f0f0f0'),
+                      color: msg.sender === 'You'
+                        ? (theme === 'dark' ? '#00ffff' : '#007bff')
+                        : (theme === 'dark' ? '#ccd6f6' : '#333333')
+                    }}
+                  >
+                    <Typography variant="body2">{msg.message}</Typography>
+                    <Typography variant="caption" display="block" sx={{ mt: 0.5, opacity: 0.7 }}>
+                      {msg.time.toLocaleTimeString()}
+                    </Typography>
+                  </Paper>
+                </motion.div>
+              ))}
+            </AnimatePresence>
+            <div ref={chatEndRef} />
+          </Box>
+        </DialogContent>
+        <DialogActions sx={{ borderTop: 1, borderColor: 'divider', p: 2 }}>
+          <TextField
+            fullWidth
+            size="small"
+            placeholder="Type your message..."
+            value={chatMessage}
+            onChange={(e) => setChatMessage(e.target.value)}
+            onKeyPress={(e) => e.key === 'Enter' && handleSendChatMessage()}
+            sx={{ mr: 1 }}
+          />
+          <IconButton
+            onClick={handleSendChatMessage}
+            disabled={sendingMessage || !chatMessage.trim()}
+            sx={{ color: theme === 'dark' ? '#00ffff' : '#007bff' }}
+          >
+            {sendingMessage ? <CircularProgress size={24} /> : <Send />}
+          </IconButton>
+        </DialogActions>
+      </Dialog>
       
       <Snackbar open={!!error} autoHideDuration={6000} onClose={() => setError('')} anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}>
         <Alert severity="error" onClose={() => setError('')}>{error}</Alert>
@@ -815,6 +1076,21 @@ const PublicHouseDetailPage = ({ houseId, onBack }: PublicHouseDetailPageProps) 
       <Snackbar open={!!success} autoHideDuration={6000} onClose={() => setSuccess('')} anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}>
         <Alert severity="success" onClose={() => setSuccess('')}>{success}</Alert>
       </Snackbar>
+
+      <MessageModal
+        open={messageModalOpen}
+        onClose={() => setMessageModalOpen(false)}
+        houseId={houseId}
+        houseTitle={house?.title || ''}
+      />
+
+      <PaymentModal
+        open={paymentModalOpen}
+        onClose={() => setPaymentModalOpen(false)}
+        houseId={houseId}
+        houseTitle={house?.title || ''}
+        amount={house?.pricing?.price || 0}
+      />
     </Box>
   );
 };

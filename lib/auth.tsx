@@ -119,7 +119,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     email: string;
     phone: string;
     background?: string;
-    studentId: string;
     password: string;
     role?: User['role'];
   }): Promise<User> => {
@@ -134,9 +133,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
       const payload: any = {
         phone: userData.phone,
-        password: userData.password,
-        tg_id: userData.studentId, // Map studentId to tg_id
-      };
+        password: userData.password,      };
 
       // Add agent_id if background is provided
       if (userData.background && userData.background.trim() !== '') {
@@ -168,6 +165,29 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const socialLogin = async (provider: 'google' | 'microsoft' | 'github' | 'apple'): Promise<User> => {
+  try {
+    // For demo purposes - you'll need to implement actual OAuth flow
+    // This is a placeholder - you'll need to set up OAuth with your backend
+    const response = await api.post('/auth/social-login', { provider });
+    
+    const responseData = response.data;
+    const { token, user: userData } = responseData.data;
+    
+    if (!token || !userData) {
+      throw new Error('Invalid response from server');
+    }
+    
+    localStorage.setItem('token', token);
+    localStorage.setItem('user', JSON.stringify(userData));
+    setUser(userData);
+    
+    return userData;
+  } catch (error: any) {
+    throw new Error(error.response?.data?.message || `${provider} login failed`);
+  }
+};
+
   const logout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
@@ -179,6 +199,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     login,
     loginWithOtp,
     register,
+    socialLogin,
     logout,
     isLoading,
     fetchUserProfile

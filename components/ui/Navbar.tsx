@@ -200,9 +200,16 @@ const Navbar: React.FC = () => {
                   href="/auth/login"
                   className="px-5 py-2 border border-primary dark:border-primary text-primary dark:text-primary hover:bg-primary dark:hover:bg-primary hover:text-surface dark:hover:text-surface rounded-lg font-medium transition-all duration-300 text-base hover:scale-105"
                 >
-                  Login
+                  Signin
+                </Link>
+                <Link
+                  href="/auth/register"
+                  className="px-5 py-2 border border-primary dark:border-primary text-primary dark:text-primary hover:bg-primary dark:hover:bg-primary hover:text-surface dark:hover:text-surface rounded-lg font-medium transition-all duration-300 text-base hover:scale-105"
+                >
+                  Signup
                 </Link>
               </div>
+              
             )}
 
             {/* Language Dropdown */}
@@ -382,7 +389,14 @@ const Navbar: React.FC = () => {
                       className="block w-full px-4 py-3 border border-primary dark:border-primary text-primary dark:text-primary hover:bg-primary dark:hover:bg-primary hover:text-surface dark:hover:text-surface rounded-lg font-medium transition-all duration-300 text-lg text-center"
                       onClick={() => setIsMenuOpen(false)}
                     >
-                      Login
+                      Signin
+                    </Link>
+                    <Link
+                      href="/auth/register"
+                      className="block w-full px-4 py-3 border border-primary dark:border-primary text-primary dark:text-primary hover:bg-primary dark:hover:bg-primary hover:text-surface dark:hover:text-surface rounded-lg font-medium transition-all duration-300 text-lg text-center"
+                      onClick={() => setIsMenuOpen(false)}
+                    >
+                      Signup
                     </Link>
                   </div>
                 </div>
