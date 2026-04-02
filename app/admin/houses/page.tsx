@@ -100,8 +100,8 @@ const AdminHousesPage = () => {
   });
 
  const getImageUrl = (houseId: string): string => {
-  const serverUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
-  const url = `${serverUrl}/api/houses/${houseId}/image`;
+  const serverUrl = process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:3001/api';
+  const url = `${serverUrl}/houses/${houseId}/image`;
   console.log('Image URL for house:', houseId, url); // Debug log
   return url;
 };
