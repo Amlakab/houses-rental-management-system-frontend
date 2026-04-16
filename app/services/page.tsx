@@ -275,7 +275,7 @@ const ServicePage = () => {
       
       <div className="pt-16">
         {/* Hero Section */}
-        <section className="relative py-20 overflow-hidden">
+        <section className="relative py-16 sm:py-20 overflow-hidden">
           <div className="absolute inset-0 z-0">
             <Image
               src={images.hero}
@@ -296,27 +296,27 @@ const ServicePage = () => {
               transition={{ duration: 1 }}
               className="text-center max-w-4xl mx-auto"
             >
-              <h1 className="text-4xl md:text-5xl font-bold mb-6 text-white">
+              <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4 sm:mb-6 text-white px-2">
                 Comprehensive Real Estate Services
               </h1>
-              <p className="text-xl text-white/90 mb-8">
+              <p className="text-base sm:text-lg md:text-xl text-white/90 mb-6 sm:mb-8 px-4">
                 From buying and selling to property management and investment consulting, 
                 we offer end-to-end solutions for all your real estate needs.
               </p>
-              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center px-4 sm:px-0">
                 <Link
                   href="/contact"
-                  className="inline-flex items-center px-8 py-3 bg-gradient-to-r from-blue-600 to-blue-800 hover:from-blue-700 hover:to-blue-900 text-white rounded-lg font-medium text-lg transition-all duration-300 shadow-lg"
+                  className="inline-flex items-center justify-center px-6 sm:px-8 py-2.5 sm:py-3 bg-gradient-to-r from-blue-600 to-blue-800 hover:from-blue-700 hover:to-blue-900 text-white rounded-lg font-medium text-sm sm:text-base md:text-lg transition-all duration-300 shadow-lg"
                 >
                   Get Free Consultation
-                  <FaArrowRight className="ml-2" />
+                  <FaArrowRight className="ml-2 text-sm sm:text-base" />
                 </Link>
                 <Link
                   href="/public/houses"
-                  className="inline-flex items-center px-8 py-3 border-2 border-white hover:bg-white/10 text-white rounded-lg font-medium text-lg transition-all duration-300"
+                  className="inline-flex items-center justify-center px-6 sm:px-8 py-2.5 sm:py-3 border-2 border-white hover:bg-white/10 text-white rounded-lg font-medium text-sm sm:text-base md:text-lg transition-all duration-300"
                 >
                   Browse Properties
-                  <FaSearch className="ml-2" />
+                  <FaSearch className="ml-2 text-sm sm:text-base" />
                 </Link>
               </div>
             </motion.div>
@@ -324,11 +324,11 @@ const ServicePage = () => {
         </section>
 
         {/* Stats Section */}
-        <section className={`py-16 px-4 ${
+        <section className={`py-12 sm:py-16 px-4 ${
           theme === 'dark' ? 'bg-gray-800/30' : 'bg-gray-100'
         }`}>
           <div className="container mx-auto">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-8">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-6 sm:gap-8">
               {stats.map((stat, index) => (
                 <motion.div
                   key={index}
@@ -338,17 +338,17 @@ const ServicePage = () => {
                   viewport={{ once: true }}
                   className="text-center"
                 >
-                  <div className={`inline-flex items-center justify-center w-12 h-12 rounded-full mb-3 ${
+                  <div className={`inline-flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 rounded-full mb-2 sm:mb-3 ${
                     theme === 'dark' ? 'bg-blue-500/20' : 'bg-blue-100'
                   }`}>
-                    <div className="text-2xl text-blue-600">
+                    <div className="text-xl sm:text-2xl text-blue-600">
                       {stat.icon}
                     </div>
                   </div>
-                  <div className="text-2xl font-bold text-blue-600">
+                  <div className="text-lg sm:text-xl md:text-2xl font-bold text-blue-600">
                     {stat.number}
                   </div>
-                  <div className="text-sm text-gray-600 dark:text-gray-400">
+                  <div className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
                     {stat.label}
                   </div>
                 </motion.div>
@@ -358,26 +358,26 @@ const ServicePage = () => {
         </section>
 
         {/* Services Grid */}
-        <section className="py-20 px-4">
+        <section className="py-12 sm:py-20 px-4">
           <div className="container mx-auto">
             <motion.div
               initial={{ y: 50, opacity: 0 }}
               whileInView={{ y: 0, opacity: 1 }}
               transition={{ duration: 0.5 }}
               viewport={{ once: true }}
-              className="text-center mb-12"
+              className="text-center mb-8 sm:mb-12"
             >
-              <h2 className="text-3xl md:text-4xl font-bold mb-4">
+              <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-3 sm:mb-4">
                 What We Offer
               </h2>
-              <p className={`text-lg max-w-3xl mx-auto ${
+              <p className={`text-base sm:text-lg max-w-3xl mx-auto px-2 ${
                 theme === 'dark' ? 'text-gray-300' : 'text-gray-600'
               }`}>
                 Comprehensive real estate solutions tailored to your unique needs
               </p>
             </motion.div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 sm:gap-6">
               {services.map((service, index) => {
                 const colors = getColorClasses(service.color);
                 return (
@@ -393,16 +393,16 @@ const ServicePage = () => {
                     }`}
                     onClick={() => setActiveService(activeService === service.id ? null : service.id)}
                   >
-                    <div className="p-6">
-                      <div className={`inline-flex items-center justify-center w-14 h-14 rounded-full mb-4 ${colors.bg} bg-opacity-20`}>
-                        <div className={`text-2xl ${colors.text}`}>
+                    <div className="p-4 sm:p-6">
+                      <div className={`inline-flex items-center justify-center w-12 h-12 sm:w-14 sm:h-14 rounded-full mb-3 sm:mb-4 ${colors.bg} bg-opacity-20`}>
+                        <div className={`text-xl sm:text-2xl ${colors.text}`}>
                           {service.icon}
                         </div>
                       </div>
-                      <h3 className={`text-xl font-bold mb-2 ${colors.text}`}>
+                      <h3 className={`text-base sm:text-lg md:text-xl font-bold mb-1 sm:mb-2 ${colors.text}`}>
                         {service.title}
                       </h3>
-                      <p className={`text-sm mb-4 ${
+                      <p className={`text-xs sm:text-sm mb-3 sm:mb-4 ${
                         theme === 'dark' ? 'text-gray-300' : 'text-gray-600'
                       }`}>
                         {service.description}
@@ -418,10 +418,10 @@ const ServicePage = () => {
                         transition={{ duration: 0.3 }}
                         className="overflow-hidden"
                       >
-                        <div className="pt-4 space-y-2">
+                        <div className="pt-3 sm:pt-4 space-y-1.5 sm:space-y-2">
                           {service.features.map((feature, i) => (
-                            <div key={i} className="flex items-center gap-2 text-sm">
-                              <FaCheckCircle className={`text-green-500 text-xs flex-shrink-0`} />
+                            <div key={i} className="flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm">
+                              <FaCheckCircle className={`text-green-500 text-[10px] sm:text-xs flex-shrink-0`} />
                               <span className={theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}>
                                 {feature}
                               </span>
@@ -429,22 +429,22 @@ const ServicePage = () => {
                           ))}
                           <Link
                             href={service.ctaLink}
-                            className={`inline-flex items-center gap-2 mt-4 text-sm font-medium ${colors.text} hover:underline`}
+                            className={`inline-flex items-center gap-1.5 sm:gap-2 mt-3 sm:mt-4 text-xs sm:text-sm font-medium ${colors.text} hover:underline`}
                           >
-                            {service.cta} <FaArrowRight size={12} />
+                            {service.cta} <FaArrowRight size={10} />
                           </Link>
                         </div>
                       </motion.div>
                       
                       <button
-                        className={`mt-4 text-sm font-medium ${colors.text} hover:underline flex items-center gap-1`}
+                        className={`mt-3 sm:mt-4 text-xs sm:text-sm font-medium ${colors.text} hover:underline flex items-center gap-1`}
                         onClick={(e) => {
                           e.stopPropagation();
                           setActiveService(activeService === service.id ? null : service.id);
                         }}
                       >
                         {activeService === service.id ? 'Show Less' : 'Learn More'}
-                        <FaArrowRight size={12} />
+                        <FaArrowRight size={10} />
                       </button>
                     </div>
                   </motion.div>
@@ -454,8 +454,8 @@ const ServicePage = () => {
           </div>
         </section>
 
-        {/* How It Works Process */}
-        <section className={`py-20 px-4 ${
+        {/* How It Works Process - Mobile Responsive */}
+        <section className={`py-12 sm:py-20 px-4 ${
           theme === 'dark' ? 'bg-gray-800/30' : 'bg-gray-100'
         }`}>
           <div className="container mx-auto">
@@ -464,21 +464,49 @@ const ServicePage = () => {
               whileInView={{ y: 0, opacity: 1 }}
               transition={{ duration: 0.5 }}
               viewport={{ once: true }}
-              className="text-center mb-12"
+              className="text-center mb-8 sm:mb-12"
             >
-              <h2 className="text-3xl md:text-4xl font-bold mb-4">
+              <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-3 sm:mb-4">
                 How It Works
               </h2>
-              <p className={`text-lg max-w-3xl mx-auto ${
+              <p className={`text-base sm:text-lg max-w-3xl mx-auto px-2 ${
                 theme === 'dark' ? 'text-gray-300' : 'text-gray-600'
               }`}>
                 A simple, transparent process designed for your convenience
               </p>
             </motion.div>
 
-            <div className="relative">
-              {/* Timeline Line */}
-              <div className="absolute left-1/2 transform -translate-x-1/2 w-1 h-full bg-blue-600 hidden lg:block"></div>
+            {/* Mobile Process (Vertical Cards) */}
+            <div className="lg:hidden space-y-5 sm:space-y-6">
+              {process.map((step, index) => (
+                <motion.div
+                  key={index}
+                  initial={{ opacity: 0, x: -30 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.5, delay: index * 0.1 }}
+                  viewport={{ once: true }}
+                  className={`p-5 sm:p-6 rounded-xl ${
+                    theme === 'dark' ? 'bg-gray-800' : 'bg-white'
+                  } shadow-lg`}
+                >
+                  <div className="flex items-center gap-3 sm:gap-4 mb-3 sm:mb-4">
+                    <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-blue-600 flex items-center justify-center text-white font-bold text-base sm:text-xl">
+                      {step.step}
+                    </div>
+                    <h3 className="text-base sm:text-lg md:text-xl font-bold">{step.title}</h3>
+                  </div>
+                  <p className={`text-sm sm:text-base ml-0 sm:ml-16 ${
+                    theme === 'dark' ? 'text-gray-300' : 'text-gray-600'
+                  }`}>
+                    {step.description}
+                  </p>
+                </motion.div>
+              ))}
+            </div>
+
+            {/* Desktop Process (Timeline) */}
+            <div className="hidden lg:block relative">
+              <div className="absolute left-1/2 transform -translate-x-1/2 w-1 h-full bg-blue-600"></div>
               
               <div className="space-y-12">
                 {process.map((step, index) => (
@@ -508,7 +536,7 @@ const ServicePage = () => {
                       </div>
                     </div>
                     <div className="lg:w-1/2 flex justify-center">
-                      <div className={`w-16 h-16 rounded-full flex items-center justify-center text-2xl ${
+                      <div className={`w-14 h-14 rounded-full flex items-center justify-center text-xl ${
                         theme === 'dark' ? 'bg-blue-500/20 text-blue-400' : 'bg-blue-100 text-blue-600'
                       }`}>
                         {step.icon}
@@ -522,26 +550,26 @@ const ServicePage = () => {
         </section>
 
         {/* Why Choose Us */}
-        <section className="py-20 px-4">
+        <section className="py-12 sm:py-20 px-4">
           <div className="container mx-auto">
             <motion.div
               initial={{ y: 50, opacity: 0 }}
               whileInView={{ y: 0, opacity: 1 }}
               transition={{ duration: 0.5 }}
               viewport={{ once: true }}
-              className="text-center mb-12"
+              className="text-center mb-8 sm:mb-12"
             >
-              <h2 className="text-3xl md:text-4xl font-bold mb-4">
+              <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-3 sm:mb-4">
                 Why Choose RealEstate Pro?
               </h2>
-              <p className={`text-lg max-w-3xl mx-auto ${
+              <p className={`text-base sm:text-lg max-w-3xl mx-auto px-2 ${
                 theme === 'dark' ? 'text-gray-300' : 'text-gray-600'
               }`}>
                 Experience the difference with our award-winning service
               </p>
             </motion.div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
               <motion.div
                 initial={{ y: 50, opacity: 0 }}
                 whileInView={{ y: 0, opacity: 1 }}
@@ -549,13 +577,13 @@ const ServicePage = () => {
                 viewport={{ once: true }}
                 className="text-center"
               >
-                <div className={`inline-flex items-center justify-center w-16 h-16 rounded-full mb-4 ${
+                <div className={`inline-flex items-center justify-center w-14 h-14 sm:w-16 sm:h-16 rounded-full mb-3 sm:mb-4 ${
                   theme === 'dark' ? 'bg-blue-500/20' : 'bg-blue-100'
                 }`}>
-                  <FaGem className="text-2xl text-blue-600" />
+                  <FaGem className="text-xl sm:text-2xl text-blue-600" />
                 </div>
-                <h3 className="text-xl font-bold mb-2">Expert Agents</h3>
-                <p className={theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}>
+                <h3 className="text-base sm:text-lg md:text-xl font-bold mb-1 sm:mb-2">Expert Agents</h3>
+                <p className={`text-sm sm:text-base ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'} px-2`}>
                   Our team brings years of experience and deep market knowledge to every transaction.
                 </p>
               </motion.div>
@@ -567,13 +595,13 @@ const ServicePage = () => {
                 viewport={{ once: true }}
                 className="text-center"
               >
-                <div className={`inline-flex items-center justify-center w-16 h-16 rounded-full mb-4 ${
+                <div className={`inline-flex items-center justify-center w-14 h-14 sm:w-16 sm:h-16 rounded-full mb-3 sm:mb-4 ${
                   theme === 'dark' ? 'bg-blue-500/20' : 'bg-blue-100'
                 }`}>
-                  <FaHandshake className="text-2xl text-blue-600" />
+                  <FaHandshake className="text-xl sm:text-2xl text-blue-600" />
                 </div>
-                <h3 className="text-xl font-bold mb-2">Client First Approach</h3>
-                <p className={theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}>
+                <h3 className="text-base sm:text-lg md:text-xl font-bold mb-1 sm:mb-2">Client First Approach</h3>
+                <p className={`text-sm sm:text-base ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'} px-2`}>
                   Your goals are our priority. We're committed to your success and satisfaction.
                 </p>
               </motion.div>
@@ -585,13 +613,13 @@ const ServicePage = () => {
                 viewport={{ once: true }}
                 className="text-center"
               >
-                <div className={`inline-flex items-center justify-center w-16 h-16 rounded-full mb-4 ${
+                <div className={`inline-flex items-center justify-center w-14 h-14 sm:w-16 sm:h-16 rounded-full mb-3 sm:mb-4 ${
                   theme === 'dark' ? 'bg-blue-500/20' : 'bg-blue-100'
                 }`}>
-                  <FaChartLine className="text-2xl text-blue-600" />
+                  <FaChartLine className="text-xl sm:text-2xl text-blue-600" />
                 </div>
-                <h3 className="text-xl font-bold mb-2">Market Leadership</h3>
-                <p className={theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}>
+                <h3 className="text-base sm:text-lg md:text-xl font-bold mb-1 sm:mb-2">Market Leadership</h3>
+                <p className={`text-sm sm:text-base ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'} px-2`}>
                   We lead with data-driven insights and innovative marketing strategies.
                 </p>
               </motion.div>
@@ -600,7 +628,7 @@ const ServicePage = () => {
         </section>
 
         {/* Testimonials */}
-        <section className={`py-20 px-4 ${
+        <section className={`py-12 sm:py-20 px-4 ${
           theme === 'dark' ? 'bg-gray-800/30' : 'bg-gray-100'
         }`}>
           <div className="container mx-auto">
@@ -609,19 +637,19 @@ const ServicePage = () => {
               whileInView={{ y: 0, opacity: 1 }}
               transition={{ duration: 0.5 }}
               viewport={{ once: true }}
-              className="text-center mb-12"
+              className="text-center mb-8 sm:mb-12"
             >
-              <h2 className="text-3xl md:text-4xl font-bold mb-4">
+              <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-3 sm:mb-4">
                 What Our Clients Say
               </h2>
-              <p className={`text-lg max-w-3xl mx-auto ${
+              <p className={`text-base sm:text-lg max-w-3xl mx-auto px-2 ${
                 theme === 'dark' ? 'text-gray-300' : 'text-gray-600'
               }`}>
                 Real stories from satisfied clients we've helped
               </p>
             </motion.div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-5 sm:gap-8">
               {testimonials.map((testimonial, index) => (
                 <motion.div
                   key={index}
@@ -630,23 +658,23 @@ const ServicePage = () => {
                   transition={{ duration: 0.5, delay: index * 0.1 }}
                   viewport={{ once: true }}
                   whileHover={{ y: -5 }}
-                  className={`p-6 rounded-xl ${
+                  className={`p-5 sm:p-6 rounded-xl ${
                     theme === 'dark' ? 'bg-gray-800' : 'bg-white'
                   } shadow-lg`}
                 >
-                  <div className="flex items-center gap-1 mb-4">
+                  <div className="flex items-center gap-1 mb-3 sm:mb-4">
                     {[...Array(testimonial.rating)].map((_, i) => (
-                      <FaStar key={i} className="text-yellow-500" />
+                      <FaStar key={i} className="text-yellow-500 text-xs sm:text-sm" />
                     ))}
                   </div>
-                  <p className={`mb-4 italic ${
+                  <p className={`mb-3 sm:mb-4 italic text-sm sm:text-base ${
                     theme === 'dark' ? 'text-gray-300' : 'text-gray-600'
                   }`}>
                     "{testimonial.content}"
                   </p>
                   <div>
-                    <h4 className="font-bold">{testimonial.name}</h4>
-                    <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
+                    <h4 className="text-sm sm:text-base font-bold">{testimonial.name}</h4>
+                    <p className={`text-xs sm:text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
                       {testimonial.role}
                     </p>
                   </div>
@@ -657,7 +685,7 @@ const ServicePage = () => {
         </section>
 
         {/* CTA Section */}
-        <section className="py-20 px-4 bg-gradient-to-r from-blue-600 to-blue-800">
+        <section className="py-12 sm:py-20 px-4 bg-gradient-to-r from-blue-600 to-blue-800">
           <div className="container mx-auto text-center">
             <motion.div
               initial={{ y: 50, opacity: 0 }}
@@ -665,22 +693,22 @@ const ServicePage = () => {
               transition={{ duration: 0.5 }}
               viewport={{ once: true }}
             >
-              <h2 className="text-3xl md:text-4xl font-bold mb-6 text-white">
+              <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-3 sm:mb-6 text-white px-2">
                 Ready to Get Started?
               </h2>
-              <p className="text-xl mb-8 max-w-2xl mx-auto text-white/90">
+              <p className="text-base sm:text-lg md:text-xl mb-6 sm:mb-8 max-w-2xl mx-auto text-white/90 px-4">
                 Contact us today for a free consultation. Let's discuss how we can help you achieve your real estate goals.
               </p>
-              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center px-4 sm:px-0">
                 <Link
                   href="/contact"
-                  className="px-8 py-3 bg-white hover:bg-gray-100 text-blue-600 rounded-lg font-medium text-lg transition-all duration-300 shadow-lg"
+                  className="px-6 sm:px-8 py-2.5 sm:py-3 bg-white hover:bg-gray-100 text-blue-600 rounded-lg font-medium text-sm sm:text-base md:text-lg transition-all duration-300 shadow-lg"
                 >
                   Schedule Consultation
                 </Link>
                 <Link
                   href="/public/houses"
-                  className="px-8 py-3 border-2 border-white hover:bg-white/10 text-white rounded-lg font-medium text-lg transition-all duration-300"
+                  className="px-6 sm:px-8 py-2.5 sm:py-3 border-2 border-white hover:bg-white/10 text-white rounded-lg font-medium text-sm sm:text-base md:text-lg transition-all duration-300"
                 >
                   Browse Properties
                 </Link>

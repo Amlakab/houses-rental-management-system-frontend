@@ -70,7 +70,7 @@ export default function LoginPage() {
       ? 'linear-gradient(135deg, #0a192f, #112240)' 
       : 'linear-gradient(135deg, #f0f5ff, #ffffff)',
     textColor: theme === 'dark' ? 'text-[#ccd6f6]' : 'text-[#333333]',
-    primaryColor: theme === 'dark' ? 'text-[#3b82f6]' : 'text-[#2563eb]', // Blue color for real estate
+    primaryColor: theme === 'dark' ? 'text-[#3b82f6]' : 'text-[#2563eb]',
     secondaryColor: theme === 'dark' ? 'text-[#60a5fa]' : 'text-[#3b82f6]',
     borderColor: theme === 'dark' ? 'border-[#3b82f6]' : 'border-[#2563eb]',
     buttonBg: theme === 'dark' 
@@ -160,26 +160,26 @@ export default function LoginPage() {
 
   // Property types
   const propertyTypes = [
-    { icon: <FaHome className="w-5 h-5" />, title: "Houses", description: "Single-family homes", color: "blue" },
-    { icon: <FaBuilding className="w-5 h-5" />, title: "Apartments", description: "Modern living spaces", color: "indigo" },
-    { icon: <FaCity className="w-5 h-5" />, title: "Villas", description: "Luxury properties", color: "purple" },
-    { icon: <FaKey className="w-5 h-5" />, title: "Rentals", description: "Lease options", color: "green" },
-    { icon: <FaChartLine className="w-5 h-5" />, title: "Commercial", description: "Business spaces", color: "orange" },
-    { icon: <FaHandshake className="w-5 h-5" />, title: "Investment", description: "High ROI", color: "red" },
+    { icon: <FaHome className="w-4 h-4 sm:w-5 sm:h-5" />, title: "Houses", description: "Single-family homes", color: "blue" },
+    { icon: <FaBuilding className="w-4 h-4 sm:w-5 sm:h-5" />, title: "Apartments", description: "Modern living spaces", color: "indigo" },
+    { icon: <FaCity className="w-4 h-4 sm:w-5 sm:h-5" />, title: "Villas", description: "Luxury properties", color: "purple" },
+    { icon: <FaKey className="w-4 h-4 sm:w-5 sm:h-5" />, title: "Rentals", description: "Lease options", color: "green" },
+    { icon: <FaChartLine className="w-4 h-4 sm:w-5 sm:h-5" />, title: "Commercial", description: "Business spaces", color: "orange" },
+    { icon: <FaHandshake className="w-4 h-4 sm:w-5 sm:h-5" />, title: "Investment", description: "High ROI", color: "red" },
   ];
 
   // Real estate features
   const features = [
-    { icon: <FaUsers className="w-5 h-5" />, title: "Expert Agents", description: "Professional guidance" },
-    { icon: <FaChartLine className="w-5 h-5" />, title: "Market Insights", description: "Data-driven decisions" },
-    { icon: <FaHandshake className="w-5 h-5" />, title: "Trusted Service", description: "Since 2005" },
-    { icon: <FaShieldAlt className="w-5 h-5" />, title: "Secure Process", description: "Protected transactions" },
+    { icon: <FaUsers className="w-4 h-4 sm:w-5 sm:h-5" />, title: "Expert Agents", description: "Professional guidance" },
+    { icon: <FaChartLine className="w-4 h-4 sm:w-5 sm:h-5" />, title: "Market Insights", description: "Data-driven decisions" },
+    { icon: <FaHandshake className="w-4 h-4 sm:w-5 sm:h-5" />, title: "Trusted Service", description: "Since 2005" },
+    { icon: <FaShieldAlt className="w-4 h-4 sm:w-5 sm:h-5" />, title: "Secure Process", description: "Protected transactions" },
   ];
 
   return (
     <div className={`min-h-screen transition-colors duration-300 ${themeStyles.background} ${theme === 'dark' ? 'text-white' : 'text-[#333333]'}`}>
       <Navbar />
-      <div className="container mx-auto px-4 py-8 pt-24">
+      <div className="container mx-auto px-4 py-6 sm:py-8 pt-20 sm:pt-24">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -187,38 +187,38 @@ export default function LoginPage() {
           id="login-form"
           className="max-w-6xl mx-auto"
         >
-          <div className="text-center mb-12">
+          <div className="text-center mb-8 sm:mb-12">
             <motion.h1
               initial={{ scale: 0.9 }}
               animate={{ scale: 1 }}
               transition={{ duration: 0.5 }}
-              className={`text-4xl md:text-5xl font-bold mb-4 ${themeStyles.primaryColor}`}
+              className={`text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold mb-3 sm:mb-4 ${themeStyles.primaryColor}`}
             >
               RealEstate Pro Login
             </motion.h1>
-            <p className={`text-lg ${theme === 'dark' ? 'text-[#ccd6f6]' : 'text-[#555555]'} max-w-2xl mx-auto`}>
+            <p className={`text-sm sm:text-base md:text-lg ${theme === 'dark' ? 'text-[#ccd6f6]' : 'text-[#555555]'} max-w-2xl mx-auto px-2`}>
               Access your account to manage properties, track orders, and communicate with agents.
             </p>
           </div>
 
-          <div className="grid lg:grid-cols-2 gap-12 items-start">
+          <div className="grid lg:grid-cols-2 gap-8 sm:gap-12 items-start">
             {/* Login Form Card */}
             <motion.div
               initial={{ x: -50, opacity: 0 }}
               animate={{ x: 0, opacity: 1 }}
               transition={{ duration: 0.6, delay: 0.1 }}
-              className={`rounded-2xl shadow-2xl p-8 border ${themeStyles.cardBg}`}
+              className={`rounded-2xl shadow-2xl p-5 sm:p-6 md:p-8 border ${themeStyles.cardBg}`}
             >
-              <div className="flex items-center gap-3 mb-8">
-                <div className={`p-3 rounded-xl ${theme === 'dark' ? 'bg-[#3b82f6]/20' : 'bg-[#2563eb]/10'}`}>
-                  <Home className={`w-8 h-8 ${themeStyles.primaryColor}`} />
+              <div className="flex items-center gap-3 mb-6 sm:mb-8">
+                <div className={`p-2 sm:p-3 rounded-xl ${theme === 'dark' ? 'bg-[#3b82f6]/20' : 'bg-[#2563eb]/10'}`}>
+                  <Home className={`w-6 h-6 sm:w-8 sm:h-8 ${themeStyles.primaryColor}`} />
                 </div>
-                <h2 className={`text-2xl font-bold ${themeStyles.primaryColor}`}>
+                <h2 className={`text-lg sm:text-xl md:text-2xl font-bold ${themeStyles.primaryColor}`}>
                   Agent & Client Login
                 </h2>
               </div>
 
-              <p className={`text-sm mb-6 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
+              <p className={`text-xs sm:text-sm mb-5 sm:mb-6 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
                 Sign in to browse properties, manage listings, or track your real estate investments.
               </p>
 
@@ -226,7 +226,7 @@ export default function LoginPage() {
                 <motion.div
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
-                  className={`mb-6 p-4 rounded-lg ${
+                  className={`mb-5 sm:mb-6 p-3 sm:p-4 rounded-lg text-sm ${
                     message.includes('sent') || message.includes('success')
                       ? 'bg-green-100 text-green-800 border border-green-200'
                       : 'bg-red-100 text-red-800 border border-red-200'
@@ -236,25 +236,25 @@ export default function LoginPage() {
                 </motion.div>
               )}
 
-              <form className="space-y-6" onSubmit={handleLogin}>
+              <form className="space-y-5 sm:space-y-6" onSubmit={handleLogin}>
                 {/* Phone Number */}
                 <div>
                   <label
                     htmlFor="phone"
-                    className={`block text-sm font-medium mb-2 ${theme === 'dark' ? 'text-[#ccd6f6]' : 'text-gray-700'}`}
+                    className={`block text-xs sm:text-sm font-medium mb-1.5 sm:mb-2 ${theme === 'dark' ? 'text-[#ccd6f6]' : 'text-gray-700'}`}
                   >
                     Phone Number *
                   </label>
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <span className={`${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'} sm:text-sm`}>+251</span>
+                      <span className={`${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'} text-xs sm:text-sm`}>+251</span>
                     </div>
                     <input
                       id="phone"
                       name="phone"
                       type="tel"
                       required
-                      className={`w-full pl-16 px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:border-transparent transition-colors duration-300 ${themeStyles.inputBg}`}
+                      className={`w-full pl-14 sm:pl-16 px-3 sm:px-4 py-2.5 sm:py-3 border rounded-lg focus:outline-none focus:ring-2 focus:border-transparent transition-colors duration-300 text-sm sm:text-base ${themeStyles.inputBg}`}
                       placeholder="912345678"
                       value={phone}
                       onChange={(e) => setPhone(e.target.value)}
@@ -265,10 +265,10 @@ export default function LoginPage() {
                 {/* Password or OTP */}
                 {!isOtpLogin ? (
                   <div>
-                    <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center justify-between mb-1.5 sm:mb-2">
                       <label
                         htmlFor="password"
-                        className={`block text-sm font-medium ${theme === 'dark' ? 'text-[#ccd6f6]' : 'text-gray-700'}`}
+                        className={`block text-xs sm:text-sm font-medium ${theme === 'dark' ? 'text-[#ccd6f6]' : 'text-gray-700'}`}
                       >
                         Password *
                       </label>
@@ -285,7 +285,7 @@ export default function LoginPage() {
                         name="password"
                         type={showPassword ? 'text' : 'password'}
                         required
-                        className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:border-transparent transition-colors duration-300 pr-12 ${themeStyles.inputBg}`}
+                        className={`w-full px-3 sm:px-4 py-2.5 sm:py-3 border rounded-lg focus:outline-none focus:ring-2 focus:border-transparent transition-colors duration-300 pr-10 sm:pr-12 text-sm sm:text-base ${themeStyles.inputBg}`}
                         placeholder="Enter your password"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
@@ -293,14 +293,14 @@ export default function LoginPage() {
                       <button
                         type="button"
                         onClick={() => setShowPassword((prev) => !prev)}
-                        className={`absolute inset-y-0 right-3 flex items-center ${
+                        className={`absolute inset-y-0 right-2 sm:right-3 flex items-center ${
                           theme === 'dark' ? 'text-gray-400 hover:text-[#3b82f6]' : 'text-gray-500 hover:text-[#2563eb]'
                         }`}
                       >
                         {showPassword ? (
-                          <EyeOff className="h-5 w-5" />
+                          <EyeOff className="h-4 w-4 sm:h-5 sm:w-5" />
                         ) : (
-                          <Eye className="h-5 w-5" />
+                          <Eye className="h-4 w-4 sm:h-5 sm:w-5" />
                         )}
                       </button>
                     </div>
@@ -309,7 +309,7 @@ export default function LoginPage() {
                   <div>
                     <label
                       htmlFor="otp"
-                      className={`block text-sm font-medium mb-2 ${theme === 'dark' ? 'text-[#ccd6f6]' : 'text-gray-700'}`}
+                      className={`block text-xs sm:text-sm font-medium mb-1.5 sm:mb-2 ${theme === 'dark' ? 'text-[#ccd6f6]' : 'text-gray-700'}`}
                     >
                       OTP Code *
                     </label>
@@ -318,7 +318,7 @@ export default function LoginPage() {
                       name="otp"
                       type="text"
                       required
-                      className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:border-transparent transition-colors duration-300 ${themeStyles.inputBg}`}
+                      className={`w-full px-3 sm:px-4 py-2.5 sm:py-3 border rounded-lg focus:outline-none focus:ring-2 focus:border-transparent transition-colors duration-300 text-sm sm:text-base ${themeStyles.inputBg}`}
                       placeholder="Enter 6-digit OTP"
                       value={otp}
                       onChange={(e) => setOtp(e.target.value)}
@@ -333,7 +333,7 @@ export default function LoginPage() {
                 <button
                   type="submit"
                   disabled={isLoading}
-                  className={`w-full px-6 py-3 rounded-lg font-semibold text-lg shadow-lg hover:shadow-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed ${
+                  className={`w-full px-5 sm:px-6 py-2.5 sm:py-3 rounded-lg font-semibold text-sm sm:text-base md:text-lg shadow-lg hover:shadow-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed ${
                     theme === 'dark'
                       ? 'bg-gradient-to-r from-[#3b82f6] to-[#2563eb] text-white hover:opacity-90'
                       : 'bg-gradient-to-r from-[#2563eb] to-[#1d4ed8] text-white hover:opacity-90'
@@ -342,7 +342,7 @@ export default function LoginPage() {
                   {isLoading ? (
                     <span className="flex items-center justify-center">
                       <svg
-                        className="animate-spin -ml-1 mr-3 h-5 w-5"
+                        className="animate-spin -ml-1 mr-2 h-4 w-4 sm:h-5 sm:w-5"
                         xmlns="http://www.w3.org/2000/svg"
                         fill="none"
                         viewBox="0 0 24 24"
@@ -376,10 +376,10 @@ export default function LoginPage() {
                       type="button"
                       onClick={handleSendOtp}
                       disabled={isLoading}
-                      className={`w-full px-6 py-3 border-2 rounded-lg font-medium transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed ${themeStyles.buttonBg}`}
+                      className={`w-full px-5 sm:px-6 py-2.5 sm:py-3 border-2 rounded-lg font-medium text-sm sm:text-base transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed ${themeStyles.buttonBg}`}
                     >
                       <div className="flex items-center justify-center gap-2">
-                        <Bell className="w-4 h-4" />
+                        <Bell className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                         Login with OTP
                       </div>
                     </button>
@@ -388,8 +388,8 @@ export default function LoginPage() {
               </form>
 
               {/* Register Link */}
-              <div className="mt-8 pt-6 border-t border-gray-700/30">
-                <p className={`text-center ${theme === 'dark' ? 'text-[#ccd6f6]' : 'text-gray-600'} text-sm`}>
+              <div className="mt-6 sm:mt-8 pt-5 sm:pt-6 border-t border-gray-700/30">
+                <p className={`text-center ${theme === 'dark' ? 'text-[#ccd6f6]' : 'text-gray-600'} text-xs sm:text-sm`}>
                   Don't have an account?{' '}
                   <Link
                     href="/auth/register"
@@ -408,11 +408,11 @@ export default function LoginPage() {
               initial={{ x: 50, opacity: 0 }}
               animate={{ x: 0, opacity: 1 }}
               transition={{ duration: 0.6, delay: 0.2 }}
-              className="space-y-6"
+              className="space-y-5 sm:space-y-6"
             >
               {/* Real Estate Image */}
               <div className={`rounded-2xl overflow-hidden shadow-2xl ${themeStyles.cardBg} border`}>
-                <div className="relative h-64">
+                <div className="relative h-48 sm:h-56 md:h-64">
                   <Image
                     src={images.office || '/api/placeholder/600/300'}
                     alt="Real Estate Office"
@@ -424,11 +424,11 @@ export default function LoginPage() {
                     theme === 'dark' ? 'bg-black/40' : 'bg-black/20'
                   }`}></div>
                   <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="text-center p-8">
-                      <h3 className={`text-2xl font-bold mb-2 ${themeStyles.primaryColor}`}>
+                    <div className="text-center p-4 sm:p-6 md:p-8">
+                      <h3 className={`text-lg sm:text-xl md:text-2xl font-bold mb-1 sm:mb-2 ${themeStyles.primaryColor}`}>
                         Welcome to RealEstate Pro
                       </h3>
-                      <p className={theme === 'dark' ? 'text-gray-200' : 'text-gray-700'}>
+                      <p className={`text-xs sm:text-sm md:text-base ${theme === 'dark' ? 'text-gray-200' : 'text-gray-700'}`}>
                         Your trusted partner in real estate since 2005
                       </p>
                     </div>
@@ -437,32 +437,32 @@ export default function LoginPage() {
               </div>
 
               {/* Property Types */}
-              <div className={`rounded-2xl shadow-xl p-6 ${themeStyles.cardBg} border`}>
-                <h3 className={`text-xl font-bold mb-6 ${themeStyles.primaryColor}`}>
+              <div className={`rounded-2xl shadow-xl p-4 sm:p-5 md:p-6 ${themeStyles.cardBg} border`}>
+                <h3 className={`text-base sm:text-lg md:text-xl font-bold mb-4 sm:mb-6 ${themeStyles.primaryColor}`}>
                   Property Types
                 </h3>
-                <div className="grid grid-cols-3 gap-4">
+                <div className="grid grid-cols-3 gap-2 sm:gap-3 md:gap-4">
                   {propertyTypes.map((type, index) => (
                     <motion.div
                       key={index}
                       whileHover={{ scale: 1.05 }}
-                      className={`p-3 rounded-xl text-center ${
+                      className={`p-2 sm:p-3 rounded-xl text-center ${
                         theme === 'dark' 
                           ? 'bg-white/5 hover:bg-white/10' 
                           : 'bg-blue-50 hover:bg-blue-100'
                       } transition-colors duration-300`}
                     >
-                      <div className={`inline-flex items-center justify-center w-10 h-10 rounded-full mb-2 ${
+                      <div className={`inline-flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 rounded-full mb-1 sm:mb-2 ${
                         theme === 'dark' ? 'bg-[#3b82f6]/20' : 'bg-[#2563eb]/10'
                       }`}>
                         <span className={themeStyles.primaryColor}>
                           {type.icon}
                         </span>
                       </div>
-                      <div className="text-sm font-medium truncate">
+                      <div className="text-xs sm:text-sm font-medium truncate">
                         {type.title}
                       </div>
-                      <div className="text-xs text-gray-500 truncate">
+                      <div className="text-[10px] sm:text-xs text-gray-500 truncate">
                         {type.description}
                       </div>
                     </motion.div>
@@ -471,28 +471,28 @@ export default function LoginPage() {
               </div>
 
               {/* Real Estate Features */}
-              <div className={`rounded-2xl shadow-xl p-6 ${themeStyles.cardBg} border`}>
-                <h3 className={`text-xl font-bold mb-6 ${themeStyles.primaryColor}`}>
+              <div className={`rounded-2xl shadow-xl p-4 sm:p-5 md:p-6 ${themeStyles.cardBg} border`}>
+                <h3 className={`text-base sm:text-lg md:text-xl font-bold mb-4 sm:mb-6 ${themeStyles.primaryColor}`}>
                   Why Choose RealEstate Pro?
                 </h3>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-2 gap-2 sm:gap-3 md:gap-4">
                   {features.map((feature, index) => (
                     <div
                       key={index}
-                      className={`p-3 rounded-lg flex items-start gap-3 ${
+                      className={`p-2 sm:p-3 rounded-lg flex items-start gap-2 sm:gap-3 ${
                         theme === 'dark' 
                           ? 'bg-white/5' 
                           : 'bg-white'
                       }`}
                     >
-                      <div className={`p-2 rounded-full ${theme === 'dark' ? 'bg-[#3b82f6]/20' : 'bg-[#2563eb]/10'}`}>
+                      <div className={`p-1.5 sm:p-2 rounded-full flex-shrink-0 ${theme === 'dark' ? 'bg-[#3b82f6]/20' : 'bg-[#2563eb]/10'}`}>
                         <span className={themeStyles.primaryColor}>
                           {feature.icon}
                         </span>
                       </div>
-                      <div>
-                        <div className="font-medium text-sm">{feature.title}</div>
-                        <div className="text-xs text-gray-500">{feature.description}</div>
+                      <div className="min-w-0">
+                        <div className="font-medium text-xs sm:text-sm">{feature.title}</div>
+                        <div className="text-[10px] sm:text-xs text-gray-500">{feature.description}</div>
                       </div>
                     </div>
                   ))}
@@ -500,32 +500,32 @@ export default function LoginPage() {
               </div>
 
               {/* Quick Access */}
-              <div className={`rounded-2xl shadow-xl p-6 ${themeStyles.cardBg} border`}>
-                <h3 className={`text-xl font-bold mb-4 ${themeStyles.primaryColor}`}>
+              <div className={`rounded-2xl shadow-xl p-4 sm:p-5 md:p-6 ${themeStyles.cardBg} border`}>
+                <h3 className={`text-base sm:text-lg md:text-xl font-bold mb-3 sm:mb-4 ${themeStyles.primaryColor}`}>
                   Quick Access
                 </h3>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-2 gap-2 sm:gap-3 md:gap-4">
                   <Link
                     href="/public/houses"
-                    className={`p-4 rounded-xl text-center transition-all duration-300 ${
+                    className={`p-3 sm:p-4 rounded-xl text-center transition-all duration-300 ${
                       theme === 'dark'
                         ? 'bg-[#3b82f6]/10 hover:bg-[#3b82f6]/20 border border-[#3b82f6]/30'
                         : 'bg-[#2563eb]/10 hover:bg-[#2563eb]/20 border border-[#2563eb]/30'
                     }`}
                   >
-                    <div className={`font-semibold ${themeStyles.primaryColor}`}>Browse Properties</div>
-                    <div className="text-xs mt-1 opacity-75">Find your dream home</div>
+                    <div className={`font-semibold text-xs sm:text-sm ${themeStyles.primaryColor}`}>Browse Properties</div>
+                    <div className="text-[10px] sm:text-xs mt-1 opacity-75">Find your dream home</div>
                   </Link>
                   <Link
                     href="/about"
-                    className={`p-4 rounded-xl text-center transition-all duration-300 ${
+                    className={`p-3 sm:p-4 rounded-xl text-center transition-all duration-300 ${
                       theme === 'dark'
                         ? 'bg-white/5 hover:bg-white/10 border border-white/10'
                         : 'bg-gray-100 hover:bg-gray-200 border border-gray-200'
                     }`}
                   >
-                    <div className="font-semibold">About Us</div>
-                    <div className="text-xs mt-1 opacity-75">Our story & values</div>
+                    <div className="font-semibold text-xs sm:text-sm">About Us</div>
+                    <div className="text-[10px] sm:text-xs mt-1 opacity-75">Our story & values</div>
                   </Link>
                 </div>
               </div>
@@ -533,42 +533,42 @@ export default function LoginPage() {
           </div>
 
           {/* Office Hours */}
-          <div className={`mt-12 p-6 rounded-2xl ${themeStyles.cardBg} border`}>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className={`mt-8 sm:mt-12 p-5 sm:p-6 rounded-2xl ${themeStyles.cardBg} border`}>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 sm:gap-6">
               <div className="text-center">
-                <div className={`inline-flex items-center justify-center w-12 h-12 rounded-full mb-4 ${
+                <div className={`inline-flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 rounded-full mb-2 sm:mb-4 ${
                   theme === 'dark' ? 'bg-[#3b82f6]/20' : 'bg-[#2563eb]/10'
                 }`}>
-                  <Clock className={`w-6 h-6 ${themeStyles.primaryColor}`} />
+                  <Clock className={`w-5 h-5 sm:w-6 sm:h-6 ${themeStyles.primaryColor}`} />
                 </div>
-                <h4 className={`font-bold mb-2 ${themeStyles.primaryColor}`}>Office Hours</h4>
-                <p className="text-sm text-gray-500">
+                <h4 className={`font-bold text-sm sm:text-base mb-1 sm:mb-2 ${themeStyles.primaryColor}`}>Office Hours</h4>
+                <p className="text-xs sm:text-sm text-gray-500">
                   Mon-Fri: 9AM - 6PM<br />
                   Sat: 10AM - 4PM<br />
                   Sun: By Appointment
                 </p>
               </div>
               <div className="text-center">
-                <div className={`inline-flex items-center justify-center w-12 h-12 rounded-full mb-4 ${
+                <div className={`inline-flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 rounded-full mb-2 sm:mb-4 ${
                   theme === 'dark' ? 'bg-[#3b82f6]/20' : 'bg-[#2563eb]/10'
                 }`}>
-                  <PhoneIcon className={`w-6 h-6 ${themeStyles.primaryColor}`} />
+                  <PhoneIcon className={`w-5 h-5 sm:w-6 sm:h-6 ${themeStyles.primaryColor}`} />
                 </div>
-                <h4 className={`font-bold mb-2 ${themeStyles.primaryColor}`}>Contact</h4>
-                <p className="text-sm text-gray-500">
+                <h4 className={`font-bold text-sm sm:text-base mb-1 sm:mb-2 ${themeStyles.primaryColor}`}>Contact</h4>
+                <p className="text-xs sm:text-sm text-gray-500">
                   Phone: (123) 456-7890<br />
                   Email: info@realestatepro.com<br />
                   24/7 Virtual Consultations
                 </p>
               </div>
               <div className="text-center">
-                <div className={`inline-flex items-center justify-center w-12 h-12 rounded-full mb-4 ${
+                <div className={`inline-flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 rounded-full mb-2 sm:mb-4 ${
                   theme === 'dark' ? 'bg-[#3b82f6]/20' : 'bg-[#2563eb]/10'
                 }`}>
-                  <MapPin className={`w-6 h-6 ${themeStyles.primaryColor}`} />
+                  <MapPin className={`w-5 h-5 sm:w-6 sm:h-6 ${themeStyles.primaryColor}`} />
                 </div>
-                <h4 className={`font-bold mb-2 ${themeStyles.primaryColor}`}>Location</h4>
-                <p className="text-sm text-gray-500">
+                <h4 className={`font-bold text-sm sm:text-base mb-1 sm:mb-2 ${themeStyles.primaryColor}`}>Location</h4>
+                <p className="text-xs sm:text-sm text-gray-500">
                   123 Real Estate Avenue<br />
                   Downtown District<br />
                   City Center, CC 12345
@@ -578,8 +578,8 @@ export default function LoginPage() {
           </div>
 
           {/* Terms */}
-          <div className="mt-8 text-center">
-            <p className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
+          <div className="mt-6 sm:mt-8 text-center">
+            <p className={`text-[10px] sm:text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
               By signing in, you agree to our{' '}
               <Link
                 href="/terms-of-service"

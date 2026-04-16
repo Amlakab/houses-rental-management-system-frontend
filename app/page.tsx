@@ -382,17 +382,17 @@ useEffect(() => {
                 transition={{ duration: 0.5 }}
                 className="max-w-4xl"
               >
-                <h1 className="text-4xl md:text-6xl font-bold mb-4 text-white">
+                <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-3 sm:mb-4 text-white">
                   {slides[currentImageIndex].title}
                 </h1>
-                <p className="text-xl md:text-2xl mb-8 text-white/90">
+                <p className="text-base sm:text-lg md:text-xl lg:text-2xl mb-6 sm:mb-8 text-white/90 px-2">
                   {slides[currentImageIndex].description}
                 </p>
-                <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center px-4">
                   <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                     <Link
                       href="/public/houses"
-                      className="inline-block px-8 py-3 bg-gradient-to-r from-blue-500 to-blue-700 hover:from-blue-600 hover:to-blue-800 text-white rounded-lg font-medium text-lg transition-colors duration-300 shadow-lg"
+                      className="inline-block px-5 sm:px-6 md:px-8 py-2.5 sm:py-3 bg-gradient-to-r from-blue-500 to-blue-700 hover:from-blue-600 hover:to-blue-800 text-white rounded-lg font-medium text-sm sm:text-base md:text-lg transition-colors duration-300 shadow-lg"
                     >
                       Browse Properties
                     </Link>
@@ -400,7 +400,7 @@ useEffect(() => {
                   <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                     <Link
                       href="/contact"
-                      className="inline-block px-8 py-3 border-2 border-white hover:bg-white/10 text-white rounded-lg font-medium text-lg transition-colors duration-300"
+                      className="inline-block px-5 sm:px-6 md:px-8 py-2.5 sm:py-3 border-2 border-white hover:bg-white/10 text-white rounded-lg font-medium text-sm sm:text-base md:text-lg transition-colors duration-300"
                     >
                       Contact an Agent
                     </Link>
@@ -413,38 +413,38 @@ useEffect(() => {
           {/* Navigation Arrows */}
           <button
             onClick={prevImage}
-            className={`absolute left-4 top-1/2 transform -translate-y-1/2 z-20 p-3 rounded-full ${
+            className={`absolute left-2 sm:left-4 top-1/2 transform -translate-y-1/2 z-20 p-2 sm:p-3 rounded-full ${
               theme === 'dark' 
                 ? 'bg-gray-800/80 hover:bg-gray-700' 
                 : 'bg-white/80 hover:bg-white'
             } transition-all duration-300`}
             aria-label="Previous Image"
           >
-            <FaArrowLeft className={theme === 'dark' ? 'text-white' : 'text-gray-800'} size={20} />
+            <FaArrowLeft className={theme === 'dark' ? 'text-white' : 'text-gray-800'} size={16} />
           </button>
           <button
             onClick={nextImage}
-            className={`absolute right-4 top-1/2 transform -translate-y-1/2 z-20 p-3 rounded-full ${
+            className={`absolute right-2 sm:right-4 top-1/2 transform -translate-y-1/2 z-20 p-2 sm:p-3 rounded-full ${
               theme === 'dark' 
                 ? 'bg-gray-800/80 hover:bg-gray-700' 
                 : 'bg-white/80 hover:bg-white'
             } transition-all duration-300`}
             aria-label="Next Image"
           >
-            <FaArrowRight className={theme === 'dark' ? 'text-white' : 'text-gray-800'} size={20} />
+            <FaArrowRight className={theme === 'dark' ? 'text-white' : 'text-gray-800'} size={16} />
           </button>
         </section>
 
         {/* About Section */}
-        <section className={`py-16 px-4 ${theme === 'dark' ? 'bg-transparent' : 'bg-white'}`}>
+        <section className={`py-12 sm:py-16 px-4 ${theme === 'dark' ? 'bg-transparent' : 'bg-white'}`}>
           <div className="container mx-auto">
-            <div className="flex flex-col lg:flex-row gap-12 items-center">
+            <div className="flex flex-col lg:flex-row gap-8 lg:gap-12 items-center">
               <motion.div
                 initial={{ x: -100, opacity: 0 }}
                 whileInView={{ x: 0, opacity: 1 }}
                 transition={{ duration: 1 }}
                 viewport={{ once: true }}
-                className="relative h-80 md:h-96 w-full lg:w-1/2 rounded-xl overflow-hidden shadow-xl"
+                className="relative h-64 sm:h-80 md:h-96 w-full lg:w-1/2 rounded-xl overflow-hidden shadow-xl"
               >
                 <Image
                   src={images.about}
@@ -461,21 +461,21 @@ useEffect(() => {
                 viewport={{ once: true }}
                 className="lg:w-1/2"
               >
-                <h2 className={`text-3xl font-bold mb-6 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+                <h2 className={`text-2xl sm:text-3xl font-bold mb-4 sm:mb-6 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
                   Your Trusted Real Estate Partner
                 </h2>
-                <p className={`mb-6 text-base ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
+                <p className={`mb-4 sm:mb-6 text-sm sm:text-base ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
                   Welcome to <strong className="text-blue-600">RealEstate Pro</strong>, your premier destination for finding the perfect property. 
                   With over 15 years of experience in the real estate market, we've helped thousands of 
                   families and investors find their dream homes and make smart property investments.
                 </p>
-                <p className={`mb-6 text-base ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
+                <p className={`mb-5 sm:mb-6 text-sm sm:text-base ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
                   Our mission is to provide exceptional service, expert guidance, and market insights 
                   to help you navigate the real estate journey with confidence and success.
                 </p>
                 <Link
                   href="/about"
-                  className="inline-flex items-center px-6 py-3 border-2 border-blue-600 hover:bg-blue-600 text-blue-600 hover:text-white rounded-lg font-medium transition-colors duration-300 text-base"
+                  className="inline-flex items-center px-5 sm:px-6 py-2.5 sm:py-3 border-2 border-blue-600 hover:bg-blue-600 text-blue-600 hover:text-white rounded-lg font-medium transition-colors duration-300 text-sm sm:text-base"
                 >
                   Learn More About Us
                   <span className="ml-2">→</span>
@@ -486,32 +486,32 @@ useEffect(() => {
         </section>
 
         {/* Services Section */}
-        <section className={`py-16 px-4 ${theme === 'dark' ? 'bg-gray-800/30' : 'bg-gray-50'}`}>
+        <section className={`py-12 sm:py-16 px-4 ${theme === 'dark' ? 'bg-gray-800/30' : 'bg-gray-50'}`}>
           <div className="container mx-auto">
             <motion.div
               initial={{ y: 50, opacity: 0 }}
               whileInView={{ y: 0, opacity: 1 }}
               transition={{ duration: 1 }}
               viewport={{ once: true }}
-              className="text-center mb-12"
+              className="text-center mb-8 sm:mb-12"
             >
-              <h2 className={`text-3xl font-bold mb-4 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+              <h2 className={`text-2xl sm:text-3xl font-bold mb-3 sm:mb-4 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
                 Our Services
               </h2>
-              <p className={`text-xl ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'} max-w-3xl mx-auto`}>
+              <p className={`text-base sm:text-lg md:text-xl ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'} max-w-3xl mx-auto px-4`}>
                 Comprehensive real estate services tailored to your needs
               </p>
             </motion.div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
               {/* Services cards - keep as is */}
               {[
-                { icon: <FaSearch className="text-3xl" />, title: "Property Search", description: "Find your perfect property with our advanced search tools and expert guidance.", color: "from-blue-500 to-blue-700" },
-                { icon: <FaChartLine className="text-3xl" />, title: "Market Analysis", description: "Get detailed market insights and property value assessments.", color: "from-green-500 to-green-700" },
-                { icon: <FaFileContract className="text-3xl" />, title: "Legal Support", description: "Full legal assistance for property transactions.", color: "from-purple-500 to-purple-700" },
-                { icon: <FaHandHoldingUsd className="text-3xl" />, title: "Investment Advice", description: "Smart investment strategies to maximize returns.", color: "from-orange-500 to-orange-700" },
-                { icon: <FaKey className="text-3xl" />, title: "Property Management", description: "Complete property management services.", color: "from-red-500 to-red-700" },
-                { icon: <FaHandshake className="text-3xl" />, title: "Consultation", description: "Free consultation with experienced professionals.", color: "from-teal-500 to-teal-700" },
+                { icon: <FaSearch className="text-2xl sm:text-3xl" />, title: "Property Search", description: "Find your perfect property with our advanced search tools and expert guidance.", color: "from-blue-500 to-blue-700" },
+                { icon: <FaChartLine className="text-2xl sm:text-3xl" />, title: "Market Analysis", description: "Get detailed market insights and property value assessments.", color: "from-green-500 to-green-700" },
+                { icon: <FaFileContract className="text-2xl sm:text-3xl" />, title: "Legal Support", description: "Full legal assistance for property transactions.", color: "from-purple-500 to-purple-700" },
+                { icon: <FaHandHoldingUsd className="text-2xl sm:text-3xl" />, title: "Investment Advice", description: "Smart investment strategies to maximize returns.", color: "from-orange-500 to-orange-700" },
+                { icon: <FaKey className="text-2xl sm:text-3xl" />, title: "Property Management", description: "Complete property management services.", color: "from-red-500 to-red-700" },
+                { icon: <FaHandshake className="text-2xl sm:text-3xl" />, title: "Consultation", description: "Free consultation with experienced professionals.", color: "from-teal-500 to-teal-700" },
               ].map((service, index) => (
                 <motion.div
                   key={index}
@@ -520,22 +520,22 @@ useEffect(() => {
                   transition={{ duration: 0.5, delay: index * 0.1 }}
                   viewport={{ once: true }}
                   whileHover={{ y: -8 }}
-                  className={`p-6 rounded-xl ${
+                  className={`p-5 sm:p-6 rounded-xl ${
                     theme === 'dark' ? 'bg-gray-800' : 'bg-white'
                   } shadow-lg hover:shadow-xl transition-all duration-300 text-center`}
                 >
-                  <div className={`inline-flex items-center justify-center w-16 h-16 rounded-full mb-4 bg-gradient-to-r ${service.color}`}>
+                  <div className={`inline-flex items-center justify-center w-14 h-14 sm:w-16 sm:h-16 rounded-full mb-3 sm:mb-4 bg-gradient-to-r ${service.color}`}>
                     <div className="text-white">{service.icon}</div>
                   </div>
-                  <h3 className={`text-xl font-bold mb-3 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>{service.title}</h3>
-                  <p className={theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}>{service.description}</p>
+                  <h3 className={`text-lg sm:text-xl font-bold mb-2 sm:mb-3 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>{service.title}</h3>
+                  <p className={`text-sm sm:text-base ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>{service.description}</p>
                 </motion.div>
               ))}
             </div>
-             <div className="text-center mt-12">
+             <div className="text-center mt-8 sm:mt-12">
               <Link
                 href="/services"
-                className="inline-flex items-center px-6 py-3 border-2 border-blue-600 hover:bg-blue-600 text-blue-600 hover:text-white rounded-lg font-medium transition-colors duration-300 text-base"
+                className="inline-flex items-center px-5 sm:px-6 py-2.5 sm:py-3 border-2 border-blue-600 hover:bg-blue-600 text-blue-600 hover:text-white rounded-lg font-medium transition-colors duration-300 text-sm sm:text-base"
               >
                Read More About Our Services
                 <span className="ml-2">→</span>
@@ -545,12 +545,12 @@ useEffect(() => {
         </section>
 
         {/* Property Types Section */}
-        <section className={`py-16 px-4 ${theme === 'dark' ? 'bg-transparent' : 'bg-white'}`}>
+        <section className={`py-12 sm:py-16 px-4 ${theme === 'dark' ? 'bg-transparent' : 'bg-white'}`}>
           <div className="container mx-auto">
-            <h2 className={`text-3xl font-bold text-center mb-12 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+            <h2 className={`text-2xl sm:text-3xl font-bold text-center mb-8 sm:mb-12 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
               Property Types
             </h2>
-            <div className="grid grid-cols-2 md:grid-cols-5 gap-6">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4 sm:gap-6">
               {propertyTypes.map((type, index) => (
                 <motion.div
                   key={type.value}
@@ -562,12 +562,12 @@ useEffect(() => {
                   className="text-center cursor-pointer"
                   onClick={() => window.location.href = `/public/houses?propertyType=${type.value}`}
                 >
-                  <div className={`inline-flex items-center justify-center w-16 h-16 rounded-full mb-4 ${
+                  <div className={`inline-flex items-center justify-center w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 rounded-full mb-2 sm:mb-3 md:mb-4 ${
                     theme === 'dark' ? 'bg-blue-500/20' : 'bg-blue-100'
                   }`}>
-                    <div className="text-2xl text-blue-600">{type.icon}</div>
+                    <div className="text-xl sm:text-2xl text-blue-600">{type.icon}</div>
                   </div>
-                  <h3 className={`font-semibold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>{type.label}</h3>
+                  <h3 className={`text-sm sm:text-base font-semibold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>{type.label}</h3>
                 </motion.div>
               ))}
             </div>
@@ -575,27 +575,27 @@ useEffect(() => {
         </section>
 
         {/* Featured Properties Section */}
-        <section className={`py-16 px-4 ${theme === 'dark' ? 'bg-gray-800/30' : 'bg-gray-50'}`}>
+        <section className={`py-12 sm:py-16 px-4 ${theme === 'dark' ? 'bg-gray-800/30' : 'bg-gray-50'}`}>
           <div className="container mx-auto">
-            <h2 className={`text-3xl font-bold text-center mb-12 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+            <h2 className={`text-2xl sm:text-3xl font-bold text-center mb-8 sm:mb-12 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
               Featured Properties
             </h2>
             
             {loadingProperties ? (
               <div className="flex justify-center items-center py-12">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+                <div className="animate-spin rounded-full h-10 w-10 sm:h-12 sm:w-12 border-b-2 border-blue-600"></div>
               </div>
             ) : featuredProperties.length === 0 ? (
               <div className="text-center py-12">
-                <div className={`text-6xl mb-4 ${theme === 'dark' ? 'text-gray-600' : 'text-gray-300'}`}>
+                <div className={`text-5xl sm:text-6xl mb-4 ${theme === 'dark' ? 'text-gray-600' : 'text-gray-300'}`}>
                   <FaHome />
                 </div>
-                <p className={`text-lg ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
+                <p className={`text-base sm:text-lg ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
                   No properties available. Check back soon!
                 </p>
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
                 {featuredProperties.map((property, index) => {
                   const imageUrl = getImageUrl(property._id);
                   const hasImageError = imageErrors[property._id] || !imageUrl;
@@ -614,7 +614,7 @@ useEffect(() => {
                     >
                       <Link href={`/public/houses/${property._id}`} className="block">
                         {/* Property Image */}
-                        <div className="relative h-48 overflow-hidden bg-gray-200 dark:bg-gray-700">
+                        <div className="relative h-48 sm:h-56 overflow-hidden bg-gray-200 dark:bg-gray-700">
                           {!hasImageError && imageUrl ? (
                             <img
                               src={imageUrl}
@@ -624,7 +624,7 @@ useEffect(() => {
                             />
                           ) : (
                             <div className="w-full h-full flex items-center justify-center bg-gray-200 dark:bg-gray-700">
-                              <FaHome className="text-4xl text-gray-400 dark:text-gray-500" />
+                              <FaHome className="text-3xl sm:text-4xl text-gray-400 dark:text-gray-500" />
                             </div>
                           )}
                           {/* Property Type Badge */}
@@ -646,16 +646,16 @@ useEffect(() => {
                             </div>
                           )}
                         </div>
-                        <div className="p-6">
-                          <div className="flex items-center justify-between mb-3">
-                            <h3 className={`text-lg font-semibold ${
+                        <div className="p-4 sm:p-6">
+                          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2 sm:mb-3">
+                            <h3 className={`text-base sm:text-lg font-semibold ${
                               theme === 'dark' ? 'text-white' : 'text-gray-900'
                             }`}>
                               {property.title.length > 30 
                                 ? `${property.title.substring(0, 30)}...` 
                                 : property.title}
                             </h3>
-                            <span className={`text-lg font-bold ${
+                            <span className={`text-base sm:text-lg font-bold ${
                               theme === 'dark' ? 'text-blue-400' : 'text-blue-600'
                             }`}>
                               {formatPrice(property.price)}
@@ -663,9 +663,9 @@ useEffect(() => {
                           </div>
                           
                           {/* Location */}
-                          <div className="flex items-center gap-1 mb-3">
+                          <div className="flex items-center gap-1 mb-2 sm:mb-3">
                             <FaMapMarker className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`} />
-                            <span className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
+                            <span className={`text-xs sm:text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
                               {property.location.city}, {property.location.state}
                             </span>
                           </div>
@@ -673,30 +673,30 @@ useEffect(() => {
                           {/* Property Details */}
                           <div className="flex flex-wrap gap-3 mb-3">
                             <div className="flex items-center gap-1">
-                              <FaBed className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`} />
-                              <span className={`text-sm ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
+                              <FaBed className={`text-xs sm:text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`} />
+                              <span className={`text-xs sm:text-sm ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
                                 {property.details.bedrooms} beds
                               </span>
                             </div>
                             <div className="flex items-center gap-1">
-                              <FaBath className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`} />
-                              <span className={`text-sm ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
+                              <FaBath className={`text-xs sm:text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`} />
+                              <span className={`text-xs sm:text-sm ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
                                 {property.details.bathrooms} baths
                               </span>
                             </div>
                             <div className="flex items-center gap-1">
-                              <FaSquare className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`} />
-                              <span className={`text-sm ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
+                              <FaSquare className={`text-xs sm:text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`} />
+                              <span className={`text-xs sm:text-sm ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
                                 {property.details.area.toLocaleString()} sqft
                               </span>
                             </div>
                           </div>
                           
-                          <div className="flex items-center justify-between mt-4 pt-3 border-t border-gray-200 dark:border-gray-700">
+                          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mt-4 pt-3 border-t border-gray-200 dark:border-gray-700">
                             <div className="flex items-center gap-4">
                               <div className="flex items-center">
-                                <FaStar className="text-yellow-500 mr-1 text-sm" />
-                                <span className={`text-sm ${
+                                <FaStar className="text-yellow-500 mr-1 text-xs sm:text-sm" />
+                                <span className={`text-xs sm:text-sm ${
                                   theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
                                 }`}>
                                   {property.view} views
@@ -707,12 +707,12 @@ useEffect(() => {
                                   ? theme === 'dark' ? 'text-green-400' : 'text-green-600'
                                   : theme === 'dark' ? 'text-red-400' : 'text-red-600'
                               }`}>
-                                <div className={`w-2 h-2 rounded-full mr-1 ${
+                                <div className={`w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full mr-1 ${
                                   property.status === 'AVAILABLE' 
                                     ? theme === 'dark' ? 'bg-green-400' : 'bg-green-600'
                                     : theme === 'dark' ? 'bg-red-400' : 'bg-red-600'
                                 }`}></div>
-                                <span className="text-sm">
+                                <span className="text-xs sm:text-sm">
                                   {property.status === 'AVAILABLE' ? 'Available' : 
                                    property.status === 'SOLD' ? 'Sold' : 
                                    property.status === 'RENTED' ? 'Rented' : 'Unavailable'}
@@ -724,13 +724,13 @@ useEffect(() => {
                                 e.preventDefault();
                                 window.location.href = `/public/houses/${property._id}`;
                               }}
-                              className={`px-3 py-1 rounded text-sm font-medium ${
+                              className={`px-3 py-1.5 sm:px-3 sm:py-1 rounded text-xs sm:text-sm font-medium ${
                                 theme === 'dark'
                                   ? 'bg-blue-600 hover:bg-blue-700 text-white'
                                   : 'bg-blue-600 hover:bg-blue-700 text-white'
-                              } transition-colors duration-300 flex items-center gap-1`}
+                              } transition-colors duration-300 flex items-center gap-1 justify-center`}
                             >
-                              <FaSearch size={12} /> View Details
+                              <FaSearch size={10} /> View Details
                             </button>
                           </div>
                         </div>
@@ -740,10 +740,10 @@ useEffect(() => {
                 })}
               </div>
             )}
-            <div className="text-center mt-12">
+            <div className="text-center mt-8 sm:mt-12">
               <Link
                 href="/public/houses"
-                className="inline-flex items-center px-6 py-3 border-2 border-blue-600 hover:bg-blue-600 text-blue-600 hover:text-white rounded-lg font-medium transition-colors duration-300 text-base"
+                className="inline-flex items-center px-5 sm:px-6 py-2.5 sm:py-3 border-2 border-blue-600 hover:bg-blue-600 text-blue-600 hover:text-white rounded-lg font-medium transition-colors duration-300 text-sm sm:text-base"
               >
                 View All Properties
                 <span className="ml-2">→</span>
@@ -753,12 +753,12 @@ useEffect(() => {
         </section>
 
         {/* Why Choose Us Section */}
-        <section className={`py-16 px-4 ${theme === 'dark' ? 'bg-transparent' : 'bg-white'}`}>
+        <section className={`py-12 sm:py-16 px-4 ${theme === 'dark' ? 'bg-transparent' : 'bg-white'}`}>
           <div className="container mx-auto">
-            <h2 className={`text-3xl font-bold text-center mb-12 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+            <h2 className={`text-2xl sm:text-3xl font-bold text-center mb-8 sm:mb-12 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
               Why Choose Us
             </h2>
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8">
               {[
                 { icon: <FaUsers />, title: "Expert Agents", desc: "Our experienced agents provide personalized guidance." },
                 { icon: <FaChartLine />, title: "Market Expertise", desc: "Deep local market knowledge and data-driven insights." },
@@ -773,13 +773,13 @@ useEffect(() => {
                   viewport={{ once: true }}
                   className="text-center"
                 >
-                  <div className={`inline-flex items-center justify-center w-12 h-12 rounded-full mb-4 ${
+                  <div className={`inline-flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 rounded-full mb-3 sm:mb-4 ${
                     theme === 'dark' ? 'bg-blue-500/20' : 'bg-blue-100'
                   }`}>
-                    <div className="text-blue-600 text-xl">{item.icon}</div>
+                    <div className="text-blue-600 text-base sm:text-xl">{item.icon}</div>
                   </div>
-                  <h3 className={`text-xl font-bold mb-2 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>{item.title}</h3>
-                  <p className={theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}>{item.desc}</p>
+                  <h3 className={`text-base sm:text-lg md:text-xl font-bold mb-1 sm:mb-2 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>{item.title}</h3>
+                  <p className={`text-xs sm:text-sm ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>{item.desc}</p>
                 </motion.div>
               ))}
             </div>
@@ -787,59 +787,59 @@ useEffect(() => {
         </section>
 
         {/* Contact Section */}
-        <section className={`py-16 px-4 ${theme === 'dark' ? 'bg-gray-800/30' : 'bg-gray-50'}`}>
+        <section className={`py-12 sm:py-16 px-4 ${theme === 'dark' ? 'bg-gray-800/30' : 'bg-gray-50'}`}>
           <div className="container mx-auto">
-            <h2 className={`text-3xl font-bold text-center mb-12 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+            <h2 className={`text-2xl sm:text-3xl font-bold text-center mb-8 sm:mb-12 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
               Get In Touch
             </h2>
             
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 mb-8 sm:mb-12">
               <motion.div initial={{ y: 50, opacity: 0 }} whileInView={{ y: 0, opacity: 1 }} transition={{ duration: 1 }} viewport={{ once: true }} className="text-center">
-                <div className={`inline-flex items-center justify-center w-12 h-12 rounded-full mb-4 ${theme === 'dark' ? 'bg-blue-500/20' : 'bg-blue-100'}`}>
-                  <FaMapMarker className="text-blue-600 text-xl" />
+                <div className={`inline-flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 rounded-full mb-3 sm:mb-4 ${theme === 'dark' ? 'bg-blue-500/20' : 'bg-blue-100'}`}>
+                  <FaMapMarker className="text-blue-600 text-base sm:text-xl" />
                 </div>
-                <h3 className={`text-lg font-semibold mb-2 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Visit Our Office</h3>
-                <p className={theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}>123 Real Estate Avenue<br />Downtown District<br />City Center, CC 12345</p>
+                <h3 className={`text-base sm:text-lg font-semibold mb-1 sm:mb-2 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Visit Our Office</h3>
+                <p className={`text-xs sm:text-sm ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>123 Real Estate Avenue<br />Downtown District<br />City Center, CC 12345</p>
               </motion.div>
 
               <motion.div initial={{ y: 50, opacity: 0 }} whileInView={{ y: 0, opacity: 1 }} transition={{ duration: 1 }} viewport={{ once: true }} className="text-center">
-                <div className={`inline-flex items-center justify-center w-12 h-12 rounded-full mb-4 ${theme === 'dark' ? 'bg-blue-500/20' : 'bg-blue-100'}`}>
-                  <FaClock className="text-blue-600 text-xl" />
+                <div className={`inline-flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 rounded-full mb-3 sm:mb-4 ${theme === 'dark' ? 'bg-blue-500/20' : 'bg-blue-100'}`}>
+                  <FaClock className="text-blue-600 text-base sm:text-xl" />
                 </div>
-                <h3 className={`text-lg font-semibold mb-2 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Office Hours</h3>
-                <p className={theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}>Mon-Fri: 9:00 AM - 6:00 PM<br />Sat: 10:00 AM - 4:00 PM<br />Sun: By Appointment</p>
+                <h3 className={`text-base sm:text-lg font-semibold mb-1 sm:mb-2 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Office Hours</h3>
+                <p className={`text-xs sm:text-sm ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>Mon-Fri: 9:00 AM - 6:00 PM<br />Sat: 10:00 AM - 4:00 PM<br />Sun: By Appointment</p>
               </motion.div>
 
               <motion.div initial={{ y: 50, opacity: 0 }} whileInView={{ y: 0, opacity: 1 }} transition={{ duration: 1 }} viewport={{ once: true }} className="text-center">
-                <div className={`inline-flex items-center justify-center w-12 h-12 rounded-full mb-4 ${theme === 'dark' ? 'bg-blue-500/20' : 'bg-blue-100'}`}>
-                  <FaPhone className="text-blue-600 text-xl" />
+                <div className={`inline-flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 rounded-full mb-3 sm:mb-4 ${theme === 'dark' ? 'bg-blue-500/20' : 'bg-blue-100'}`}>
+                  <FaPhone className="text-blue-600 text-base sm:text-xl" />
                 </div>
-                <h3 className={`text-lg font-semibold mb-2 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Contact Us</h3>
-                <p className={theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}>(123) 456-7890<br />info@realestatepro.com</p>
+                <h3 className={`text-base sm:text-lg font-semibold mb-1 sm:mb-2 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Contact Us</h3>
+                <p className={`text-xs sm:text-sm ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>(123) 456-7890<br />info@realestatepro.com</p>
               </motion.div>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
               <motion.div initial={{ x: -100, opacity: 0 }} whileInView={{ x: 0, opacity: 1 }} transition={{ duration: 1 }} viewport={{ once: true }} className="rounded-xl overflow-hidden shadow-xl">
-                <div className="h-96">
+                <div className="h-64 sm:h-80 lg:h-96">
                   <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3022.215209132579!2d-73.98784468459363!3d40.75797897932689!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x89c25855c6480299%3A0x55194ec5a1ae072e!2sTimes%20Square!5e0!3m2!1sen!2sus!4v1648062964726!5m2!1sen!2sus" width="100%" height="100%" style={{ border: 0 }} allowFullScreen loading="lazy"></iframe>
                 </div>
               </motion.div>
 
               <motion.div initial={{ x: 100, opacity: 0 }} whileInView={{ x: 0, opacity: 1 }} transition={{ duration: 1 }} viewport={{ once: true }}>
-                <h3 className={`text-2xl font-bold mb-6 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Have Questions?</h3>
-                <p className={`mb-6 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>Send us a message and one of our agents will get back to you as soon as possible.</p>
-                <form onSubmit={handleContactSubmit} className="space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <h3 className={`text-xl sm:text-2xl font-bold mb-4 sm:mb-6 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Have Questions?</h3>
+                <p className={`mb-4 sm:mb-6 text-sm sm:text-base ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>Send us a message and one of our agents will get back to you as soon as possible.</p>
+                <form onSubmit={handleContactSubmit} className="space-y-4 sm:space-y-6">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                     <div>
-                      <input type="text" name="name" required value={formData.name} onChange={handleContactChange} className={`w-full px-4 py-3 rounded-lg border text-base focus:outline-none focus:ring-2 focus:ring-blue-500 ${theme === 'dark' ? 'bg-gray-800/50 border-gray-700 text-white' : 'bg-white border-gray-300 text-gray-900'}`} placeholder="Full Name *" />
+                      <input type="text" name="name" required value={formData.name} onChange={handleContactChange} className={`w-full px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg border text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-blue-500 ${theme === 'dark' ? 'bg-gray-800/50 border-gray-700 text-white' : 'bg-white border-gray-300 text-gray-900'}`} placeholder="Full Name *" />
                     </div>
                     <div>
-                      <input type="text" name="contact" value={formData.email || formData.phone} onChange={(e) => { const value = e.target.value; if (value.includes('@')) { setFormData({...formData, email: value, phone: ''}); } else { setFormData({...formData, phone: value, email: ''}); } }} className={`w-full px-4 py-3 rounded-lg border text-base focus:outline-none focus:ring-2 focus:ring-blue-500 ${theme === 'dark' ? 'bg-gray-800/50 border-gray-700 text-white' : 'bg-white border-gray-300 text-gray-900'}`} placeholder="Email or Phone *" />
+                      <input type="text" name="contact" value={formData.email || formData.phone} onChange={(e) => { const value = e.target.value; if (value.includes('@')) { setFormData({...formData, email: value, phone: ''}); } else { setFormData({...formData, phone: value, email: ''}); } }} className={`w-full px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg border text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-blue-500 ${theme === 'dark' ? 'bg-gray-800/50 border-gray-700 text-white' : 'bg-white border-gray-300 text-gray-900'}`} placeholder="Email or Phone *" />
                     </div>
                   </div>
                   <div>
-                    <select name="subject" required value={formData.subject} onChange={handleContactChange} className={`w-full px-4 py-3 rounded-lg border text-base focus:outline-none focus:ring-2 focus:ring-blue-500 ${theme === 'dark' ? 'bg-gray-800/50 border-gray-700 text-white' : 'bg-white border-gray-300 text-gray-900'}`}>
+                    <select name="subject" required value={formData.subject} onChange={handleContactChange} className={`w-full px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg border text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-blue-500 ${theme === 'dark' ? 'bg-gray-800/50 border-gray-700 text-white' : 'bg-white border-gray-300 text-gray-900'}`}>
                       <option value="Real Estate Inquiry">Real Estate Inquiry</option>
                       <option value="Property Viewing">Schedule Property Viewing</option>
                       <option value="Selling Property">Selling Property</option>
@@ -849,10 +849,10 @@ useEffect(() => {
                     </select>
                   </div>
                   <div>
-                    <textarea name="message" required rows={5} value={formData.message} onChange={handleContactChange} placeholder="Tell us about your property needs or questions *" className={`w-full px-4 py-3 rounded-lg border text-base focus:outline-none focus:ring-2 focus:ring-blue-500 ${theme === 'dark' ? 'bg-gray-800/50 border-gray-700 text-white' : 'bg-white border-gray-300 text-gray-900'}`}></textarea>
+                    <textarea name="message" required rows={4} value={formData.message} onChange={handleContactChange} placeholder="Tell us about your property needs or questions *" className={`w-full px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg border text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-blue-500 ${theme === 'dark' ? 'bg-gray-800/50 border-gray-700 text-white' : 'bg-white border-gray-300 text-gray-900'}`}></textarea>
                   </div>
-                  <button type="submit" disabled={isSubmitting} className={`w-full px-6 py-3 rounded-lg font-medium text-base transition-colors duration-300 flex items-center justify-center ${theme === 'dark' ? 'bg-gradient-to-r from-blue-600 to-blue-800 hover:from-blue-700 hover:to-blue-900 text-white' : 'bg-gradient-to-r from-blue-600 to-blue-800 hover:from-blue-700 hover:to-blue-900 text-white'} disabled:opacity-50`}>
-                    {isSubmitting ? (<><svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>Sending...</>) : 'Send Message'}
+                  <button type="submit" disabled={isSubmitting} className={`w-full px-5 sm:px-6 py-2.5 sm:py-3 rounded-lg font-medium text-sm sm:text-base transition-colors duration-300 flex items-center justify-center ${theme === 'dark' ? 'bg-gradient-to-r from-blue-600 to-blue-800 hover:from-blue-700 hover:to-blue-900 text-white' : 'bg-gradient-to-r from-blue-600 to-blue-800 hover:from-blue-700 hover:to-blue-900 text-white'} disabled:opacity-50`}>
+                    {isSubmitting ? (<><svg className="animate-spin -ml-1 mr-2 sm:mr-3 h-4 w-4 sm:h-5 sm:w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>Sending...</>) : 'Send Message'}
                   </button>
                 </form>
               </motion.div>
@@ -861,14 +861,14 @@ useEffect(() => {
         </section>
 
         {/* CTA Section */}
-        <section className={`py-16 px-4 ${theme === 'dark' ? 'bg-gradient-to-r from-blue-800 to-blue-900' : 'bg-gradient-to-r from-blue-600 to-blue-800'}`}>
+        <section className={`py-12 sm:py-16 px-4 ${theme === 'dark' ? 'bg-gradient-to-r from-blue-800 to-blue-900' : 'bg-gradient-to-r from-blue-600 to-blue-800'}`}>
           <div className="container mx-auto text-center">
             <motion.div initial={{ y: 50, opacity: 0 }} whileInView={{ y: 0, opacity: 1 }} transition={{ duration: 1 }} viewport={{ once: true }}>
-              <h2 className="text-3xl font-bold mb-6 text-white">Ready to Find Your Dream Home?</h2>
-              <p className="text-xl mb-8 max-w-2xl mx-auto text-white/90">Let our expert team guide you through the exciting journey of buying or selling your property.</p>
-              <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Link href="/public/houses" className="px-8 py-3 bg-white hover:bg-gray-100 text-blue-600 rounded-lg font-medium text-lg transition-colors duration-300 shadow-lg">Browse Properties</Link>
-                <Link href="/contact" className="px-8 py-3 border-2 border-white hover:bg-white/10 text-white rounded-lg font-medium text-lg transition-colors duration-300">Contact an Agent</Link>
+              <h2 className="text-xl sm:text-2xl md:text-3xl font-bold mb-3 sm:mb-6 text-white px-4">Ready to Find Your Dream Home?</h2>
+              <p className="text-base sm:text-lg md:text-xl mb-5 sm:mb-8 max-w-2xl mx-auto text-white/90 px-4">Let our expert team guide you through the exciting journey of buying or selling your property.</p>
+              <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center px-4">
+                <Link href="/public/houses" className="px-5 sm:px-6 md:px-8 py-2.5 sm:py-3 bg-white hover:bg-gray-100 text-blue-600 rounded-lg font-medium text-sm sm:text-base md:text-lg transition-colors duration-300 shadow-lg">Browse Properties</Link>
+                <Link href="/contact" className="px-5 sm:px-6 md:px-8 py-2.5 sm:py-3 border-2 border-white hover:bg-white/10 text-white rounded-lg font-medium text-sm sm:text-base md:text-lg transition-colors duration-300">Contact an Agent</Link>
               </div>
             </motion.div>
           </div>
