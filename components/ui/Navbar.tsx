@@ -112,7 +112,7 @@ const Navbar: React.FC = () => {
   const isActive = (href: string) => pathname === href;
 
   const navLinkClasses = (href: string) => `
-    relative px-4 py-3 text-base font-medium transition-all duration-300
+    relative px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base font-medium transition-all duration-300
     ${isActive(href) 
       ? 'text-primary dark:text-primary after:scale-x-100' 
       : 'text-text-primary dark:text-text-primary hover:text-primary dark:hover:text-primary'
@@ -123,7 +123,7 @@ const Navbar: React.FC = () => {
   `;
 
   const mobileNavLinkClasses = (href: string) => `
-    block px-4 py-3 text-lg font-medium transition-all duration-200
+    block px-4 py-3 text-base sm:text-lg font-medium transition-all duration-200
     ${isActive(href) 
       ? 'text-primary dark:text-primary bg-primary/5 dark:bg-primary/20 border-l-2 border-primary dark:border-primary' 
       : 'text-text-primary dark:text-text-primary hover:text-primary dark:hover:text-primary hover:bg-primary/5 dark:hover:bg-primary/20'
@@ -134,22 +134,22 @@ const Navbar: React.FC = () => {
 
   return (
     <nav className="bg-surface dark:bg-surface border-b border-border dark:border-border shadow-md fixed w-full z-50 transition-colors duration-300">
-      <div className="container mx-auto px-4">
-        <div className="flex justify-between items-center h-24">
+      <div className="container mx-auto px-3 sm:px-4">
+        <div className="flex justify-between items-center h-16 sm:h-20 md:h-24">
           
           {/* Logo + Brand Name */}
-          <Link href="/" className="flex items-center space-x-3 group">
-            <div className="relative w-20 h-20 transition-transform duration-300 group-hover:scale-105">
+          <Link href="/" className="flex items-center space-x-2 sm:space-x-3 group">
+            <div className="relative w-10 h-10 sm:w-14 sm:h-14 md:w-20 md:h-20 transition-transform duration-300 group-hover:scale-105">
               <Image
                 src="/images/hrms-logo.jpg"
                 alt="Zelalem Cafterya Logo"
                 fill
                 className="object-contain rounded-lg"
-                sizes="48px"
+                sizes="(max-width: 640px) 40px, (max-width: 768px) 56px, 80px"
                 priority
               />
             </div>
-            <span className="text-2xl font-bold text-text-primary dark:text-text-primary transition-colors duration-300 group-hover:text-primary dark:group-hover:text-primary">
+            <span className="text-base sm:text-xl md:text-2xl font-bold text-text-primary dark:text-text-primary transition-colors duration-300 group-hover:text-primary dark:group-hover:text-primary">
               House Selling
             </span>
           </Link>
@@ -169,42 +169,34 @@ const Navbar: React.FC = () => {
 
             {/* User Section */}
             {user ? (
-              <div className="flex items-center space-x-4 ml-4">
-                <span className="text-text-secondary dark:text-text-secondary text-base px-3">
+              <div className="flex items-center space-x-3 ml-4">
+                <span className="text-text-secondary dark:text-text-secondary text-sm px-2 truncate max-w-[150px]">
                   Welcome, {user.name || user.email}
                 </span>
-                {/* {user.role === 'admin' && (
-                  <Link
-                    href="/admin"
-                    className="px-4 py-2 border border-primary dark:border-primary text-primary dark:text-primary hover:bg-primary dark:hover:bg-primary hover:text-surface dark:hover:text-surface rounded-lg font-medium transition-all duration-300 text-base hover:scale-105"
-                  >
-                    Admin
-                  </Link>
-                )} */}
                 <Link
                   href="/admin/dashboard"
-                  className="px-4 py-2 border border-primary dark:border-primary text-primary dark:text-primary hover:bg-primary dark:hover:bg-primary hover:text-surface dark:hover:text-surface rounded-lg font-medium transition-all duration-300 text-base hover:scale-105"
+                  className="px-3 sm:px-4 py-1.5 sm:py-2 border border-primary dark:border-primary text-primary dark:text-primary hover:bg-primary dark:hover:bg-primary hover:text-surface dark:hover:text-surface rounded-lg font-medium transition-all duration-300 text-sm hover:scale-105"
                 >
                   Dashboard
                 </Link>
                 <button
                   onClick={handleLogout}
-                  className="px-4 py-2 border border-error dark:border-error text-error dark:text-error hover:bg-error dark:hover:bg-error hover:text-surface dark:hover:text-surface rounded-lg font-medium transition-all duration-300 text-base hover:scale-105"
+                  className="px-3 sm:px-4 py-1.5 sm:py-2 border border-error dark:border-error text-error dark:text-error hover:bg-error dark:hover:bg-error hover:text-surface dark:hover:text-surface rounded-lg font-medium transition-all duration-300 text-sm hover:scale-105"
                 >
                   Logout
                 </button>
               </div>
             ) : (
-              <div className="flex items-center space-x-3 ml-4">
+              <div className="flex items-center space-x-2 ml-4">
                 <Link
                   href="/auth/login"
-                  className="px-5 py-2 border border-primary dark:border-primary text-primary dark:text-primary hover:bg-primary dark:hover:bg-primary hover:text-surface dark:hover:text-surface rounded-lg font-medium transition-all duration-300 text-base hover:scale-105"
+                  className="px-3 sm:px-5 py-1.5 sm:py-2 border border-primary dark:border-primary text-primary dark:text-primary hover:bg-primary dark:hover:bg-primary hover:text-surface dark:hover:text-surface rounded-lg font-medium transition-all duration-300 text-sm hover:scale-105"
                 >
                   Signin
                 </Link>
                 <Link
                   href="/auth/register"
-                  className="px-5 py-2 border border-primary dark:border-primary text-primary dark:text-primary hover:bg-primary dark:hover:bg-primary hover:text-surface dark:hover:text-surface rounded-lg font-medium transition-all duration-300 text-base hover:scale-105"
+                  className="px-3 sm:px-5 py-1.5 sm:py-2 border border-primary dark:border-primary text-primary dark:text-primary hover:bg-primary dark:hover:bg-primary hover:text-surface dark:hover:text-surface rounded-lg font-medium transition-all duration-300 text-sm hover:scale-105"
                 >
                   Signup
                 </Link>
@@ -213,37 +205,37 @@ const Navbar: React.FC = () => {
             )}
 
             {/* Language Dropdown */}
-            <div className="relative ml-4">
+            <div className="relative ml-2 sm:ml-4">
               <button
                 onClick={(e) => {
                   e.stopPropagation();
                   toggleLanguage();
                 }}
                 className={`
-                  relative px-4 py-3 text-base font-medium transition-all duration-300
-                  flex items-center space-x-2
+                  relative px-2 sm:px-4 py-2 sm:py-3 text-sm sm:text-base font-medium transition-all duration-300
+                  flex items-center space-x-1.5 sm:space-x-2
                   ${isLanguageOpen ? 'text-primary dark:text-primary' : 'text-text-primary dark:text-text-primary hover:text-primary dark:hover:text-primary'}
                   after:absolute after:bottom-0 after:left-0 after:h-0.5 
                   after:bg-primary dark:after:bg-primary after:transition-transform after:duration-300
                   after:origin-left after:scale-x-0 hover:after:scale-x-100
                 `}
               >
-                <FaGlobe size={16} className="text-text-primary dark:text-text-primary" />
-                <span className="text-text-primary dark:text-text-primary">EN</span>
+                <FaGlobe size={14} className="text-text-primary dark:text-text-primary" />
+                <span className="text-text-primary dark:text-text-primary text-sm">EN</span>
                 <FaChevronDown 
                   className={`transition-transform duration-300 ${isLanguageOpen ? 'rotate-180' : ''} text-text-muted dark:text-text-muted`} 
-                  size={14} 
+                  size={12} 
                 />
               </button>
               {isLanguageOpen && (
                 <div 
-                  className="absolute right-0 mt-2 w-40 bg-surface dark:bg-surface border border-border dark:border-border rounded-lg shadow-lg py-2 animate-fadeIn z-50"
+                  className="absolute right-0 mt-2 w-36 sm:w-40 bg-surface dark:bg-surface border border-border dark:border-border rounded-lg shadow-lg py-2 animate-fadeIn z-50"
                   onClick={(e) => e.stopPropagation()}
                 >
-                  <button className="block w-full px-4 py-3 text-left text-text-primary dark:text-text-primary hover:text-primary dark:hover:text-primary hover:bg-primary/5 dark:hover:bg-primary/20 transition-colors duration-200 text-base">
+                  <button className="block w-full px-3 sm:px-4 py-2.5 sm:py-3 text-left text-text-primary dark:text-text-primary hover:text-primary dark:hover:text-primary hover:bg-primary/5 dark:hover:bg-primary/20 transition-colors duration-200 text-sm sm:text-base">
                     English
                   </button>
-                  <button className="block w-full px-4 py-3 text-left text-text-primary dark:text-text-primary hover:text-primary dark:hover:text-primary hover:bg-primary/5 dark:hover:bg-primary/20 transition-colors duration-200 text-base">
+                  <button className="block w-full px-3 sm:px-4 py-2.5 sm:py-3 text-left text-text-primary dark:text-text-primary hover:text-primary dark:hover:text-primary hover:bg-primary/5 dark:hover:bg-primary/20 transition-colors duration-200 text-sm sm:text-base">
                     Amharic
                   </button>
                 </div>
@@ -253,28 +245,28 @@ const Navbar: React.FC = () => {
             {/* Theme Toggle */}
             <button
               onClick={toggleTheme}
-              className="ml-4 p-3 rounded-lg hover:bg-border dark:hover:bg-border transition-all duration-300 hover:scale-110"
+              className="ml-2 sm:ml-4 p-2 sm:p-3 rounded-lg hover:bg-border dark:hover:bg-border transition-all duration-300 hover:scale-110"
               aria-label="Toggle theme"
             >
               {theme === 'dark' ? (
-                <FaSun className="text-warning" size={18} />
+                <FaSun className="text-warning" size={16} />
               ) : (
-                <FaMoon className="text-text-secondary" size={18} />
+                <FaMoon className="text-text-secondary" size={16} />
               )}
             </button>
           </div>
 
           {/* Mobile menu button */}
-          <div className="lg:hidden flex items-center space-x-3">
+          <div className="lg:hidden flex items-center space-x-2 sm:space-x-3">
             <button
               onClick={toggleTheme}
-              className="p-3 rounded-lg hover:bg-border dark:hover:bg-border transition-all duration-300"
+              className="p-2 sm:p-3 rounded-lg hover:bg-border dark:hover:bg-border transition-all duration-300"
               aria-label="Toggle theme"
             >
               {theme === 'dark' ? (
-                <FaSun className="text-warning" size={18} />
+                <FaSun className="text-warning" size={16} />
               ) : (
-                <FaMoon className="text-text-secondary" size={18} />
+                <FaMoon className="text-text-secondary" size={16} />
               )}
             </button>
             <button
@@ -283,11 +275,11 @@ const Navbar: React.FC = () => {
               aria-label="Toggle menu"
             >
               {isMenuOpen ? (
-                <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-6 h-6 sm:w-7 sm:h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                 </svg>
               ) : (
-                <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-6 h-6 sm:w-7 sm:h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
                 </svg>
               )}
@@ -299,12 +291,12 @@ const Navbar: React.FC = () => {
         {isMenuOpen && (
           <div 
             ref={mobileMenuRef}
-            className="lg:hidden fixed inset-0 top-20 bg-surface dark:bg-surface z-40 overflow-y-auto animate-slideDown"
+            className="lg:hidden fixed inset-0 top-16 sm:top-20 bg-surface dark:bg-surface z-40 overflow-y-auto animate-slideDown"
           >
-            <div className="container mx-auto px-4 py-6">
+            <div className="container mx-auto px-4 py-4 sm:py-6">
               {/* Main Navigation Links */}
-              <div className="mb-6">
-                <h3 className="text-text-muted dark:text-text-muted text-sm font-medium uppercase mb-3 px-4">Menu</h3>
+              <div className="mb-5 sm:mb-6">
+                <h3 className="text-text-muted dark:text-text-muted text-xs sm:text-sm font-medium uppercase mb-2 sm:mb-3 px-4">Menu</h3>
                 <div className="space-y-1">
                   {navLinks.map((link) => (
                     <Link
@@ -320,27 +312,27 @@ const Navbar: React.FC = () => {
               </div>
 
               {/* Language Selector Mobile */}
-              <div className="mb-6">
+              <div className="mb-5 sm:mb-6">
                 <button
                   onClick={toggleLanguageMobile}
-                  className="w-full flex items-center justify-between px-4 py-3 text-lg font-medium text-text-primary dark:text-text-primary hover:text-primary dark:hover:text-primary hover:bg-primary/5 dark:hover:bg-primary/20 rounded-lg transition-colors duration-200"
+                  className="w-full flex items-center justify-between px-4 py-3 text-base sm:text-lg font-medium text-text-primary dark:text-text-primary hover:text-primary dark:hover:text-primary hover:bg-primary/5 dark:hover:bg-primary/20 rounded-lg transition-colors duration-200"
                 >
                   <div className="flex items-center space-x-2">
-                    <FaGlobe size={16} />
+                    <FaGlobe size={14} />
                     <span>Language</span>
                   </div>
                   <FaChevronDown 
                     className={`transition-transform duration-300 ${isLanguageOpenMobile ? 'rotate-180' : ''} text-text-muted dark:text-text-muted`} 
-                    size={14} 
+                    size={12} 
                   />
                 </button>
                 
                 {isLanguageOpenMobile && (
                   <div className="mt-2 space-y-2 animate-fadeIn">
-                    <button className="block w-full px-4 py-3 text-left text-text-primary dark:text-text-primary hover:text-primary dark:hover:text-primary hover:bg-primary/5 dark:hover:bg-primary/20 rounded-lg transition-colors duration-200 text-base">
+                    <button className="block w-full px-4 py-2.5 sm:py-3 text-left text-text-primary dark:text-text-primary hover:text-primary dark:hover:text-primary hover:bg-primary/5 dark:hover:bg-primary/20 rounded-lg transition-colors duration-200 text-sm sm:text-base">
                       English
                     </button>
-                    <button className="block w-full px-4 py-3 text-left text-text-primary dark:text-text-primary hover:text-primary dark:hover:text-primary hover:bg-primary/5 dark:hover:bg-primary/20 rounded-lg transition-colors duration-200 text-base">
+                    <button className="block w-full px-4 py-2.5 sm:py-3 text-left text-text-primary dark:text-text-primary hover:text-primary dark:hover:text-primary hover:bg-primary/5 dark:hover:bg-primary/20 rounded-lg transition-colors duration-200 text-sm sm:text-base">
                       Amharic
                     </button>
                   </div>
@@ -349,20 +341,11 @@ const Navbar: React.FC = () => {
 
               {/* User Section */}
               {user ? (
-                <div className="mb-6">
+                <div className="mb-5 sm:mb-6">
                   <div className="px-4 py-3 border-t border-border dark:border-border mb-4">
-                    <div className="text-sm text-text-muted dark:text-text-muted mb-1">Welcome</div>
-                    <div className="text-text-primary dark:text-text-primary font-medium text-lg">{user.name || user.email}</div>
+                    <div className="text-xs sm:text-sm text-text-muted dark:text-text-muted mb-1">Welcome</div>
+                    <div className="text-text-primary dark:text-text-primary font-medium text-base sm:text-lg truncate">{user.name || user.email}</div>
                   </div>
-                  {user.role === 'admin' && (
-                    <Link
-                      href="/admin/dashboard"
-                      className={mobileNavLinkClasses('/admin/dashboard')}
-                      onClick={() => setIsMenuOpen(false)}
-                    >
-                      Dashboard
-                    </Link>
-                  )}
                   <Link
                     href="/admin/dashboard"
                     className={mobileNavLinkClasses('/admin/dashboard')}
@@ -375,25 +358,25 @@ const Navbar: React.FC = () => {
                       handleLogout();
                       setIsMenuOpen(false);
                     }}
-                    className="w-full text-left px-4 py-3 border border-error dark:border-error text-error dark:text-error hover:bg-error dark:hover:bg-error hover:text-surface dark:hover:text-surface rounded-lg font-medium transition-all duration-300 text-lg mt-4"
+                    className="w-full text-left px-4 py-3 border border-error dark:border-error text-error dark:text-error hover:bg-error dark:hover:bg-error hover:text-surface dark:hover:text-surface rounded-lg font-medium transition-all duration-300 text-base sm:text-lg mt-4"
                   >
                     Logout
                   </button>
                 </div>
               ) : (
-                <div className="mb-6">
-                  <h3 className="text-text-muted dark:text-text-muted text-sm font-medium uppercase mb-3 px-4">Account</h3>
+                <div className="mb-5 sm:mb-6">
+                  <h3 className="text-text-muted dark:text-text-muted text-xs sm:text-sm font-medium uppercase mb-2 sm:mb-3 px-4">Account</h3>
                   <div className="space-y-3">
                     <Link
                       href="/auth/login"
-                      className="block w-full px-4 py-3 border border-primary dark:border-primary text-primary dark:text-primary hover:bg-primary dark:hover:bg-primary hover:text-surface dark:hover:text-surface rounded-lg font-medium transition-all duration-300 text-lg text-center"
+                      className="block w-full px-4 py-3 border border-primary dark:border-primary text-primary dark:text-primary hover:bg-primary dark:hover:bg-primary hover:text-surface dark:hover:text-surface rounded-lg font-medium transition-all duration-300 text-base sm:text-lg text-center"
                       onClick={() => setIsMenuOpen(false)}
                     >
                       Signin
                     </Link>
                     <Link
                       href="/auth/register"
-                      className="block w-full px-4 py-3 border border-primary dark:border-primary text-primary dark:text-primary hover:bg-primary dark:hover:bg-primary hover:text-surface dark:hover:text-surface rounded-lg font-medium transition-all duration-300 text-lg text-center"
+                      className="block w-full px-4 py-3 border border-primary dark:border-primary text-primary dark:text-primary hover:bg-primary dark:hover:bg-primary hover:text-surface dark:hover:text-surface rounded-lg font-medium transition-all duration-300 text-base sm:text-lg text-center"
                       onClick={() => setIsMenuOpen(false)}
                     >
                       Signup
