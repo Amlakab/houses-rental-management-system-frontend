@@ -46,6 +46,21 @@
   --info: #0ea5e9;
 }
 
+/* Base responsive reset */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  overflow-x: hidden;
+  width: 100%;
+  scroll-behavior: smooth;
+}
+
 body {
   color: rgb(var(--foreground-rgb));
   background: linear-gradient(
@@ -56,6 +71,11 @@ body {
     rgb(var(--background-start-rgb));
   min-height: 100vh;
   transition: background-color 0.3s ease, color 0.3s ease;
+  overflow-x: hidden;
+  width: 100%;
+  position: relative;
+  margin: 0;
+  padding: 0;
 }
 
 /* Dark mode background */
@@ -63,18 +83,110 @@ body {
   background: linear-gradient(135deg, #0a192f, #112240);
 }
 
-/* Smooth transitions */
-* {
+/* Prevent horizontal scroll on all elements */
+img,
+picture,
+video,
+canvas,
+svg {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+input,
+button,
+textarea,
+select {
+  font: inherit;
+}
+
+/* Smooth transitions - but not on all elements for better performance */
+body,
+.dark body,
+.bingo-card,
+.number-cell {
   transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
 }
 
-/* Custom styles for Bingo platform */
+/* Container classes for responsive layout */
+.container,
+.container-fluid {
+  width: 100%;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.container {
+  max-width: 1280px;
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+
+/* Responsive container padding */
+@media (max-width: 640px) {
+  .container {
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .container {
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+  }
+}
+
+/* Ensure all sections respect viewport */
+section,
+div,
+main,
+header,
+footer,
+article,
+aside {
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+/* Fix for grid elements that might overflow */
+[class*="grid"] {
+  max-width: 100%;
+}
+
+/* Custom styles for Real Estate platform */
 .bingo-card {
   @apply grid grid-cols-5 gap-1 p-2 border-2 border-blue-500 rounded-lg bg-white text-black dark:bg-surface dark:text-text-primary dark:border-primary;
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+@media (max-width: 640px) {
+  .bingo-card {
+    gap: 0.5rem;
+    padding: 0.75rem;
+  }
 }
 
 .bingo-cell {
   @apply w-10 h-10 flex items-center justify-center border border-gray-300 rounded-md font-bold dark:border-border;
+}
+
+@media (max-width: 640px) {
+  .bingo-cell {
+    width: 2.5rem;
+    height: 2.5rem;
+    font-size: 0.875rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .bingo-cell {
+    width: 2rem;
+    height: 2rem;
+    font-size: 0.75rem;
+  }
 }
 
 .bingo-cell.marked {
@@ -87,18 +199,42 @@ body {
 
 .number-grid {
   @apply grid grid-cols-10 gap-2 p-4 bg-gray-100 rounded-lg dark:bg-surface;
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+@media (max-width: 768px) {
+  .number-grid {
+    gap: 0.5rem;
+    padding: 0.75rem;
+  }
 }
 
 .number-cell {
   @apply w-12 h-12 flex items-center justify-center border border-gray-300 rounded-full font-bold text-lg dark:border-border;
 }
 
+@media (max-width: 768px) {
+  .number-cell {
+    width: 2.5rem;
+    height: 2.5rem;
+    font-size: 0.875rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .number-cell {
+    width: 2rem;
+    height: 2rem;
+    font-size: 0.75rem;
+  }
+}
+
 .number-cell.called {
   @apply bg-yellow-400 animate-pulse dark:bg-warning;
 }
 
-
-/* Add this to your global CSS file */
+/* Hide scrollbar utility */
 .hide-scrollbar {
   scrollbar-width: none; /* Firefox */
   -ms-overflow-style: none; /* IE and Edge */
@@ -143,21 +279,97 @@ body {
   }
 }
 
-@keyframes highlightPulse {
-  0% {
-    box-shadow: 0 0 0 0 rgba(0, 255, 255, 0.7);
-  }
-  70% {
-    box-shadow: 0 0 0 20px rgba(0, 255, 255, 0);
-  }
-  100% {
-    box-shadow: 0 0 0 0 rgba(0, 255, 255, 0);
-  }
-}
-
-/* Ensure Tailwind utilities are available */
+/* Responsive text utilities */
 @layer utilities {
   .text-balance {
     text-wrap: balance;
+  }
+  
+  /* Responsive font sizes */
+  .text-responsive-xs {
+    font-size: clamp(0.75rem, 3vw, 0.875rem);
+  }
+  
+  .text-responsive-sm {
+    font-size: clamp(0.875rem, 4vw, 1rem);
+  }
+  
+  .text-responsive-base {
+    font-size: clamp(1rem, 5vw, 1.125rem);
+  }
+  
+  .text-responsive-lg {
+    font-size: clamp(1.125rem, 6vw, 1.25rem);
+  }
+  
+  .text-responsive-xl {
+    font-size: clamp(1.25rem, 7vw, 1.5rem);
+  }
+  
+  .text-responsive-2xl {
+    font-size: clamp(1.5rem, 8vw, 1.875rem);
+  }
+  
+  .text-responsive-3xl {
+    font-size: clamp(1.875rem, 10vw, 2.25rem);
+  }
+  
+  /* Responsive spacing utilities */
+  .p-responsive {
+    padding: clamp(0.75rem, 4vw, 1.5rem);
+  }
+  
+  .m-responsive {
+    margin: clamp(0.75rem, 4vw, 1.5rem);
+  }
+  
+  .gap-responsive {
+    gap: clamp(0.5rem, 3vw, 1rem);
+  }
+  
+  /* Prevent overflow */
+  .overflow-safe {
+    overflow-x: hidden;
+    max-width: 100%;
+  }
+  
+  /* Responsive grid columns */
+  .grid-responsive {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 250px), 1fr));
+    gap: clamp(0.5rem, 3vw, 1rem);
+  }
+}
+
+/* Fix for any absolute positioned elements */
+.absolute,
+.fixed {
+  max-width: 100%;
+}
+
+/* Ensure tables are responsive */
+table {
+  display: block;
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Fix for flex containers on mobile */
+.flex-wrap-mobile {
+  flex-wrap: wrap;
+}
+
+@media (max-width: 640px) {
+  .flex-col-mobile {
+    flex-direction: column;
+  }
+  
+  .w-full-mobile {
+    width: 100%;
+  }
+  
+  .text-center-mobile {
+    text-align: center;
   }
 }
