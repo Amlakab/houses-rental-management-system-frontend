@@ -58,6 +58,12 @@ const allMenuItems: MenuItem[] = [
     icon: Users,
     allowedRoles: ['admin']
   },
+  { 
+    name: 'Agents', 
+    href: '/admin/agents', 
+    icon: Users,
+    allowedRoles: ['admin', 'owner']
+  },
   // { 
   //   name: 'Payments', 
   //   href: '/admin/payments',
