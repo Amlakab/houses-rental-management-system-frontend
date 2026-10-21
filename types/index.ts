@@ -113,7 +113,7 @@ export interface AuthContextType {
   fetchUserProfile: () => Promise<User | null>;
 }
 
-//st of your types remain the same
+//st of your  types remain the same
 
 export interface GameSettings {
   language: 'am' | 'en' | 'om';
