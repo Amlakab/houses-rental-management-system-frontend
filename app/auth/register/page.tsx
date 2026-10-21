@@ -431,12 +431,12 @@ export default function RegisterPage() {
                     value={formData.role}
                     onChange={handleChange}
                   >
-                    <option value="user">Home Buyer</option>
-                    <option value="user">Property Seller</option>
+                    <option value="user">Customer</option>
+                    {/* <option value="user">Property Seller</option>
                     <option value="user">Real Estate Investor</option>
                     <option value="user">Property Renter</option>
                     <option value="user">Real Estate Agent</option>
-                    <option value="user">Property Manager</option>
+                    <option value="user">Property Manager</option> */}
                   </select>
                 </div>
 

@@ -62,49 +62,49 @@ const allMenuItems: MenuItem[] = [
     name: 'Acounts', 
     href: '/admin/payments',
     icon: WalletIcon,
-    allowedRoles: ['admin', 'Priesedant', 'Vice-Priesedant', 'accountant', 'Secretary', 'Limat'] 
+    allowedRoles: ['admin','accountant'] 
   },
   { 
     name: 'House', 
     href: '/admin/houses', 
     icon: FileTextIcon,
-    allowedRoles: ['admin', 'Priesedant', 'accountant', 'Secretary'] 
+    allowedRoles: ['admin', 'owner', 'agent'] 
   },
   { 
     name: 'Approve House', 
     href: '/admin/manager/houses', 
     icon: FileTextIcon,
-    allowedRoles: ['admin', 'Priesedant', 'accountant', 'Secretary'] 
+    allowedRoles: ['admin', 'manager'] 
   },
   { 
     name: 'Orders',
     href: '/admin/manager/orders',
     icon: FileText,
-    allowedRoles: ['admin', 'Priesedant', 'Vice-Priesedant', 'accountant', 'Secretary'] 
+    allowedRoles: ['admin', 'owner', 'agent'] 
   },
   { 
     name: 'My Orders',
     href: '/admin/customer/orders',
     icon: FileText,
-    allowedRoles: ['admin', 'Priesedant', 'Vice-Priesedant', 'accountant', 'Secretary'] 
+    allowedRoles: ['admin', 'owner', 'agent', 'customer', 'user'] 
   },
   { 
     name: 'My Payments',
     href: '/admin/customer/payments',
     icon: FileText,
-    allowedRoles: ['admin', 'Priesedant', 'Vice-Priesedant', 'accountant', 'Secretary'] 
+    allowedRoles: ['admin', 'owner', 'agent', 'customer', 'user'] 
   },
   { 
     name: 'Transactions', 
     href: '/admin/transactions/complete', 
     icon: FileTextIcon,
-    allowedRoles: ['admin', 'accountant'] 
+    allowedRoles: ['admin', 'owner', 'agent'] 
   },
   { 
     name: 'Approve Transactions', 
     href: '/admin/transactions/approve', 
     icon: FileTextIcon,
-    allowedRoles: ['admin', 'accountant'] 
+    allowedRoles: ['admin', 'owner']
   },
   { 
     name: 'Calculator', 
@@ -122,7 +122,7 @@ const allMenuItems: MenuItem[] = [
     name: 'Messages', 
     href: '/admin/manager/messages',
     icon: MessageSquare,
-    allowedRoles: ['admin', 'Priesedant', 'Vice-Priesedant', 'Secretary'] 
+    allowedRoles: ['admin', 'owner', 'manager', 'agent'] 
   },
   // { 
   //   name: 'QR code', 
@@ -134,19 +134,19 @@ const allMenuItems: MenuItem[] = [
     name: 'Reports', 
     href: '/admin/reports/transactions', 
     icon: TrendingUp,
-    allowedRoles: ['admin', 'Priesedant', 'accountant', 'Limat', 'Audite'] 
+    allowedRoles: ['admin', 'owner', 'manager', 'agent']
   },
   { 
     name: 'Security', 
     href: '/admin/security', 
     icon: Shield,
-    allowedRoles: ['admin', 'Priesedant'] 
+    allowedRoles: ['admin'] 
   },
   { 
     name: 'Settings', 
     href: '/admin/settings', 
     icon: Settings,
-    allowedRoles: ['admin', 'Priesedant'] 
+    allowedRoles: ['admin', 'owner', 'agent', 'customer', 'user'] 
   }
 ];
 
@@ -194,31 +194,21 @@ export default function AdminSidebar({
 
   // Role-based sidebar title
   const getSidebarTitle = () => {
-    switch(userRole) {
+    switch (userRole) {
       case 'admin':
         return 'Admin Panel';
-      case 'Priesedant':
-        return 'President Panel';
-      case 'Vice-Priesedant':
-        return 'Vice President Panel';
+      case 'owner':
+        return 'Owner Panel';
+      case 'manager':
+        return 'Manager Panel';
       case 'accountant':
         return 'Accountant Panel';
-      case 'Secretary':
-        return 'Secretary Panel';
-      case 'Limat':
-        return 'Finance Panel';
-      case 'Abalat-Guday':
-        return 'Member Panel';
-      case 'Mezmur':
-        return 'Music Panel';
-      case 'Timhrt':
-        return 'Education Panel';
-      case 'Muyana-Terado':
-        return 'Maintenance Panel';
-      case 'Bachna-Department':
-        return 'Youth Panel';
-      case 'Audite':
-        return 'Audit Panel';
+      case 'agent':
+        return 'Agent Panel';
+      case 'customer':
+        return 'Customer Panel';
+      case 'user':
+        return 'User Panel';
       default:
         return 'Admin Panel';
     }
@@ -228,17 +218,12 @@ export default function AdminSidebar({
   const getRoleColor = (role: string) => {
     const colors: Record<string, string> = {
       'admin': theme === 'dark' ? 'bg-red-500/20 text-red-300' : 'bg-red-100 text-red-700',
-      'Priesedant': theme === 'dark' ? 'bg-purple-500/20 text-purple-300' : 'bg-purple-100 text-purple-700',
-      'Vice-Priesedant': theme === 'dark' ? 'bg-blue-500/20 text-blue-300' : 'bg-blue-100 text-blue-700',
+      'owner': theme === 'dark' ? 'bg-purple-500/20 text-purple-300' : 'bg-purple-100 text-purple-700',
+      'manager': theme === 'dark' ? 'bg-blue-500/20 text-blue-300' : 'bg-blue-100 text-blue-700',
       'accountant': theme === 'dark' ? 'bg-yellow-500/20 text-yellow-300' : 'bg-yellow-100 text-yellow-700',
-      'Secretary': theme === 'dark' ? 'bg-green-500/20 text-green-300' : 'bg-green-100 text-green-700',
-      'Limat': theme === 'dark' ? 'bg-indigo-500/20 text-indigo-300' : 'bg-indigo-100 text-indigo-700',
-      'Abalat-Guday': theme === 'dark' ? 'bg-pink-500/20 text-pink-300' : 'bg-pink-100 text-pink-700',
-      'Mezmur': theme === 'dark' ? 'bg-teal-500/20 text-teal-300' : 'bg-teal-100 text-teal-700',
-      'Timhrt': theme === 'dark' ? 'bg-orange-500/20 text-orange-300' : 'bg-orange-100 text-orange-700',
-      'Muyana-Terado': theme === 'dark' ? 'bg-cyan-500/20 text-cyan-300' : 'bg-cyan-100 text-cyan-700',
-      'Bachna-Department': theme === 'dark' ? 'bg-lime-500/20 text-lime-300' : 'bg-lime-100 text-lime-700',
-      'Audite': theme === 'dark' ? 'bg-amber-500/20 text-amber-300' : 'bg-amber-100 text-amber-700',
+      'agent': theme === 'dark' ? 'bg-green-500/20 text-green-300' : 'bg-green-100 text-green-700',
+      'customer': theme === 'dark' ? 'bg-teal-500/20 text-teal-300' : 'bg-teal-100 text-teal-700',
+      'user': theme === 'dark' ? 'bg-indigo-500/20 text-indigo-300' : 'bg-indigo-100 text-indigo-700',
     };
     return colors[role] || (theme === 'dark' ? 'bg-gray-500/20 text-gray-300' : 'bg-gray-100 text-gray-700');
   };

@@ -38,20 +38,13 @@ interface User {
   background?: string;
   role:
     | 'user'
-    | 'customer'
-    | 'manager'
     | 'accountant'
     | 'admin'
-    | 'Abalat-Guday'
-    | 'Mezmur'
-    | 'Timhrt'
-    | 'Muyana-Terado'
-    | 'Priesedant'
-    | 'Vice-Priesedant'
-    | 'Secretary'
-    | 'Bachna-Department'
-    | 'Audite'
-    | 'Limat';
+    | 'customer'
+    | 'manager'
+    | 'owner'
+    | 'agent'
+    ;
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
@@ -75,20 +68,12 @@ interface PaginationData {
 // Role options with icons
 const ROLE_OPTIONS = [
   { value: 'user', label: 'User', icon: <Person /> },
-  { value: 'disk-user', label: 'Disk User', icon: <Visibility /> },
-  { value: 'spinner-user', label: 'Spinner User', icon: <Visibility /> },
+  { value: 'customer', label: 'Customer', icon: <PersonPin /> },
+  { value: 'manager', label: 'Manager', icon: <SupervisorAccount /> },
   { value: 'accountant', label: 'Accountant', icon: <AccountCircle /> },
   { value: 'admin', label: 'Admin', icon: <AdminPanelSettings /> },
-  { value: 'Abalat-Guday', label: 'Abalat Guday', icon: <Group /> },
-  { value: 'Mezmur', label: 'Mezmur', icon: <MusicNote /> },
-  { value: 'Timhrt', label: 'Timhrt', icon: <SchoolIcon /> },
-  { value: 'Muyana-Terado', label: 'Muyana Terado', icon: <Engineering /> },
-  { value: 'Priesedant', label: 'Priesedant', icon: <BusinessCenter /> },
-  { value: 'Vice-Priesedant', label: 'Vice Priesedant', icon: <BusinessCenter /> },
-  { value: 'Secretary', label: 'Secretary', icon: <Assignment /> },
-  { value: 'Bachna-Department', label: 'Bachna Department', icon: <Handshake /> },
-  { value: 'Audite', label: 'Audite', icon: <AccountCircle /> },
-  { value: 'Limat', label: 'Limat', icon: <TrendingUp /> }
+  { value: 'owner', label: 'Owner', icon: <Business /> },
+  { value: 'agent', label: 'Agent', icon: <Handshake /> }
 ];
 
 const UsersPage = () => {
@@ -424,18 +409,10 @@ const UsersPage = () => {
     const roleColors: { [key: string]: 'primary' | 'secondary' | 'success' | 'warning' | 'info' | 'error' | 'default' } = {
       'admin': 'error',
       'accountant': 'warning',
-      'Abalat-Guday': 'primary',
-      'Mezmur': 'secondary',
-      'Timhrt': 'info',
-      'Muyana-Terado': 'success',
-      'Priesedant': 'error',
-      'Vice-Priesedant': 'warning',
-      'Secretary': 'info',
-      'Bachna-Department': 'success',
-      'Audite': 'primary',
-      'Limat': 'secondary',
-      'disk-user': 'default',
-      'spinner-user': 'default',
+      'manager': 'info',
+      'customer': 'primary',
+      'owner': 'secondary',
+      'agent': 'success',
       'user': 'default'
     };
     return roleColors[role] || 'default';
