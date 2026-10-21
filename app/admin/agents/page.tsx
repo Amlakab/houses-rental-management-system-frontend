@@ -477,10 +477,10 @@ const UsersPage = () => {
               color: theme === 'dark' ? '#ccd6f6' : '#333333',
               mb: 1 
             }}>
-              User Management
+              Agent Management
             </Typography>
             <Typography variant={isMobile ? "body2" : "body1"} color={theme === 'dark' ? '#a8b2d1' : '#666666'}>
-              Manage system users, roles, and permissions
+              Manage system agents, roles, and permissions
             </Typography>
           </Box>
         </motion.div>
@@ -606,7 +606,7 @@ const UsersPage = () => {
                   alignItems: 'center',
                   gap: 1
                 }}>
-                  <FilterList /> User Filters
+                  <FilterList /> Agent Filters
                 </Typography>
                 
                 <Box sx={{ 
@@ -1198,10 +1198,10 @@ const UsersPage = () => {
                       mb: 2
                     }} />
                     <Typography variant="h6" color={theme === 'dark' ? '#a8b2d1' : '#666666'} sx={{ mb: 1 }}>
-                      No users found
+                      No agents found
                     </Typography>
                     <Typography variant="body2" color={theme === 'dark' ? '#94a3b8' : '#999999'}>
-                      Try adjusting your filters or add a new user
+                      Try adjusting your filters or add a new agent
                     </Typography>
                   </Box>
                 )}
