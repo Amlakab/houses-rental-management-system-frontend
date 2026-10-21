@@ -104,7 +104,7 @@ export default function LoginPage() {
         });
 
         // Role routing for real estate management
-        if (user.role === 'admin' || user.role === 'user') {
+        if (user.role === 'admin' || user.role === 'user' || user.role === 'owner' || user.role === 'agent' || user.role === 'manager' || user.role === 'accountant') {
           router.push('/admin/dashboard');
         } else {
           router.push('/customer/orders');

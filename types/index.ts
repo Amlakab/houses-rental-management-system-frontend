@@ -6,11 +6,11 @@ export interface User {
   background?: string;
   role:
     | 'user'
-    | 'disk-user'
-    | 'spinner-user'
+    | 'agent'
+    | 'owner'
     | 'accountant'
     | 'admin'
-    | 'Abalat-Guday'
+    | 'manager'
     | 'Mezmur'
     | 'Timhrt'
     | 'Muyana-Terado'
