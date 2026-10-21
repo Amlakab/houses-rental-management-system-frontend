@@ -44,7 +44,13 @@ const allMenuItems: MenuItem[] = [
     name: 'Home', 
     href: '/admin/dashboard',
     icon: Home,
-    allowedRoles: ['admin', 'Priesedant', 'Vice-Priesedant', 'accountant', 'Secretary', 'Limat', 'Abalat-Guday', 'Mezmur', 'Timhrt', 'Muyana-Terado', 'Bachna-Department', 'Audite'] 
+    allowedRoles: ['admin', 'owner', 'agent', 'customer', 'user'] 
+  },
+  { 
+    name: 'Houses', 
+    href: '/public/houses',
+    icon: Home,
+    allowedRoles: ['customer', 'user'] 
   },
   { 
     name: 'Users', 
