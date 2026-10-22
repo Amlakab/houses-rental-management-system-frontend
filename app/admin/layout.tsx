@@ -21,9 +21,9 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
     setMounted(true);
   }, []);
 
-  const toggleSidebar = () => setSidebarOpen(!sidebarOpen);
+  const toggleSidebar = () => setSidebarOpen((open) => !open);
   const closeSidebar = () => setSidebarOpen(false);
-  const toggleSidebarCollapse = () => setSidebarCollapsed(!sidebarCollapsed);
+  const toggleSidebarCollapse = () => setSidebarCollapsed((collapsed) => !collapsed);
 
   if (!mounted) return null;
 
@@ -33,6 +33,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
       <div className="fixed top-0 left-0 right-0 z-50">
         <AdminHeader 
           onMenuClick={toggleSidebar}
+          isSidebarOpen={sidebarOpen}
           onSidebarToggle={toggleSidebarCollapse}
           isSidebarCollapsed={sidebarCollapsed}
         />
@@ -41,7 +42,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
       {/* Main Content Area */}
       <div className="flex flex-1 pt-16"> {/* pt-16 to account for fixed header height */}
         {/* Fixed Sidebar */}
-        <div className={`fixed top-16 left-0 bottom-0 z-40 transition-transform duration-300 ${
+        <div id="admin-sidebar" className={`fixed top-16 left-0 bottom-0 z-40 transition-transform duration-300 ${
           sidebarCollapsed ? 'lg:w-20' : 'lg:w-64'
         } ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0`}>
           <AdminSidebar 

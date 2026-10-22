@@ -7,7 +7,7 @@ import { Bell, LogOut, User, Menu } from 'lucide-react';
 import { FaSun, FaMoon, FaChevronDown } from 'react-icons/fa';
 import { useRouter } from 'next/navigation';
 
-export default function AdminHeader({ onMenuClick, onSidebarToggle, isSidebarCollapsed }) {
+export default function AdminHeader({ onMenuClick, onSidebarToggle, isSidebarCollapsed, isSidebarOpen }) {
   const { user, logout } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const router = useRouter();
@@ -38,17 +38,21 @@ export default function AdminHeader({ onMenuClick, onSidebarToggle, isSidebarCol
 
   return (
     <header className="
-      bg-surface dark:bg-surface 
-      border-b border-border dark:border-border 
-      px-6 py-4 flex items-center justify-between 
+      w-full min-w-0 bg-surface dark:bg-surface
+      border-b border-border dark:border-border
+      px-3 sm:px-4 lg:px-6 py-3 sm:py-4
+      flex items-center justify-between gap-2
       transition-colors duration-300 shadow-md
     ">
-      <div className="flex items-center">
+      <div className="flex min-w-0 items-center flex-1">
         {/* Mobile menu button */}
         <button
           onClick={onMenuClick}
+          aria-label="Open navigation menu"
+          aria-controls="admin-sidebar"
+          aria-expanded={Boolean(isSidebarOpen)}
           className="
-            mr-4 p-2 rounded-md transition-all duration-300 
+            mr-2 sm:mr-3 p-2 shrink-0 rounded-md transition-all duration-300 
             hover:scale-105 text-text-primary dark:text-text-primary 
             hover:bg-border dark:hover:bg-border
             lg:hidden
@@ -61,7 +65,7 @@ export default function AdminHeader({ onMenuClick, onSidebarToggle, isSidebarCol
         <button
           onClick={onSidebarToggle}
           className="
-            hidden mr-4 p-2 rounded-md transition-all duration-300 
+            hidden mr-3 p-2 shrink-0 rounded-md transition-all duration-300 
             hover:scale-105 text-text-primary dark:text-text-primary 
             hover:bg-border dark:hover:bg-border
             lg:flex items-center
@@ -72,19 +76,19 @@ export default function AdminHeader({ onMenuClick, onSidebarToggle, isSidebarCol
         </button>
 
         <h1 className="
-          text-xl font-semibold transition-colors duration-300
+          truncate text-base sm:text-lg lg:text-xl font-semibold transition-colors duration-300
           text-text-primary dark:text-text-primary
         ">
           Dashboard
         </h1>
       </div>
 
-      <div className="flex items-center space-x-4">
+      <div className="flex shrink-0 items-center gap-1 sm:gap-2 lg:gap-4">
         {/* Theme Toggle */}
         <button
           onClick={toggleTheme}
           className="
-            p-2 rounded-lg transition-all duration-300 
+            shrink-0 p-2 rounded-lg transition-all duration-300 
             hover:scale-110 hover:bg-border dark:hover:bg-border
           "
           aria-label="Toggle theme"
@@ -98,7 +102,7 @@ export default function AdminHeader({ onMenuClick, onSidebarToggle, isSidebarCol
 
         {/* Notifications */}
         <button className="
-          p-2 rounded-full transition-all duration-300 
+          shrink-0 p-2 rounded-full transition-all duration-300 
           hover:scale-105 relative text-text-primary 
           dark:text-text-primary hover:bg-border dark:hover:bg-border
         ">
@@ -117,7 +121,7 @@ export default function AdminHeader({ onMenuClick, onSidebarToggle, isSidebarCol
               setIsLanguageOpen(!isLanguageOpen);
             }}
             className="
-              flex items-center space-x-2 p-2 rounded-lg 
+              flex items-center gap-1 sm:gap-2 p-2 rounded-lg 
               transition-all duration-300 hover:scale-105
               text-text-primary dark:text-text-primary 
               hover:bg-border dark:hover:bg-border
@@ -166,12 +170,12 @@ export default function AdminHeader({ onMenuClick, onSidebarToggle, isSidebarCol
         {/* User Profile */}
         <div className="flex items-center">
           <div className="
-            h-8 w-8 rounded-full flex items-center justify-center 
+            h-8 w-8 shrink-0 rounded-full flex items-center justify-center 
             transition-all duration-300 bg-primary/10 dark:bg-primary/20
           ">
             <User className="h-5 w-5 text-primary dark:text-primary" />
           </div>
-          <div className="ml-2 hidden md:block">
+          <div className="ml-2 hidden min-w-0 md:block">
             <p className="
               text-sm font-medium transition-colors duration-300
               text-text-primary dark:text-text-primary
@@ -191,7 +195,7 @@ export default function AdminHeader({ onMenuClick, onSidebarToggle, isSidebarCol
         <button
           onClick={handleLogout}
           className="
-            p-2 rounded-md transition-all duration-300 
+            shrink-0 p-2 rounded-md transition-all duration-300 
             hover:scale-105 text-error hover:bg-error/10 
             dark:text-error dark:hover:bg-error/20
           "

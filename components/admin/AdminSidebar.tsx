@@ -106,8 +106,8 @@ export default function AdminSidebar({
         className={cn(
           'fixed top-0 left-0 h-full z-50 transform transition-all duration-300',
           'lg:relative lg:translate-x-0 lg:z-auto lg:h-screen lg:sticky lg:top-0',
-          isOpen ? 'translate-x-0' : '-translate-x-full',
-          isCollapsed ? 'w-20' : 'w-64',
+          // Mobile drawer width stays usable; collapse applies on desktop only.
+          isCollapsed ? 'w-72 lg:w-20' : 'w-72 lg:w-64',
           theme === 'dark'
             ? 'bg-[#0a192f] border-r border-[#00ffff]/20'
             : 'bg-white border-r border-gray-200'
@@ -132,7 +132,7 @@ export default function AdminSidebar({
             </div>
           )}
 
-          {!isCollapsed && (
+          {(
             <button
               onClick={onClose}
               className={cn(
