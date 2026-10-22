@@ -10,26 +10,19 @@ import {
   Popup,
   useMap,
 } from 'react-leaflet';
-import L, { Map as LeafletMap } from 'leaflet';
+import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import type { House, PropertyType } from '@/types/houses';
 
-// ─── Fix default Leaflet marker icons (broken in bundlers) ─────────
+// Fix default Leaflet marker icons
 delete (L.Icon.Default.prototype as any)._getIconUrl;
 L.Icon.Default.mergeOptions({
-  iconRetinaUrl:
-    'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
-  iconUrl:
-    'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
-  shadowUrl:
-    'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
+  iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
+  iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
+  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
 });
 
-// ─── Custom marker icon ────────────────────────────────────────────
-function createMarkerIcon(
-  _type: PropertyType,
-  isSelected: boolean
-): L.DivIcon {
+function createMarkerIcon(_type: PropertyType, isSelected: boolean): L.DivIcon {
   const color = isSelected ? '#ff6b6b' : '#4a90e2';
   return L.divIcon({
     className: 'custom-marker',
@@ -49,7 +42,6 @@ function createMarkerIcon(
   });
 }
 
-// ─── Map controller: sync center/zoom + notify parent on move ─────
 function MapController({
   center,
   zoom,
@@ -62,19 +54,14 @@ function MapController({
   const map = useMap();
   const skipRef = useRef(false);
 
-  // Programmatic center changes (from list click, "locate me", etc.)
   useEffect(() => {
     if (!map) return;
     skipRef.current = true;
     map.setView(center, zoom, { animate: true });
-    // Reset after the move settles
-    const t = setTimeout(() => {
-      skipRef.current = false;
-    }, 400);
+    const t = setTimeout(() => { skipRef.current = false; }, 400);
     return () => clearTimeout(t);
   }, [center[0], center[1], zoom, map]);
 
-  // Report user pans/zooms upward
   useEffect(() => {
     if (!map) return;
     const handler = () => {
@@ -83,15 +70,12 @@ function MapController({
       onMapMove?.([c.lat, c.lng], map.getZoom());
     };
     map.on('moveend', handler);
-    return () => {
-      map.off('moveend', handler);
-    };
+    return () => { map.off('moveend', handler); };
   }, [map, onMapMove]);
 
   return null;
 }
 
-// ─── Props ─────────────────────────────────────────────────────────
 interface MapViewProps {
   houses: House[];
   selectedHouse: House | null;
@@ -104,7 +88,6 @@ interface MapViewProps {
   loading?: boolean;
 }
 
-// ─── Component ─────────────────────────────────────────────────────
 export default function MapView({
   houses,
   selectedHouse,
@@ -118,36 +101,8 @@ export default function MapView({
 }: MapViewProps) {
   if (loading) {
     return (
-      <Box
-        sx={{
-          height: '100%',
-          width: '100%',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          bgcolor: '#1a1a2e',
-        }}
-      >
+      <Box sx={{ height: '100%', width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', bgcolor: '#1a1a2e' }}>
         <CircularProgress sx={{ color: theme === 'dark' ? '#00ffff' : '#007bff' }} />
-      </Box>
-    );
-  }
-
-  if (houses.length === 0) {
-    return (
-      <Box
-        sx={{
-          height: '100%',
-          width: '100%',
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-          bgcolor: '#1a1a2e',
-        }}
-      >
-        <Home sx={{ fontSize: 64, color: '#334155', mb: 2 }} />
-        <span style={{ color: '#a8b2d1' }}>No properties to display on map</span>
       </Box>
     );
   }
@@ -157,13 +112,16 @@ export default function MapView({
       key="houses-map"
       center={center}
       zoom={zoom}
-      style={{ height: '100%', width: '100%' }}
+      // CRITICAL FIX: Force absolute height and width for Leaflet
+      style={{ height: '100%', width: '100%', position: 'absolute', top: 0, left: 0, zIndex: 1 }}
       zoomControl
       scrollWheelZoom
     >
       <TileLayer
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        // CRITICAL FIX: Ensure tiles are visible
+        zIndex={1} 
       />
 
       {houses.map((house) => {
@@ -171,10 +129,7 @@ export default function MapView({
         const lng = house.location?.coordinates?.lng;
         if (typeof lat !== 'number' || typeof lng !== 'number') return null;
 
-        const icon = createMarkerIcon(
-          house.propertyType,
-          selectedHouse?._id === house._id
-        );
+        const icon = createMarkerIcon(house.propertyType, selectedHouse?._id === house._id);
 
         return (
           <Marker
@@ -186,36 +141,20 @@ export default function MapView({
             <Popup>
               <div style={{ minWidth: 200, padding: 4 }}>
                 <div style={{ fontWeight: 'bold', marginBottom: 4 }}>
-                  {house.title.length > 30
-                    ? `${house.title.substring(0, 30)}...`
-                    : house.title}
+                  {house.title.length > 30 ? `${house.title.substring(0, 30)}...` : house.title}
                 </div>
                 <div style={{ fontSize: 12, color: '#666', marginBottom: 4 }}>
                   {house.location.city}, {house.location.state}
                 </div>
-                <div
-                  style={{
-                    fontSize: 18,
-                    fontWeight: 'bold',
-                    color: theme === 'dark' ? '#00ffff' : '#007bff',
-                    marginBottom: 8,
-                  }}
-                >
+                <div style={{ fontSize: 18, fontWeight: 'bold', color: theme === 'dark' ? '#00ffff' : '#007bff', marginBottom: 8 }}>
                   {formatPrice(house.pricing.price)}
                 </div>
-                <a
-                  href={`/public/houses/${house._id}`}
-                  style={{
-                    display: 'block',
-                    padding: '6px 12px',
-                    textAlign: 'center',
-                    border: `1px solid ${theme === 'dark' ? '#00ffff' : '#007bff'}`,
-                    color: theme === 'dark' ? '#00ffff' : '#007bff',
-                    borderRadius: 4,
-                    textDecoration: 'none',
-                    fontSize: 13,
-                  }}
-                >
+                <a href={`/public/houses/${house._id}`} style={{
+                  display: 'block', padding: '6px 12px', textAlign: 'center',
+                  border: `1px solid ${theme === 'dark' ? '#00ffff' : '#007bff'}`,
+                  color: theme === 'dark' ? '#00ffff' : '#007bff',
+                  borderRadius: 4, textDecoration: 'none', fontSize: 13,
+                }}>
                   View Details
                 </a>
               </div>
