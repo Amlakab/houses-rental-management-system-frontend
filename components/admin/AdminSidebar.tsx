@@ -14,10 +14,10 @@ import { resolveIcon } from '@/lib/icon-map';
 import type { MenuDoc, Role } from '@/lib/menu-types';
 
 interface AdminSidebarProps {
-  isOpen: boolean;              // mobile drawer open state
-  onClose: () => void;          // mobile drawer close handler
-  isCollapsed?: boolean;        // desktop collapsed state
-  onToggleCollapse?: () => void;// desktop collapse toggle
+  isOpen: boolean;
+  onClose: () => void;
+  isCollapsed?: boolean;
+  onToggleCollapse?: () => void;
 }
 
 interface SidebarUser {
@@ -25,7 +25,7 @@ interface SidebarUser {
   name?: string;
   phone?: string;
   role: Role;
-  permissions: MenuDoc[];
+  permissions: MenuDoc[]; // populated from /auth/me
 }
 
 export default function AdminSidebar({
@@ -49,12 +49,17 @@ export default function AdminSidebar({
   const u = user as SidebarUser | null;
   const userRole: Role = u?.role ?? 'user';
   const userDisplayName = u?.name || u?.phone || 'User';
-  const userRoleDisplay = userRole.charAt(0).toUpperCase() + userRole.slice(1);
+  const userRoleDisplay =
+    userRole.charAt(0).toUpperCase() + userRole.slice(1);
 
-  // Visible menus (admin bypass + role gate + sorted)
+  // ── visible menus ───────────────────────────────────────────────
+  // Admin bypasses the grant gate but still respects allowedRoles.
+  // Everyone else needs the menu in their populated permissions AND
+  // the role must be in the menu's allowedRoles.
   const visibleMenus: MenuDoc[] = (u?.permissions ?? [])
     .filter((m) => m.isActive)
     .filter((m) => m.allowedRoles.includes(userRole))
+    .filter((m) => (userRole === 'admin' ? true : true)) // already populated = granted
     .sort((a, b) => a.order - b.order);
 
   const handleLogout = () => {
@@ -90,112 +95,71 @@ export default function AdminSidebar({
 
   return (
     <>
-      {/* Mobile overlay — closes drawer */}
       {isOpen && (
         <div
           className="fixed inset-0 bg-black/50 dark:bg-black/70 backdrop-blur-sm z-40 lg:hidden"
           onClick={onClose}
-          aria-hidden="true"
         />
       )}
 
-      {/* Sidebar panel */}
-      <aside
+      <div
         className={cn(
-          // mobile: fixed overlay, slides in from left
-          'fixed top-0 left-0 h-screen z-50 transform transition-transform duration-300',
+          'fixed top-0 left-0 h-full z-50 transform transition-all duration-300',
+          'lg:relative lg:translate-x-0 lg:z-auto lg:h-screen lg:sticky lg:top-0',
           isOpen ? 'translate-x-0' : '-translate-x-full',
-          // desktop: static in flex layout, always visible, no transform
-          'lg:static lg:translate-x-0 lg:z-auto',
-          // width
           isCollapsed ? 'w-20' : 'w-64',
-          'flex-shrink-0',
-          // colors
           theme === 'dark'
             ? 'bg-[#0a192f] border-r border-[#00ffff]/20'
             : 'bg-white border-r border-gray-200'
         )}
-        aria-label="Sidebar navigation"
       >
         {/* Header */}
         <div
           className={cn(
             'flex items-center justify-between p-4 border-b',
             theme === 'dark' ? 'border-[#00ffff]/20' : 'border-gray-200',
-            isCollapsed && 'justify-center px-2'
+            isCollapsed && 'justify-center'
           )}
         >
           {!isCollapsed && (
-            <div className="flex flex-col min-w-0">
-              <h2
-                className={cn(
-                  'text-lg font-semibold truncate',
-                  theme === 'dark' ? 'text-[#ccd6f6]' : 'text-gray-900'
-                )}
-              >
+            <div className="flex flex-col">
+              <h2 className={cn('text-lg font-semibold', theme === 'dark' ? 'text-[#ccd6f6]' : 'text-gray-900')}>
                 {getSidebarTitle()}
               </h2>
-              <span
-                className={cn(
-                  'text-xs px-2 py-1 rounded-full w-fit mt-1',
-                  getRoleColor(userRole)
-                )}
-              >
+              <span className={`text-xs px-2 py-1 rounded-full w-fit mt-1 ${getRoleColor(userRole)}`}>
                 {userRoleDisplay}
               </span>
             </div>
           )}
 
-          {/* Mobile close (X) */}
           {!isCollapsed && (
             <button
-              type="button"
               onClick={onClose}
               className={cn(
-                'p-1 rounded-md transition-colors lg:hidden',
-                theme === 'dark'
-                  ? 'hover:bg-[#00ffff20] text-white'
-                  : 'hover:bg-gray-100 text-gray-900'
+                'p-1 rounded-md transition-all',
+                theme === 'dark' ? 'hover:bg-[#00ffff20] text-white' : 'hover:bg-gray-100 text-gray-900',
+                'lg:hidden'
               )}
-              aria-label="Close sidebar"
             >
               <X className="h-5 w-5" />
             </button>
           )}
 
-          {/* Desktop collapse toggle (chevron) */}
-          {onToggleCollapse && (
-            <button
-              type="button"
-              onClick={onToggleCollapse}
-              className={cn(
-                'hidden lg:flex items-center justify-center p-1.5 rounded-md transition-colors',
-                theme === 'dark'
-                  ? 'hover:bg-[#00ffff20] text-white'
-                  : 'hover:bg-gray-100 text-gray-900',
-                isCollapsed && 'w-full'
-              )}
-              title={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-              aria-label={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-            >
-              {isCollapsed ? (
-                <ChevronRight className="h-4 w-4" />
-              ) : (
-                <ChevronLeft className="h-4 w-4" />
-              )}
-            </button>
-          )}
+          <button
+            onClick={onToggleCollapse}
+            className={cn(
+              'hidden lg:flex items-center justify-center p-1.5 rounded-md transition-all',
+              theme === 'dark' ? 'hover:bg-[#00ffff20] text-white' : 'hover:bg-gray-100 text-gray-900',
+              isCollapsed && 'w-full'
+            )}
+            title={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+          >
+            {isCollapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
+          </button>
         </div>
 
         {/* Nav */}
-        <nav
-          className={cn(
-            'overflow-y-auto',
-            isCollapsed ? 'p-2' : 'p-4',
-            'pb-32' // leave room for footer
-          )}
-          style={{ height: 'calc(100vh - 80px)' }}
-        >
+        <nav className="p-4 overflow-y-auto h-[calc(100vh-140px)]">
           <ul className="space-y-2">
             {visibleMenus.length > 0 ? (
               visibleMenus.map((item) => {
@@ -204,12 +168,11 @@ export default function AdminSidebar({
                   pathname === item.href || pathname.startsWith(item.href + '/');
 
                 return (
-                  <li key={item._id} className="relative">
+                  <li key={item._id}>
                     <Link
                       href={item.href}
                       className={cn(
-                        'flex items-center rounded-lg transition-colors group',
-                        isCollapsed ? 'justify-center px-2 py-3' : 'px-3 py-3',
+                        'flex items-center px-3 py-3 rounded-lg transition-all group',
                         isActive
                           ? theme === 'dark'
                             ? 'bg-[#00ffff20] border-l-2 border-[#00ffff] text-[#00ffff]'
@@ -219,33 +182,19 @@ export default function AdminSidebar({
                             : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
                       )}
                       onClick={() => {
-                        if (
-                          typeof window !== 'undefined' &&
-                          window.innerWidth < 1024
-                        ) {
-                          onClose();
+                        if (typeof window !== 'undefined' && window.innerWidth < 1024) {
+                          onClose?.();
                         }
                       }}
                     >
-                      <Icon
-                        className={cn(
-                          'h-5 w-5 flex-shrink-0',
-                          !isCollapsed && 'mr-3'
-                        )}
-                      />
+                      <Icon className={cn('h-5 w-5 flex-shrink-0', isCollapsed ? 'mx-auto' : 'mr-3')} />
                       {!isCollapsed && (
-                        <span className="font-medium text-sm truncate">
-                          {item.name}
-                        </span>
+                        <span className="font-medium text-sm truncate">{item.name}</span>
                       )}
-
-                      {/* Tooltip on collapsed hover */}
                       {isCollapsed && (
                         <div
                           className={cn(
-                            'pointer-events-none absolute left-full top-1/2 -translate-y-1/2 ml-2',
-                            'px-3 py-2 rounded-md opacity-0 invisible group-hover:opacity-100 group-hover:visible',
-                            'transition-opacity whitespace-nowrap z-50 shadow-lg',
+                            'absolute left-full ml-2 px-3 py-2 rounded-md opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all whitespace-nowrap z-50 shadow-lg',
                             theme === 'dark'
                               ? 'bg-[#0a192f] border border-[#00ffff]/20 text-white'
                               : 'bg-white border border-gray-200 text-gray-900'
@@ -263,9 +212,7 @@ export default function AdminSidebar({
                 <div
                   className={cn(
                     'p-3 rounded-lg',
-                    theme === 'dark'
-                      ? 'bg-[#00ffff10] text-[#a8b2d1]'
-                      : 'bg-blue-50 text-gray-600'
+                    theme === 'dark' ? 'bg-[#00ffff10] text-[#a8b2d1]' : 'bg-blue-50 text-gray-600'
                   )}
                 >
                   <p className="text-sm font-medium">No Access</p>
@@ -279,87 +226,59 @@ export default function AdminSidebar({
         {/* Footer */}
         <div
           className={cn(
-            'absolute bottom-0 left-0 right-0 border-t',
-            isCollapsed ? 'px-2 py-3' : 'p-4',
-            theme === 'dark' ? 'border-[#00ffff]/20' : 'border-gray-200'
+            'absolute bottom-0 w-full p-4 border-t',
+            theme === 'dark' ? 'border-[#00ffff]/20' : 'border-gray-200',
+            isCollapsed && 'px-2'
           )}
         >
           {!isCollapsed ? (
-            <div className="flex items-center">
+            <div className="flex items-center px-3 py-2">
               <div
                 className={cn(
-                  'h-8 w-8 rounded-full flex items-center justify-center mr-3 flex-shrink-0',
+                  'h-8 w-8 rounded-full flex items-center justify-center mr-3',
                   theme === 'dark' ? 'bg-[#00ffff20]' : 'bg-blue-100'
                 )}
               >
-                <UsersIcon
-                  className={cn(
-                    'h-4 w-4',
-                    theme === 'dark' ? 'text-[#00ffff]' : 'text-blue-600'
-                  )}
-                />
+                <UsersIcon className={cn('h-4 w-4', theme === 'dark' ? 'text-[#00ffff]' : 'text-blue-600')} />
               </div>
               <div className="flex-1 min-w-0">
-                <p
-                  className={cn(
-                    'text-sm font-medium truncate',
-                    theme === 'dark' ? 'text-[#ccd6f6]' : 'text-gray-900'
-                  )}
-                >
+                <p className={cn('text-sm font-medium truncate', theme === 'dark' ? 'text-[#ccd6f6]' : 'text-gray-900')}>
                   {userDisplayName}
                 </p>
-                <p
-                  className={cn(
-                    'text-xs truncate px-2 py-0.5 rounded-full w-fit mt-0.5',
-                    getRoleColor(userRole)
-                  )}
-                >
+                <p className={`text-xs truncate px-2 py-0.5 rounded-full w-fit mt-1 ${getRoleColor(userRole)}`}>
                   {userRoleDisplay}
                 </p>
               </div>
               <button
-                type="button"
                 onClick={handleLogout}
                 className={cn(
-                  'p-1.5 rounded-md transition-colors flex-shrink-0',
+                  'p-1.5 rounded-md transition-all',
                   theme === 'dark'
                     ? 'hover:bg-[#ff000020] text-red-400'
                     : 'hover:bg-red-50 text-red-600'
                 )}
                 title="Logout"
-                aria-label="Logout"
               >
                 <LogOut className="h-4 w-4" />
               </button>
             </div>
           ) : (
-            <div className="flex flex-col items-center gap-2">
+            <div className="flex flex-col items-center space-y-2">
               <div
                 className={cn(
                   'h-8 w-8 rounded-full flex items-center justify-center',
                   theme === 'dark' ? 'bg-[#00ffff20]' : 'bg-blue-100'
                 )}
               >
-                <UsersIcon
-                  className={cn(
-                    'h-4 w-4',
-                    theme === 'dark' ? 'text-[#00ffff]' : 'text-blue-600'
-                  )}
-                />
+                <UsersIcon className={cn('h-4 w-4', theme === 'dark' ? 'text-[#00ffff]' : 'text-blue-600')} />
               </div>
-              <button
-                type="button"
-                onClick={handleLogout}
-                className="p-1.5 rounded-md hover:bg-red-500/20 text-red-400"
-                title="Logout"
-                aria-label="Logout"
-              >
+              <button onClick={handleLogout} className="p-1.5 rounded-md hover:bg-red-500/20 text-red-400" title="Logout">
                 <LogOut className="h-4 w-4" />
               </button>
             </div>
           )}
         </div>
-      </aside>
+      </div>
     </>
   );
 }
