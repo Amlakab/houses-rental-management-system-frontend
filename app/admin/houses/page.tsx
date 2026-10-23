@@ -17,11 +17,11 @@ import {
   Search, Refresh, CheckCircle, Cancel,
   HourglassEmpty, LocationOn, AttachMoney,
   Bed, Bathtub, SquareFoot, TrendingUp,
-  Apartment, Villa, Landscape,
+  Apartment, Villa, Landscape, Business, Store, Warehouse,
   Approval, Inventory, FilterList
 } from '@mui/icons-material';
 import api from '@/app/utils/api';
-import { House, HouseStatus, ApprovalStatus, PropertyType, PaginationData, HouseStats } from '@/types/houses';
+import { House, HouseStatus, ApprovalStatus, PropertyType, TransactionType, PaginationData, HouseStats } from '@/types/houses';
 import { format } from 'date-fns';
 
 const propertyTypeLabels: Record<PropertyType, string> = {
@@ -29,7 +29,10 @@ const propertyTypeLabels: Record<PropertyType, string> = {
   [PropertyType.VILLA]: 'Villa',
   [PropertyType.CONDO]: 'Condo',
   [PropertyType.HOUSE]: 'House',
-  [PropertyType.LAND]: 'Land'
+  [PropertyType.LAND]: 'Land',
+  [PropertyType.OFFICE]: 'Office',
+  [PropertyType.SHOP]: 'Shop',
+  [PropertyType.WAREHOUSE]: 'Warehouse'
 };
 
 const statusColors: Record<string, 'success' | 'warning' | 'error' | 'info' | 'default'> = {
@@ -72,7 +75,6 @@ const AdminHousesPage = () => {
   const [imageErrors, setImageErrors] = useState<Record<string, boolean>>({});
   const [imageLoading, setImageLoading] = useState<Record<string, boolean>>({});
 
-
   const [filterOptions, setFilterOptions] = useState({
     propertyTypes: [] as string[],
     statuses: [] as string[],
@@ -86,6 +88,7 @@ const AdminHousesPage = () => {
   const [filters, setFilters] = useState({
     search: '',
     propertyType: '',
+    transactionType: '', // ADDED
     status: '',
     approvalStatus: '',
     minPrice: '',
@@ -102,7 +105,6 @@ const AdminHousesPage = () => {
  const getImageUrl = (houseId: string): string => {
   const serverUrl = process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:3001/api';
   const url = `${serverUrl}/houses/${houseId}/image`;
-  console.log('Image URL for house:', houseId, url); // Debug log
   return url;
 };
 
@@ -174,6 +176,7 @@ const AdminHousesPage = () => {
     setFilters({
       search: '',
       propertyType: '',
+      transactionType: '',
       status: '',
       approvalStatus: '',
       minPrice: '',
@@ -345,6 +348,17 @@ const AdminHousesPage = () => {
                 </Box>
                 <Box sx={{ flex: { xs: '1 1 100%', sm: '1 1 calc(33.33% - 16px)', md: '1 1 calc(20% - 16px)' }, minWidth: '150px' }}>
                   <FormControl fullWidth size="small">
+                    <InputLabel>Purpose</InputLabel>
+                    <Select value={filters.transactionType} label="Purpose" onChange={(e) => handleFilterChange('transactionType', e.target.value)} sx={selectStyle}>
+                      <MenuItem value="">All</MenuItem>
+                      <MenuItem value={TransactionType.SALE}>For Sale</MenuItem>
+                      <MenuItem value={TransactionType.RENT}>For Rent</MenuItem>
+                      <MenuItem value={TransactionType.SHORT_STAY}>Short Stay</MenuItem>
+                    </Select>
+                  </FormControl>
+                </Box>
+                <Box sx={{ flex: { xs: '1 1 100%', sm: '1 1 calc(33.33% - 16px)', md: '1 1 calc(20% - 16px)' }, minWidth: '150px' }}>
+                  <FormControl fullWidth size="small">
                     <InputLabel>Property Type</InputLabel>
                     <Select value={filters.propertyType} label="Property Type" onChange={(e) => handleFilterChange('propertyType', e.target.value)} sx={selectStyle}>
                       <MenuItem value="">All Types</MenuItem>
@@ -457,15 +471,7 @@ const AdminHousesPage = () => {
                             src={imageUrl} 
                             alt={house.title} 
                             style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                            onLoad={() => {
-                              console.log('Image loaded for house:', house._id);
-                              setImageLoading(prev => ({ ...prev, [house._id]: false }));
-                            }}
-                            onError={(e) => {
-                              console.error('Image failed to load for house:', house._id);
-                              console.error('Image URL was:', imageUrl);
-                              handleImageError(house._id);
-                            }}
+                            onError={() => handleImageError(house._id)}
                           />
                         ) : (
                             <Box sx={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', bgcolor: theme === 'dark' ? '#334155' : '#e5e7eb' }}>
@@ -474,12 +480,32 @@ const AdminHousesPage = () => {
                           )}
                           <Chip label={house.approvalStatus === ApprovalStatus.APPROVED ? 'Approved' : house.approvalStatus === ApprovalStatus.PENDING ? 'Pending' : 'Rejected'} size="small" color={house.approvalStatus === ApprovalStatus.APPROVED ? 'success' : house.approvalStatus === ApprovalStatus.PENDING ? 'warning' : 'error'} sx={{ position: 'absolute', top: 12, left: 12, height: 24 }} />
                           <Chip label={propertyTypeLabels[house.propertyType]} size="small" sx={{ position: 'absolute', top: 12, right: 12, height: 24, backgroundColor: theme === 'dark' ? '#334155' : '#e5e7eb' }} />
+                          <Chip
+                            label={house.transactionType === 'RENT' ? 'For Rent' : house.transactionType === 'SHORT_STAY' ? 'Short Stay' : 'For Sale'}
+                            size="small"
+                            color={house.transactionType === 'RENT' ? 'success' : house.transactionType === 'SHORT_STAY' ? 'warning' : 'primary'}
+                            sx={{ position: 'absolute', bottom: 12, left: 12, height: 24, zIndex: 1, fontWeight: 'bold' }}
+                          />
                           {house.pricing?.quantity > 1 && (
                             <Chip icon={<Inventory />} label={`${house.pricing.quantity} units`} size="small" sx={{ position: 'absolute', bottom: 12, right: 12, height: 24, backgroundColor: theme === 'dark' ? '#00ffff20' : '#007bff10', color: theme === 'dark' ? '#00ffff' : '#007bff' }} />
                           )}
                         </Box>
                         <CardContent>
                           <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 1, display: '-webkit-box', WebkitLineClamp: 2, overflow: 'hidden' }}>{house.title}</Typography>
+                          
+                          {/* ADDED: Tags */}
+                          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, mb: 1 }}>
+                            {house.tags?.slice(0, 3).map((tag: string) => (
+                              <Chip 
+                                key={tag} 
+                                label={`#${tag}`} 
+                                size="small" 
+                                variant="outlined" 
+                                sx={{ height: 20, fontSize: '0.7rem', color: theme === 'dark' ? '#00ffff' : '#007bff', borderColor: theme === 'dark' ? '#00ffff50' : '#007bff50' }}
+                              />
+                            ))}
+                          </Box>
+
                           <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mb: 1 }}><LocationOn sx={{ fontSize: 14 }} /><Typography variant="caption">{house.location.city}, {house.location.state}</Typography></Box>
                           <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, mb: 2 }}>
                             <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}><Bed sx={{ fontSize: 14 }} /><Typography variant="body2">{house.details.bedrooms}</Typography></Box>
@@ -513,7 +539,7 @@ const AdminHousesPage = () => {
               <Box component="table" sx={{ width: '100%', borderCollapse: 'collapse' }}>
                 <Box component="thead" sx={{ background: theme === 'dark' ? 'linear-gradient(135deg, #00ffff, #00b3b3)' : 'linear-gradient(135deg, #007bff, #0056b3)' }}>
                   <Box component="tr" sx={{ display: 'table-row' }}>
-                    {['Property', 'Type', 'Location', 'Price', 'Units', 'Status', 'Approval', 'Actions'].map(header => <Box key={header} component="th" sx={{ p: 2, textAlign: 'left', color: 'white', fontWeight: 'bold' }}>{header}</Box>)}
+                    {['Property', 'Type', 'Purpose', 'Location', 'Price', 'Units', 'Status', 'Approval', 'Actions'].map(header => <Box key={header} component="th" sx={{ p: 2, textAlign: 'left', color: 'white', fontWeight: 'bold' }}>{header}</Box>)}
                   </Box>
                 </Box>
                 <Box component="tbody">
@@ -528,25 +554,26 @@ const AdminHousesPage = () => {
                               style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
                               onError={(e) => { 
                                 (e.target as HTMLImageElement).style.display = 'none';
-                                const parent = (e.target as HTMLImageElement).parentElement;
-                                if (parent) {
-                                  const fallback = document.createElement('div');
-                                  fallback.style.width = '100%';
-                                  fallback.style.height = '100%';
-                                  fallback.style.backgroundColor = theme === 'dark' ? '#334155' : '#e5e7eb';
-                                  fallback.style.display = 'flex';
-                                  fallback.style.alignItems = 'center';
-                                  fallback.style.justifyContent = 'center';
-                                  fallback.innerHTML = '<svg width="24" height="24" viewBox="0 0 24 24" fill="' + (theme === 'dark' ? '#a8b2d1' : '#94a3b8') + '"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/></svg>';
-                                  parent.appendChild(fallback);
-                                }
                               }}
                             />
                           </Box>
-                          <Box><Typography variant="body2" sx={{ fontWeight: 500 }}>{house.title}</Typography><Typography variant="caption" color="text.secondary">{house.details.bedrooms} beds • {house.details.bathrooms} baths • {house.details.area} sqft</Typography></Box>
+                          <Box>
+                            <Typography variant="body2" sx={{ fontWeight: 500 }}>{house.title}</Typography>
+                            <Typography variant="caption" color="text.secondary">{house.details.bedrooms} beds • {house.details.bathrooms} baths • {house.details.area} sqft</Typography>
+                          </Box>
                         </Box>
                       </Box>
                       <Box component="td" sx={{ p: 2 }}><Chip label={propertyTypeLabels[house.propertyType]} size="small" /></Box>
+                      
+                      {/* ADDED: Purpose Column */}
+                      <Box component="td" sx={{ p: 2 }}>
+                        <Chip 
+                          label={house.transactionType === 'RENT' ? 'For Rent' : house.transactionType === 'SHORT_STAY' ? 'Short Stay' : 'For Sale'} 
+                          size="small" 
+                          color={house.transactionType === 'RENT' ? 'success' : house.transactionType === 'SHORT_STAY' ? 'warning' : 'primary'}
+                        />
+                      </Box>
+
                       <Box component="td" sx={{ p: 2 }}><Typography variant="body2">{house.location.city}</Typography><Typography variant="caption" color="text.secondary">{house.location.state}</Typography></Box>
                       <Box component="td" sx={{ p: 2 }}><Typography variant="body2" sx={{ fontWeight: 'bold', color: theme === 'dark' ? '#00ffff' : '#007bff' }}>{formatPrice(house.pricing.price)}</Typography></Box>
                       <Box component="td" sx={{ p: 2 }}><Chip label={`${house.pricing?.quantity || 1} units`} size="small" icon={<Inventory />} /></Box>

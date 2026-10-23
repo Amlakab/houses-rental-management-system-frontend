@@ -24,20 +24,25 @@ import {
   Close, Image as ImageIcon, Chat, Person,
   ArrowForwardIos,
   ArrowBackIos,
-  Payment
+  Payment,
+  Business
 } from '@mui/icons-material';
 import api from '@/app/utils/api';
 import { House, PropertyType, OrderType, OrderStatus } from '@/types/houses';
 import MessageModal from '@/components/MessageModal';
 import ThreeViewer from '@/components/ThreeViewer';
 import PaymentModal from '@/components/PaymentModal';
+import { Store, Warehouse } from 'lucide-react';
 
 const propertyTypeIcons: Record<PropertyType, React.ReactElement> = {
   [PropertyType.APARTMENT]: <Apartment />,
   [PropertyType.VILLA]: <Villa />,
   [PropertyType.CONDO]: <Villa />,
   [PropertyType.HOUSE]: <Home />,
-  [PropertyType.LAND]: <Landscape />
+  [PropertyType.LAND]: <Landscape />,
+  [PropertyType.OFFICE]: <Business />,
+  [PropertyType.SHOP]: <Store />,
+  [PropertyType.WAREHOUSE]: <Warehouse />
 };
 
 const propertyTypeLabels: Record<PropertyType, string> = {
@@ -45,7 +50,10 @@ const propertyTypeLabels: Record<PropertyType, string> = {
   [PropertyType.VILLA]: 'Villa',
   [PropertyType.CONDO]: 'Condo',
   [PropertyType.HOUSE]: 'House',
-  [PropertyType.LAND]: 'Land'
+  [PropertyType.LAND]: 'Land',
+  [PropertyType.OFFICE]: 'Office',
+  [PropertyType.SHOP]: 'Shop',
+  [PropertyType.WAREHOUSE]: 'Warehouse'
 };
 
 const amenityIcons: Record<string, React.ReactElement> = {
@@ -163,7 +171,6 @@ const PublicHouseDetailPage = () => {
     try {
       setSendingMessage(true);
       
-      // Add message to UI immediately
       const newMessage = {
         sender: 'You',
         message: chatMessage,
@@ -171,13 +178,11 @@ const PublicHouseDetailPage = () => {
       };
       setChatMessages(prev => [...prev, newMessage]);
       
-      // Send to backend
       const response = await api.post('/messages/send', {
         orderId: house._id,
         content: chatMessage
       });
       
-      // Add agent response (simulated for now - in real app would come from socket)
       setTimeout(() => {
         setChatMessages(prev => [...prev, {
           sender: house.agentName || 'Agent',
@@ -189,7 +194,6 @@ const PublicHouseDetailPage = () => {
       setChatMessage('');
     } catch (error: any) {
       setError(error.response?.data?.message || 'Failed to send message');
-      // Remove the failed message
       setChatMessages(prev => prev.slice(0, -1));
     } finally {
       setSendingMessage(false);
@@ -254,7 +258,6 @@ const PublicHouseDetailPage = () => {
       <Toolbar />
       
       <Box sx={{ pt: 0, pb: 4, px: { xs: 2, md: 4 } }}>
-        {/* Back Button */}
         <IconButton onClick={() => router.back()} sx={{ mb: 2, color: theme === 'dark' ? '#00ffff' : '#007bff' }}>
           <ArrowBack />
         </IconButton>
@@ -265,7 +268,6 @@ const PublicHouseDetailPage = () => {
           transition={{ duration: 0.5 }}
         >
           {/* Media Tabs - Images, 3D, Virtual Tour */}
-{/* Media Tabs - Images, 3D, Virtual Tour */}
 <Card sx={{ mb: 4, borderRadius: 3, overflow: 'hidden', backgroundColor: theme === 'dark' ? '#0f172a80' : 'white' }}>
   <Box sx={{ borderBottom: 1, borderColor: 'divider', px: 2, pt: 2 }}>
     <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
@@ -498,7 +500,7 @@ const PublicHouseDetailPage = () => {
 {activeTab === '3d' && has3DModels && (
   <Box sx={{ 
     width: '100%', 
-    height: '520px',  // Use px instead of number
+    height: '520px',
     position: 'relative',
     overflow: 'hidden',
     backgroundColor: '#111827',
@@ -602,6 +604,26 @@ const PublicHouseDetailPage = () => {
                     <Typography variant="h4" sx={{ fontWeight: 'bold', color: theme === 'dark' ? '#ccd6f6' : '#333333', mb: 1 }}>
                       {house.title}
                     </Typography>
+                    
+                    {/* ADDED: Transaction Type & Tags */}
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2, flexWrap: 'wrap' }}>
+                      <Chip
+                        label={house.transactionType === 'RENT' ? 'For Rent' : house.transactionType === 'SHORT_STAY' ? 'Short Stay' : 'For Sale'}
+                        size="small"
+                        color={house.transactionType === 'RENT' ? 'success' : house.transactionType === 'SHORT_STAY' ? 'warning' : 'primary'}
+                        sx={{ fontWeight: 'bold' }}
+                      />
+                      {house.tags?.map((tag: string) => (
+                        <Chip 
+                          key={tag} 
+                          label={`#${tag}`} 
+                          size="small" 
+                          variant="outlined" 
+                          sx={{ color: theme === 'dark' ? '#00ffff' : '#007bff', borderColor: theme === 'dark' ? '#00ffff50' : '#007bff50' }}
+                        />
+                      ))}
+                    </Box>
+
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
                       <LocationOn sx={{ fontSize: 16, color: theme === 'dark' ? '#a8b2d1' : '#666666' }} />
                       <Typography variant="body2" color={theme === 'dark' ? '#a8b2d1' : '#666666'}>
@@ -901,7 +923,6 @@ const PublicHouseDetailPage = () => {
                   </Select>
                 </FormControl>
                 
-                {/* Quantity Field */}
                 <TextField
                   fullWidth
                   label="Quantity (Number of units/houses)"
