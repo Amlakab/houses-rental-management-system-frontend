@@ -30,7 +30,10 @@ const propertyTypeLabels: Record<PropertyType, string> = {
   [PropertyType.VILLA]: 'Villa',
   [PropertyType.CONDO]: 'Condo',
   [PropertyType.HOUSE]: 'House',
-  [PropertyType.LAND]: 'Land'
+  [PropertyType.LAND]: 'Land',
+  [PropertyType.OFFICE]: 'Office',
+  [PropertyType.SHOP]: 'Shop',
+  [PropertyType.WAREHOUSE]: 'Warehouse'
 };
 
 const statusColors: Record<string, 'success' | 'warning' | 'error' | 'info' | 'default'> = {
