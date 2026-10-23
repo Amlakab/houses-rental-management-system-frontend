@@ -23,19 +23,24 @@ import {
   Email, Phone, WhatsApp, Send,
   Close, Image as ImageIcon, Chat, Person,
   ArrowForwardIos,
-  ArrowBackIos
+  ArrowBackIos,
+  Business
 } from '@mui/icons-material';
 import api from '@/app/utils/api';
 import { House, PropertyType, OrderType, OrderStatus } from '@/types/houses';
 import MessageModal from '@/components/MessageModal';
 import ThreeViewer from '@/components/ThreeViewer';
+import { Store, Warehouse } from 'lucide-react';
 
 const propertyTypeIcons: Record<PropertyType, React.ReactElement> = {
   [PropertyType.APARTMENT]: <Apartment />,
   [PropertyType.VILLA]: <Villa />,
   [PropertyType.CONDO]: <Villa />,
   [PropertyType.HOUSE]: <Home />,
-  [PropertyType.LAND]: <Landscape />
+  [PropertyType.LAND]: <Landscape />,
+  [PropertyType.OFFICE]: <Business />,
+  [PropertyType.SHOP]: <Store />,
+  [PropertyType.WAREHOUSE]: <Warehouse />
 };
 
 const propertyTypeLabels: Record<PropertyType, string> = {
@@ -43,7 +48,10 @@ const propertyTypeLabels: Record<PropertyType, string> = {
   [PropertyType.VILLA]: 'Villa',
   [PropertyType.CONDO]: 'Condo',
   [PropertyType.HOUSE]: 'House',
-  [PropertyType.LAND]: 'Land'
+  [PropertyType.LAND]: 'Land',
+  [PropertyType.OFFICE]: 'Office',
+  [PropertyType.SHOP]: 'Shop',
+  [PropertyType.WAREHOUSE]: 'Warehouse'
 };
 
 const amenityIcons: Record<string, React.ReactElement> = {
