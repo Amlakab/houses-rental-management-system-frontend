@@ -629,13 +629,17 @@ const EditHousePage = () => {
           />
         )}
         renderTags={(value, getTagProps) =>
-          value.map((option, index) => (
-            <Chip
-              label={option}
-              {...getTagProps({ index })}
-              sx={{ backgroundColor: theme === 'dark' ? '#334155' : '#e5e7eb' }}
-            />
-          ))
+          value.map((option, index) => {
+            const { key, ...tagProps } = getTagProps({ index });
+            return (
+              <Chip
+                key={key}
+                label={option}
+                {...tagProps}
+                sx={{ backgroundColor: theme === 'dark' ? '#334155' : '#e5e7eb' }}
+              />
+            );
+          })
         }
       />
     </Box>

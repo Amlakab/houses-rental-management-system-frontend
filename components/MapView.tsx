@@ -1,14 +1,14 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
-import { Box, CircularProgress } from '@mui/material';
-import { Home } from '@mui/icons-material';
+import { useEffect, useRef, useState } from 'react';
+import { Box, CircularProgress, Typography, Chip, Button } from '@mui/material';
 import {
   MapContainer,
   TileLayer,
   Marker,
   Popup,
   useMap,
+  LayersControl
 } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -22,23 +22,41 @@ L.Icon.Default.mergeOptions({
   shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
 });
 
-function createMarkerIcon(_type: PropertyType, isSelected: boolean): L.DivIcon {
-  const color = isSelected ? '#ff6b6b' : '#4a90e2';
+function createPriceMarker(price: number, isSelected: boolean, isVerified: boolean = false): L.DivIcon {
+  const formatted = price >= 1000000 
+    ? `${(price / 1000000).toFixed(1)}M` 
+    : price >= 1000 
+    ? `${Math.round(price / 1000)}k` 
+    : `${price}`;
+
+  const bgColor = isSelected ? '#ff385c' : '#0f172a';
+  const borderColor = isVerified ? '#00ffff' : isSelected ? '#ff385c' : '#334155';
+
   return L.divIcon({
-    className: 'custom-marker',
+    className: 'custom-price-marker',
     html: `<div style="
-      background-color:${color};
-      width:32px;height:32px;border-radius:50%;
-      display:flex;align-items:center;justify-content:center;
-      border:2px solid white;box-shadow:0 2px 4px rgba(0,0,0,0.2);
-      cursor:pointer;transition:transform 0.2s;">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="white">
-        <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/>
-      </svg>
+      background-color: ${bgColor};
+      color: white;
+      font-weight: 800;
+      font-size: 11px;
+      font-family: system-ui, sans-serif;
+      padding: 4px 8px;
+      border-radius: 12px;
+      border: 2px solid ${borderColor};
+      box-shadow: 0 4px 12px rgba(0,0,0,0.35);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 3px;
+      white-space: nowrap;
+      transform: translate(-50%, -50%);
+    ">
+      ${isVerified ? '<span style="color:#00ffff;font-size:10px;">★</span>' : ''}
+      <span>ETB ${formatted}</span>
     </div>`,
-    iconSize: [32, 32],
-    iconAnchor: [16, 32],
-    popupAnchor: [0, -32],
+    iconSize: [60, 24],
+    iconAnchor: [30, 12],
+    popupAnchor: [0, -14],
   });
 }
 
@@ -101,35 +119,46 @@ export default function MapView({
 }: MapViewProps) {
   if (loading) {
     return (
-      <Box sx={{ height: '100%', width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', bgcolor: '#1a1a2e' }}>
-        <CircularProgress sx={{ color: theme === 'dark' ? '#00ffff' : '#007bff' }} />
+      <Box sx={{ height: '100%', width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', bgcolor: '#0f172a' }}>
+        <CircularProgress sx={{ color: '#00ffff' }} />
       </Box>
     );
   }
+
+  const serverUrl = process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:3001/api';
 
   return (
     <MapContainer
       key="houses-map"
       center={center}
       zoom={zoom}
-      // CRITICAL FIX: Force absolute height and width for Leaflet
       style={{ height: '100%', width: '100%', position: 'absolute', top: 0, left: 0, zIndex: 1 }}
       zoomControl
       scrollWheelZoom
     >
-      <TileLayer
-        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-        // CRITICAL FIX: Ensure tiles are visible
-        zIndex={1} 
-      />
+      <LayersControl position="topright">
+        <LayersControl.BaseLayer checked name="OpenStreetMap Standard">
+          <TileLayer
+            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+          />
+        </LayersControl.BaseLayer>
+
+        <LayersControl.BaseLayer name="Satellite Imagery">
+          <TileLayer
+            url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
+            attribution='&copy; Esri &mdash; Earthstar Geographics'
+          />
+        </LayersControl.BaseLayer>
+      </LayersControl>
 
       {houses.map((house) => {
         const lat = house.location?.coordinates?.lat;
         const lng = house.location?.coordinates?.lng;
         if (typeof lat !== 'number' || typeof lng !== 'number') return null;
 
-        const icon = createMarkerIcon(house.propertyType, selectedHouse?._id === house._id);
+        const isSelected = selectedHouse?._id === house._id;
+        const icon = createPriceMarker(house.pricing.price, isSelected, house.isVerified);
 
         return (
           <Marker
@@ -139,24 +168,88 @@ export default function MapView({
             eventHandlers={{ click: () => onSelectHouse(house) }}
           >
             <Popup>
-              <div style={{ minWidth: 200, padding: 4 }}>
-                <div style={{ fontWeight: 'bold', marginBottom: 4 }}>
-                  {house.title.length > 30 ? `${house.title.substring(0, 30)}...` : house.title}
+              <div style={{ minWidth: 220, padding: 2, fontFamily: 'system-ui, sans-serif' }}>
+                <img
+                  src={`${serverUrl}/public/houses/${house._id}/image`}
+                  alt={house.title}
+                  style={{
+                    width: '100%',
+                    height: 110,
+                    objectFit: 'cover',
+                    borderRadius: 6,
+                    marginBottom: 6
+                  }}
+                  onError={(e: any) => {
+                    e.target.src = 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=300&q=80';
+                  }}
+                />
+
+                <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginBottom: 4 }}>
+                  <span style={{
+                    fontSize: 10,
+                    fontWeight: 700,
+                    padding: '2px 6px',
+                    borderRadius: 4,
+                    backgroundColor: house.transactionType === 'BUY' ? '#10b981' : '#06b6d4',
+                    color: 'white'
+                  }}>
+                    {house.transactionType || 'RENT'}
+                  </span>
+                  {house.isVerified && (
+                    <span style={{ fontSize: 10, fontWeight: 700, color: '#0284c7' }}>
+                      ✓ Verified
+                    </span>
+                  )}
                 </div>
-                <div style={{ fontSize: 12, color: '#666', marginBottom: 4 }}>
-                  {house.location.city}, {house.location.state}
+
+                <div style={{ fontWeight: 'bold', fontSize: 13, marginBottom: 4, lineHeight: 1.3 }}>
+                  {house.title.length > 35 ? `${house.title.substring(0, 35)}...` : house.title}
                 </div>
-                <div style={{ fontSize: 18, fontWeight: 'bold', color: theme === 'dark' ? '#00ffff' : '#007bff', marginBottom: 8 }}>
+
+                <div style={{ fontSize: 11, color: '#64748b', marginBottom: 4 }}>
+                  {house.location.neighborhood ? `${house.location.neighborhood}, ` : ''}{house.location.city}
+                </div>
+
+                <div style={{ fontSize: 16, fontWeight: '800', color: '#06b6d4', marginBottom: 8 }}>
                   {formatPrice(house.pricing.price)}
                 </div>
-                <a href={`/public/houses/${house._id}`} style={{
-                  display: 'block', padding: '6px 12px', textAlign: 'center',
-                  border: `1px solid ${theme === 'dark' ? '#00ffff' : '#007bff'}`,
-                  color: theme === 'dark' ? '#00ffff' : '#007bff',
-                  borderRadius: 4, textDecoration: 'none', fontSize: 13,
-                }}>
-                  View Details
-                </a>
+
+                <div style={{ display: 'flex', gap: 6 }}>
+                  <a
+                    href={`/public/houses/${house._id}`}
+                    style={{
+                      flex: 1,
+                      display: 'block',
+                      padding: '5px 8px',
+                      textAlign: 'center',
+                      backgroundColor: '#06b6d4',
+                      color: 'white',
+                      borderRadius: 4,
+                      textDecoration: 'none',
+                      fontSize: 12,
+                      fontWeight: 600
+                    }}
+                  >
+                    View Details
+                  </a>
+                  <a
+                    href={`https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{
+                      display: 'block',
+                      padding: '5px 8px',
+                      textAlign: 'center',
+                      border: '1px solid #cbd5e1',
+                      color: '#475569',
+                      borderRadius: 4,
+                      textDecoration: 'none',
+                      fontSize: 12
+                    }}
+                  >
+                    Directions
+                  </a>
+                </div>
               </div>
             </Popup>
           </Marker>

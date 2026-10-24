@@ -3,57 +3,54 @@
 import { useState, useEffect, useCallback } from 'react';
 import {
   Box, Typography, Card, CardContent, Chip, IconButton,
-  Dialog, DialogTitle, DialogContent, DialogActions, Button,
-  Divider, CircularProgress, useMediaQuery, Snackbar, Alert,
+  Button, Divider, CircularProgress, useMediaQuery, Snackbar, Alert,
   Tooltip, TextField, Select, MenuItem, FormControl, InputLabel,
-  Slider, Stack, Pagination, Drawer,
-  Toolbar, Skeleton
+  Slider, Stack, Pagination, Drawer, Skeleton, Badge, Checkbox, FormControlLabel,
+  Dialog, DialogTitle, DialogContent, DialogActions
 } from '@mui/material';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTheme } from '@/lib/theme-context';
 import Navbar from '@/components/ui/Navbar';
 import {
-  Home, LocationOn, AttachMoney, Bed, Bathtub,
+  Home, LocationOn, Bed, Bathtub,
   SquareFoot, Search, FilterList, Close,
-  Visibility, ShoppingCart, CheckCircle,
-  Cancel, Apartment, Villa, Landscape,
+  Visibility, CheckCircle,
+  Apartment, Villa, Landscape,
   Pool, FitnessCenter, Security, LocalParking, Wifi,
-  Map as MapIcon, Image as ImageIcon
+  Favorite, FavoriteBorder, CompareArrows, Verified,
+  BookmarkBorder, Bookmark, ThreeDRotation, Whatshot,
+  DirectionsCar, ClearAll, RestartAlt
 } from '@mui/icons-material';
 import api from '@/app/utils/api';
 import { House, PropertyType, PaginationData } from '@/types/houses';
+import PropertyCompareModal from '@/components/PropertyCompareModal';
+import Link from 'next/link';
 
-const propertyTypeIcons: Record<PropertyType, React.ReactElement> = {
-  [PropertyType.APARTMENT]: <Apartment />,
-  [PropertyType.VILLA]: <Villa />,
-  [PropertyType.CONDO]: <Villa />,
-  [PropertyType.HOUSE]: <Home />,
-  [PropertyType.LAND]: <Landscape />
+const propertyTypeLabels: Record<string, string> = {
+  APARTMENT: 'Apartment',
+  VILLA: 'Villa',
+  CONDO: 'Condo',
+  HOUSE: 'House',
+  LAND: 'Land',
+  OFFICE: 'Office',
+  WAREHOUSE: 'Warehouse',
+  SHOP: 'Commercial Shop'
 };
 
-const propertyTypeLabels: Record<PropertyType, string> = {
-  [PropertyType.APARTMENT]: 'Apartment',
-  [PropertyType.VILLA]: 'Villa',
-  [PropertyType.CONDO]: 'Condo',
-  [PropertyType.HOUSE]: 'House',
-  [PropertyType.LAND]: 'Land'
-};
+const popularTags = [
+  'Bole', 'Furnished', 'Luxury', 'FamilyHome', 'CMC', 'OfficeSpace',
+  'Garden', 'Penthouse', 'NearAirport', 'Parking', 'TitleDeed'
+];
 
-const amenityIcons: Record<string, React.ReactElement> = {
-  pool: <Pool />,
-  gym: <FitnessCenter />,
-  security: <Security />,
-  parking: <LocalParking />,
-  wifi: <Wifi />
-};
-
-const PublicHousesPage = () => {
+export default function PublicHousesPage() {
   const { theme } = useTheme();
   const isMobile = useMediaQuery('(max-width: 768px)');
-  
+
   const [houses, setHouses] = useState<House[]>([]);
+  const [trendingHouses, setTrendingHouses] = useState<House[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [snackbarMessage, setSnackbarMessage] = useState('');
   const [pagination, setPagination] = useState<PaginationData>({
     currentPage: 1,
     totalPages: 1,
@@ -61,42 +58,63 @@ const PublicHousesPage = () => {
     hasNext: false,
     hasPrev: false
   });
+
+  // Filters State
   const [filters, setFilters] = useState({
     search: '',
+    transactionType: '',
     propertyType: '',
+    intendedPurpose: '',
     minPrice: 0,
-    maxPrice: 1000000,
+    maxPrice: 50000000,
     minBedrooms: 0,
     minBathrooms: 0,
+    isVerified: '',
+    tags: [] as string[],
     amenities: [] as string[],
     sortBy: 'created_at',
     sortOrder: 'desc',
     page: 1,
     limit: 12
   });
-  const [filterDrawerOpen, setFilterDrawerOpen] = useState(false);
-  const [priceRange, setPriceRange] = useState<number[]>([0, 1000000]);
-  const [amenitiesList, setAmenitiesList] = useState<string[]>([]);
-  const [imageErrors, setImageErrors] = useState<Record<string, boolean>>({});
 
-  // Use the same image URL pattern as detail page but with API endpoint
+  const [filterDrawerOpen, setFilterDrawerOpen] = useState(false);
+  const [priceRange, setPriceRange] = useState<number[]>([0, 50000000]);
+  const [amenitiesList, setAmenitiesList] = useState<string[]>([]);
+  const [likedHouseIds, setLikedHouseIds] = useState<Record<string, boolean>>({});
+
+  // Side-by-Side Comparison State
+  const [compareList, setCompareList] = useState<House[]>([]);
+  const [compareModalOpen, setCompareModalOpen] = useState(false);
+
+  // Saved Search Modal
+  const [saveSearchModalOpen, setSaveSearchModalOpen] = useState(false);
+  const [savedSearchName, setSavedSearchName] = useState('');
+
   const getImageUrl = (houseId: string): string => {
     const serverUrl = process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:3001/api';
     return `${serverUrl}/public/houses/${houseId}/image`;
   };
 
-  const handleImageError = (houseId: string) => {
-    setImageErrors(prev => ({ ...prev, [houseId]: true }));
+  const fetchTrending = async () => {
+    try {
+      const res = await api.get('/public/houses/trending?limit=4');
+      if (res.data?.success) {
+        setTrendingHouses(res.data.data || []);
+      }
+    } catch (e) {
+      // Ignored
+    }
   };
 
   const fetchHouses = useCallback(async () => {
     try {
       setLoading(true);
       const params = new URLSearchParams();
-      
+
       Object.entries(filters).forEach(([key, value]) => {
-        if (value && value !== '' && value !== 0) {
-          if (key === 'amenities' && Array.isArray(value)) {
+        if (value !== '' && value !== 0 && value !== null && value !== undefined) {
+          if (Array.isArray(value)) {
             if (value.length > 0) params.append(key, value.join(','));
           } else {
             params.append(key, value.toString());
@@ -105,68 +123,103 @@ const PublicHousesPage = () => {
       });
 
       const response = await api.get(`/public/houses?${params}`);
-      setHouses(response.data.data.houses || []);
-      setPagination(response.data.data.pagination);
+      setHouses(response.data.data?.houses || []);
+      setPagination(response.data.data?.pagination || {
+        currentPage: 1,
+        totalPages: 1,
+        totalItems: 0,
+        hasNext: false,
+        hasPrev: false
+      });
       setError('');
-    } catch (error: any) {
-      console.error('Error fetching houses:', error);
-      setError(error.response?.data?.message || 'Failed to fetch houses');
+    } catch (err: any) {
+      console.error('Error fetching houses:', err);
+      setError(err.response?.data?.message || 'Failed to fetch properties');
     } finally {
       setLoading(false);
     }
   }, [filters]);
-
-  const fetchFilterOptions = useCallback(async () => {
-    try {
-      const response = await api.get('/public/houses/filter-options');
-      setAmenitiesList(response.data.data.amenities || []);
-      const priceRangeData = response.data.data.priceRange;
-      if (priceRangeData) {
-        setPriceRange([priceRangeData.minPrice, priceRangeData.maxPrice]);
-        setFilters(prev => ({
-          ...prev,
-          minPrice: priceRangeData.minPrice,
-          maxPrice: priceRangeData.maxPrice
-        }));
-      }
-    } catch (error: any) {
-      console.error('Failed to fetch filter options:', error);
-    }
-  }, []);
 
   useEffect(() => {
     fetchHouses();
   }, [fetchHouses]);
 
   useEffect(() => {
-    fetchFilterOptions();
+    fetchTrending();
   }, []);
 
   const handleFilterChange = (field: string, value: any) => {
     setFilters(prev => ({ ...prev, [field]: value, page: 1 }));
   };
 
-  const handlePriceChange = (event: Event, newValue: number | number[]) => {
-    const value = newValue as number[];
-    setPriceRange(value);
-    setFilters(prev => ({ ...prev, minPrice: value[0], maxPrice: value[1], page: 1 }));
+  const handleTagToggle = (tag: string) => {
+    setFilters(prev => {
+      const currentTags = prev.tags || [];
+      const updated = currentTags.includes(tag)
+        ? currentTags.filter(t => t !== tag)
+        : [...currentTags, tag];
+      return { ...prev, tags: updated, page: 1 };
+    });
   };
 
-  const handleAmenityToggle = (amenity: string) => {
-    const updated = filters.amenities.includes(amenity)
-      ? filters.amenities.filter(a => a !== amenity)
-      : [...filters.amenities, amenity];
-    handleFilterChange('amenities', updated);
+  const handleLike = async (e: React.MouseEvent, house: House) => {
+    e.preventDefault();
+    e.stopPropagation();
+    try {
+      const res = await api.post(`/properties/${house._id}/like`, {});
+      if (res.data?.success) {
+        const liked = res.data.data.liked;
+        const newCount = res.data.data.likesCount;
+        setLikedHouseIds(prev => ({ ...prev, [house._id]: liked }));
+        setHouses(prev => prev.map(h => h._id === house._id ? { ...h, likesCount: newCount } : h));
+        setSnackbarMessage(liked ? `Saved "${house.title}" to favorites!` : 'Removed from favorites');
+      }
+    } catch (err: any) {
+      setSnackbarMessage('Please sign in to like properties');
+    }
+  };
+
+  const toggleCompare = (e: React.MouseEvent, house: House) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (compareList.some(p => p._id === house._id)) {
+      setCompareList(prev => prev.filter(p => p._id !== house._id));
+    } else {
+      if (compareList.length >= 4) {
+        setSnackbarMessage('You can compare a maximum of 4 properties at once');
+        return;
+      }
+      setCompareList(prev => [...prev, house]);
+      setSnackbarMessage(`Added "${house.title}" to comparison tray`);
+    }
+  };
+
+  const handleSaveSearch = async () => {
+    try {
+      await api.post('/properties/saved-searches', {
+        name: savedSearchName || `Search ${filters.transactionType || 'All'} - ${filters.search || 'Filters'}`,
+        filters
+      });
+      setSnackbarMessage('Search alert successfully saved! We will notify you of new matches.');
+      setSaveSearchModalOpen(false);
+      setSavedSearchName('');
+    } catch (err: any) {
+      setSnackbarMessage('Please log in to save search alerts');
+    }
   };
 
   const resetFilters = () => {
     setFilters({
       search: '',
+      transactionType: '',
       propertyType: '',
-      minPrice: priceRange[0],
-      maxPrice: priceRange[1],
+      intendedPurpose: '',
+      minPrice: 0,
+      maxPrice: 50000000,
       minBedrooms: 0,
       minBathrooms: 0,
+      isVerified: '',
+      tags: [],
       amenities: [],
       sortBy: 'created_at',
       sortOrder: 'desc',
@@ -176,420 +229,566 @@ const PublicHousesPage = () => {
   };
 
   const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0
-    }).format(price);
+    return `ETB ${price.toLocaleString()}`;
   };
 
-  const FilterContent = () => (
-    <Box sx={{ p: 2, width: isMobile ? '100%' : 320 }}>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-        <Typography variant="h6" sx={{ fontWeight: 'bold', color: theme === 'dark' ? '#ccd6f6' : '#333333' }}>
-          Filters
-        </Typography>
-        <IconButton onClick={() => setFilterDrawerOpen(false)}>
-          <Close />
-        </IconButton>
-      </Box>
-      
-      <Divider sx={{ mb: 2 }} />
-      
-      <FormControl fullWidth size="small" sx={{ mb: 2 }}>
-        <InputLabel>Property Type</InputLabel>
-        <Select
-          value={filters.propertyType}
-          label="Property Type"
-          onChange={(e) => handleFilterChange('propertyType', e.target.value)}
-        >
-          <MenuItem value="">All Types</MenuItem>
-          {Object.entries(propertyTypeLabels).map(([value, label]) => (
-            <MenuItem key={value} value={value}>{label}</MenuItem>
-          ))}
-        </Select>
-      </FormControl>
-      
-      <Typography variant="body2" sx={{ mb: 1, color: theme === 'dark' ? '#a8b2d1' : '#666666' }}>
-        Price Range
-      </Typography>
-      <Slider
-        value={priceRange}
-        onChange={handlePriceChange}
-        min={0}
-        max={1000000}
-        step={10000}
-        valueLabelDisplay="auto"
-        valueLabelFormat={(value) => formatPrice(value)}
-        sx={{ mb: 2 }}
-      />
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
-        <Typography variant="caption">{formatPrice(priceRange[0])}</Typography>
-        <Typography variant="caption">{formatPrice(priceRange[1])}</Typography>
-      </Box>
-      
-      <TextField
-        fullWidth
-        size="small"
-        label="Min Bedrooms"
-        type="number"
-        value={filters.minBedrooms}
-        onChange={(e) => handleFilterChange('minBedrooms', parseInt(e.target.value))}
-        sx={{ mb: 2 }}
-      />
-      
-      <TextField
-        fullWidth
-        size="small"
-        label="Min Bathrooms"
-        type="number"
-        value={filters.minBathrooms}
-        onChange={(e) => handleFilterChange('minBathrooms', parseInt(e.target.value))}
-        sx={{ mb: 2 }}
-      />
-      
-      <Typography variant="body2" sx={{ mb: 1, color: theme === 'dark' ? '#a8b2d1' : '#666666' }}>
-        Amenities
-      </Typography>
-      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 2 }}>
-        {amenitiesList.map(amenity => (
-          <Chip
-            key={amenity}
-            label={amenity}
-            icon={amenityIcons[amenity] || <CheckCircle />}
-            onClick={() => handleAmenityToggle(amenity)}
-            color={filters.amenities.includes(amenity) ? 'primary' : 'default'}
-            sx={{
-              backgroundColor: filters.amenities.includes(amenity)
-                ? (theme === 'dark' ? '#00ffff20' : '#007bff10')
-                : (theme === 'dark' ? '#334155' : '#e5e7eb')
-            }}
-          />
-        ))}
-      </Box>
-      
-      <Button
-        fullWidth
-        variant="outlined"
-        onClick={resetFilters}
-        sx={{ mt: 2 }}
-      >
-        Reset All Filters
-      </Button>
-    </Box>
-  );
-
   return (
-    <div className={`min-h-screen transition-colors duration-300 ${
-      theme === 'dark' 
-        ? 'bg-gradient-to-br from-[#0a192f] to-[#112240]' 
-        : 'bg-gradient-to-br from-[#f0f0f0] to-[#ffffff]'
-    }`}>
+    <Box sx={{ minHeight: '100vh', bgcolor: 'background.default', pt: { xs: 8, md: 10 }, pb: 8 }}>
       <Navbar />
-      <Toolbar />
-      
-      <Box sx={{ pt: 10, pb: 4, px: { xs: 2, md: 4 } }}>
-        {/* Hero Section */}
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-        >
-          <Box sx={{ textAlign: 'center', mb: 4 }}>
-            <Typography variant={isMobile ? "h4" : "h3"} sx={{ fontWeight: 'bold', color: theme === 'dark' ? '#00ffff' : '#007bff', mb: 2 }}>
-              Find Your Dream Home
-            </Typography>
-            <Typography variant="body1" color={theme === 'dark' ? '#a8b2d1' : '#666666'} sx={{ maxWidth: 600, mx: 'auto' }}>
-              Discover the perfect property from our curated collection of homes, apartments, and villas
-            </Typography>
-            
-            {/* <Button
-              variant="outlined"
-              startIcon={<MapIcon />}
-              onClick={() => window.location.href = '/public/map'}
+
+      <Box sx={{ maxWidth: 1320, mx: 'auto', px: { xs: 2, sm: 3 } }}>
+        {/* Hero & Discovery Search Header */}
+        <Box sx={{ py: 3, mb: 2 }}>
+          <Typography variant="h4" sx={{ fontWeight: 800, color: 'text.primary', mb: 1, letterSpacing: -0.5 }}>
+            Explore Verified Real Estate
+          </Typography>
+          <Typography variant="body1" sx={{ color: 'text.secondary', maxWidth: 700 }}>
+            Discover apartments, villas, commercial offices, industrial warehouses, and development land across Ethiopia with interactive 3D, 360° virtual tours, and side-by-side comparison.
+          </Typography>
+        </Box>
+
+        {/* Transaction Type Tabs Bar */}
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 3, overflowX: 'auto', pb: 0.5 }}>
+          {[
+            { label: 'All Listings', value: '' },
+            { label: 'For Rent', value: 'RENT' },
+            { label: 'For Sale (Outright Purchase)', value: 'BUY' },
+            { label: 'Short Stay & Furnished', value: 'SHORT_STAY' }
+          ].map((tab) => (
+            <Button
+              key={tab.value}
+              onClick={() => handleFilterChange('transactionType', tab.value)}
+              variant={filters.transactionType === tab.value ? 'contained' : 'outlined'}
               sx={{
-                mt: 2,
-                borderColor: theme === 'dark' ? '#00ffff' : '#007bff',
-                color: theme === 'dark' ? '#00ffff' : '#007bff',
+                borderRadius: 3,
+                textTransform: 'none',
+                fontWeight: 700,
+                px: 2.5,
+                py: 1,
+                bgcolor: filters.transactionType === tab.value ? '#06b6d4' : 'transparent',
+                borderColor: filters.transactionType === tab.value ? '#06b6d4' : 'divider',
+                color: filters.transactionType === tab.value ? 'white' : 'text.primary',
                 '&:hover': {
-                  borderColor: theme === 'dark' ? '#00b3b3' : '#0056b3',
-                  backgroundColor: theme === 'dark' ? '#00ffff20' : '#007bff10'
+                  bgcolor: filters.transactionType === tab.value ? '#0891b2' : 'action.hover'
                 }
               }}
             >
-              View on Map
-            </Button> */}
-          </Box>
-        </motion.div>
-        
-        {/* Search Bar */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.1 }}
-        >
-          <Card sx={{ mb: 4, borderRadius: 3, backgroundColor: theme === 'dark' ? '#0f172a80' : 'white', backdropFilter: theme === 'dark' ? 'blur(10px)' : 'none' }}>
-            <CardContent>
-              <Box sx={{ display: 'flex', gap: 2, flexDirection: { xs: 'column', md: 'row' } }}>
-                <TextField
-                  fullWidth
-                  placeholder="Search by title, location, or description..."
-                  value={filters.search}
-                  onChange={(e) => handleFilterChange('search', e.target.value)}
-                  InputProps={{ startAdornment: <Search sx={{ mr: 1 }} /> }}
-                  sx={{ flex: 1 }}
-                />
-                <FormControl sx={{ minWidth: 150 }}>
-                  <Select
-                    value={filters.sortBy}
-                    onChange={(e) => handleFilterChange('sortBy', e.target.value)}
-                  >
-                    <MenuItem value="created_at">Newest First</MenuItem>
-                    <MenuItem value="pricing.price">Price: Low to High</MenuItem>
-                    <MenuItem value="-pricing.price">Price: High to Low</MenuItem>
-                    <MenuItem value="details.area">Size: Small to Large</MenuItem>
-                    <MenuItem value="-details.area">Size: Large to Small</MenuItem>
-                  </Select>
-                </FormControl>
-                <Button
-                  variant="outlined"
-                  startIcon={<FilterList />}
-                  onClick={() => setFilterDrawerOpen(true)}
-                >
-                  Filters
-                </Button>
+              {tab.label}
+            </Button>
+          ))}
+        </Box>
 
-                <Button
-                  variant="outlined"
-                  startIcon={<MapIcon />}
-                  onClick={() => window.location.href = '/public/map'}
+        {/* YouTube-Style Tags Discovery Strip */}
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 3, overflowX: 'auto', pb: 1 }}>
+          <Typography variant="caption" sx={{ fontWeight: 700, color: 'text.secondary', mr: 1, whiteSpace: 'nowrap' }}>
+            Trending Tags:
+          </Typography>
+          {popularTags.map((tag) => {
+            const isSelected = filters.tags.includes(tag);
+            return (
+              <Chip
+                key={tag}
+                label={`#${tag}`}
+                onClick={() => handleTagToggle(tag)}
+                clickable
+                color={isSelected ? 'primary' : 'default'}
+                sx={{
+                  fontWeight: 600,
+                  fontSize: 13,
+                  bgcolor: isSelected ? '#06b6d4' : 'background.paper',
+                  border: '1px solid',
+                  borderColor: isSelected ? '#06b6d4' : 'divider',
+                  color: isSelected ? 'white' : 'text.secondary',
+                  '&:hover': { bgcolor: isSelected ? '#0891b2' : 'action.hover' }
+                }}
+              />
+            );
+          })}
+        </Box>
+
+        {/* Main Search & Filter Control Bar */}
+        <Box sx={{
+          display: 'flex', gap: 1.5, mb: 4, flexWrap: 'wrap',
+          p: 2, bgcolor: 'background.paper', borderRadius: 3,
+          boxShadow: '0 4px 20px rgba(0,0,0,0.06)', border: '1px solid', borderColor: 'divider'
+        }}>
+          {/* Keyword Search */}
+          <TextField
+            placeholder="Search by neighborhood, landmark, or description..."
+            value={filters.search}
+            onChange={(e) => handleFilterChange('search', e.target.value)}
+            sx={{ flex: { xs: '1 1 100%', md: '1 1 300px' } }}
+            size="small"
+            InputProps={{
+              startAdornment: <Search sx={{ color: 'text.secondary', mr: 1 }} />
+            }}
+          />
+
+          {/* Property Category */}
+          <FormControl size="small" sx={{ minWidth: 160, flex: { xs: '1 1 45%', sm: 'none' } }}>
+            <InputLabel>Category</InputLabel>
+            <Select
+              value={filters.propertyType}
+              label="Category"
+              onChange={(e) => handleFilterChange('propertyType', e.target.value)}
+            >
+              <MenuItem value="">All Categories</MenuItem>
+              <MenuItem value="APARTMENT">Apartments</MenuItem>
+              <MenuItem value="VILLA">Villas & Houses</MenuItem>
+              <MenuItem value="OFFICE">Commercial Offices</MenuItem>
+              <MenuItem value="WAREHOUSE">Warehouses & Storage</MenuItem>
+              <MenuItem value="LAND">Development Land</MenuItem>
+            </Select>
+          </FormControl>
+
+          {/* Sort By */}
+          <FormControl size="small" sx={{ minWidth: 160, flex: { xs: '1 1 45%', sm: 'none' } }}>
+            <InputLabel>Sort By</InputLabel>
+            <Select
+              value={filters.sortBy}
+              label="Sort By"
+              onChange={(e) => handleFilterChange('sortBy', e.target.value)}
+            >
+              <MenuItem value="created_at">Newest First</MenuItem>
+              <MenuItem value="most_liked">Most Liked & Popular</MenuItem>
+              <MenuItem value="most_viewed">Most Viewed</MenuItem>
+              <MenuItem value="price">Price</MenuItem>
+            </Select>
+          </FormControl>
+
+          {/* Verified Only Check */}
+          <FormControlLabel
+            control={
+              <Checkbox
+                checked={filters.isVerified === 'true'}
+                onChange={(e) => handleFilterChange('isVerified', e.target.checked ? 'true' : '')}
+                sx={{ color: '#06b6d4', '&.Mui-checked': { color: '#06b6d4' } }}
+              />
+            }
+            label={
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                <Verified sx={{ color: '#0284c7', fontSize: 18 }} />
+                <Typography variant="body2" sx={{ fontWeight: 600 }}>Verified Only</Typography>
+              </Box>
+            }
+          />
+
+          <Box sx={{ display: 'flex', gap: 1, ml: 'auto' }}>
+            {/* Filter Drawer Toggle */}
+            <Button
+              variant="outlined"
+              size="small"
+              startIcon={<FilterList />}
+              onClick={() => setFilterDrawerOpen(true)}
+              sx={{ borderRadius: 2, textTransform: 'none' }}
+            >
+              More Filters
+            </Button>
+
+            {/* Save Search Button */}
+            <Button
+              variant="outlined"
+              size="small"
+              startIcon={<BookmarkBorder />}
+              onClick={() => setSaveSearchModalOpen(true)}
+              sx={{ borderRadius: 2, textTransform: 'none', color: '#10b981', borderColor: '#10b981' }}
+            >
+              Save Alert
+            </Button>
+
+            {/* Reset Filters */}
+            <IconButton size="small" onClick={resetFilters} title="Reset All Filters">
+              <RestartAlt />
+            </IconButton>
+          </Box>
+        </Box>
+
+        {/* Trending Strip Banner */}
+        {trendingHouses.length > 0 && !filters.search && !filters.propertyType && (
+          <Box sx={{ mb: 4 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+              <Whatshot sx={{ color: '#f43f5e' }} />
+              <Typography variant="h6" sx={{ fontWeight: 800 }}>
+                Trending & Most Viewed Properties
+              </Typography>
+            </Box>
+
+            <Box sx={{
+              display: 'grid',
+              gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', lg: 'repeat(4, 1fr)' },
+              gap: 2.5
+            }}>
+              {trendingHouses.map((house) => (
+                <Card
+                  key={house._id}
+                  component={Link}
+                  href={`/public/houses/${house._id}`}
                   sx={{
-                    mt: { xs: 1, md: 0 },
-                    borderColor: theme === 'dark' ? '#00ffff' : '#007bff',
-                    color: theme === 'dark' ? '#00ffff' : '#007bff',
+                    textDecoration: 'none',
+                    borderRadius: 3,
+                    border: '1px solid',
+                    borderColor: 'divider',
+                    position: 'relative',
+                    transition: 'all 0.3s',
+                    '&:hover': { transform: 'translateY(-4px)', boxShadow: '0 12px 30px rgba(0,0,0,0.1)' }
+                  }}
+                >
+                  <Box sx={{ position: 'relative', height: 180, bgcolor: '#0f172a' }}>
+                    <Box
+                      component="img"
+                      src={getImageUrl(house._id)}
+                      alt={house.title}
+                      onError={(e: any) => {
+                        e.target.src = 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=400&q=80';
+                      }}
+                      sx={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                    />
+                    <Box sx={{ position: 'absolute', top: 10, left: 10, display: 'flex', gap: 0.5 }}>
+                      <Chip
+                        size="small"
+                        icon={<Whatshot sx={{ fontSize: '14px !important', color: 'white' }} />}
+                        label="Trending"
+                        sx={{ bgcolor: '#f43f5e', color: 'white', fontWeight: 700, fontSize: 11 }}
+                      />
+                    </Box>
+                  </Box>
+
+                  <CardContent sx={{ p: 2 }}>
+                    <Typography variant="caption" sx={{ color: '#06b6d4', fontWeight: 700 }}>
+                      {house.location.neighborhood || house.location.city}
+                    </Typography>
+                    <Typography sx={{ fontWeight: 700, fontSize: 15, color: 'text.primary', mb: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      {house.title}
+                    </Typography>
+                    <Typography sx={{ fontWeight: 800, color: 'text.primary', fontSize: 16 }}>
+                      {formatPrice(house.pricing.price)}
+                    </Typography>
+                  </CardContent>
+                </Card>
+              ))}
+            </Box>
+          </Box>
+        )}
+
+        {/* Results Header */}
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+          <Typography variant="body2" sx={{ color: 'text.secondary', fontWeight: 600 }}>
+            Showing {pagination.totalItems} available {pagination.totalItems === 1 ? 'property' : 'properties'}
+          </Typography>
+        </Box>
+
+        {/* Property Grid List */}
+        {loading ? (
+          <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', lg: 'repeat(3, 1fr)' }, gap: 3 }}>
+            {[1, 2, 3, 4, 5, 6].map((n) => (
+              <Skeleton key={n} variant="rounded" height={360} sx={{ borderRadius: 3 }} />
+            ))}
+          </Box>
+        ) : houses.length === 0 ? (
+          <Box sx={{ textAlign: 'center', py: 10, bgcolor: 'background.paper', borderRadius: 3, border: '1px dashed', borderColor: 'divider' }}>
+            <Home sx={{ fontSize: 48, color: 'text.secondary', mb: 1 }} />
+            <Typography variant="h6" sx={{ fontWeight: 700 }}>No properties match your current filters</Typography>
+            <Typography variant="body2" sx={{ color: 'text.secondary', mb: 2 }}>Try broadening your search criteria or resetting filters.</Typography>
+            <Button variant="contained" onClick={resetFilters} sx={{ borderRadius: 2, bgcolor: '#06b6d4' }}>
+              Clear All Filters
+            </Button>
+          </Box>
+        ) : (
+          <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', lg: 'repeat(3, 1fr)' }, gap: 3 }}>
+            {houses.map((house) => {
+              const isLiked = likedHouseIds[house._id];
+              const isInCompare = compareList.some(p => p._id === house._id);
+
+              return (
+                <Card
+                  key={house._id}
+                  sx={{
+                    borderRadius: 3,
+                    border: '1px solid',
+                    borderColor: isInCompare ? '#06b6d4' : 'divider',
+                    bgcolor: 'background.paper',
+                    overflow: 'hidden',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    transition: 'all 0.3s',
+                    position: 'relative',
                     '&:hover': {
-                      borderColor: theme === 'dark' ? '#00b3b3' : '#0056b3',
-                      backgroundColor: theme === 'dark' ? '#00ffff20' : '#007bff10'
+                      transform: 'translateY(-4px)',
+                      boxShadow: '0 12px 30px rgba(0,0,0,0.08)'
                     }
                   }}
                 >
-                  View on Map
-                </Button>
+                  {/* Property Image & Overlay Badges */}
+                  <Box sx={{ position: 'relative', height: 230, bgcolor: '#0f172a' }}>
+                    <Link href={`/public/houses/${house._id}`}>
+                      <Box
+                        component="img"
+                        src={getImageUrl(house._id)}
+                        alt={house.title}
+                        onError={(e: any) => {
+                          e.target.src = 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=600&q=80';
+                        }}
+                        sx={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                      />
+                    </Link>
 
-              </Box>
-            </CardContent>
-          </Card>
-        </motion.div>
-        
-        {/* Results Count */}
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-          <Typography variant="body2" color={theme === 'dark' ? '#a8b2d1' : '#666666'}>
-            Showing {houses.length} of {pagination.totalItems} properties
-          </Typography>
-        </Box>
-        
-        {/* Houses Grid */}
-        {loading ? (
-          <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '400px' }}>
-            <CircularProgress size={60} sx={{ color: theme === 'dark' ? '#00ffff' : '#007bff' }} />
-          </Box>
-        ) : houses.length === 0 ? (
-          <Box sx={{ textAlign: 'center', py: 8 }}>
-            <Home sx={{ fontSize: 64, color: theme === 'dark' ? '#334155' : '#cbd5e1', mb: 2 }} />
-            <Typography variant="h6" color={theme === 'dark' ? '#a8b2d1' : '#666666'}>No properties found</Typography>
-            <Typography variant="body2" color={theme === 'dark' ? '#94a3b8' : '#999999'}>Try adjusting your search filters</Typography>
-          </Box>
-        ) : (
-          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 3 }}>
-            <AnimatePresence>
-              {houses.map((house, index) => {
-                const imageUrl = getImageUrl(house._id);
-                const hasImageError = imageErrors[house._id];
-                
-                return (
-                  <Box key={house._id} sx={{ flex: { xs: '1 1 100%', sm: '1 1 calc(50% - 24px)', md: '1 1 calc(33.33% - 24px)' }, minWidth: { xs: '100%', sm: '300px' } }}>
-                    <motion.div
-                      initial={{ opacity: 0, y: 30 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.5, delay: index * 0.05 }}
-                      whileHover={{ y: -8 }}
-                    >
-                      <Card sx={{ 
-                        height: '100%',
-                        borderRadius: 3,
-                        overflow: 'hidden',
-                        boxShadow: theme === 'dark' ? '0 2px 8px rgba(0,0,0,0.3)' : '0 2px 8px rgba(0,0,0,0.1)',
-                        border: theme === 'dark' ? '1px solid #334155' : '1px solid #e5e7eb',
-                        backgroundColor: theme === 'dark' ? '#0f172a80' : 'white',
-                        backdropFilter: theme === 'dark' ? 'blur(10px)' : 'none',
-                        transition: 'all 0.3s ease',
-                        cursor: 'pointer'
-                      }}
-                      onClick={() => window.location.href = `/public/houses/${house._id}`}
-                      >
-                        <Box sx={{ position: 'relative', height: 220, overflow: 'hidden', backgroundColor: theme === 'dark' ? '#1e293b' : '#f5f5f5' }}>
-                          {!hasImageError ? (
-                            <img 
-                              src={imageUrl} 
-                              alt={house.title}
-                              style={{ 
-                                width: '100%', 
-                                height: '100%', 
-                                objectFit: 'cover',
-                                display: 'block'
-                              }}
-                              onError={() => handleImageError(house._id)}
-                            />
-                          ) : (
-                            <Box sx={{ 
-                              width: '100%', 
-                              height: '100%', 
-                              backgroundColor: theme === 'dark' ? '#334155' : '#e5e7eb', 
-                              display: 'flex', 
-                              alignItems: 'center', 
-                              justifyContent: 'center',
-                              flexDirection: 'column',
-                              gap: 1
-                            }}>
-                              <Home sx={{ fontSize: 48, color: theme === 'dark' ? '#a8b2d1' : '#94a3b8' }} />
-                              <Typography variant="caption" color={theme === 'dark' ? '#a8b2d1' : '#666666'}>
-                                No Image Available
-                              </Typography>
-                            </Box>
-                          )}
-                          <Chip
-                            label={propertyTypeLabels[house.propertyType]}
-                            size="small"
-                            icon={propertyTypeIcons[house.propertyType]}
-                            sx={{ position: 'absolute', top: 12, right: 12, height: 24, backgroundColor: theme === 'dark' ? '#334155' : '#e5e7eb', zIndex: 1 }}
-                          />
-                          {house.details.amenities.slice(0, 2).map((amenity, i) => (
-                            <Chip
-                              key={amenity}
-                              label={amenity}
-                              size="small"
-                              sx={{ 
-                                position: 'absolute', 
-                                bottom: 12, 
-                                left: 12 + (i * 80), 
-                                height: 24, 
-                                backgroundColor: theme === 'dark' ? '#00ffff20' : '#007bff10', 
-                                color: theme === 'dark' ? '#00ffff' : '#007bff',
-                                fontSize: '0.7rem',
-                                zIndex: 1
-                              }}
-                            />
-                          ))}
-                        </Box>
-                        
-                        <CardContent>
-                          <Typography variant="h6" sx={{ fontWeight: 'bold', color: theme === 'dark' ? '#ccd6f6' : '#333333', mb: 1, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
-                            {house.title}
-                          </Typography>
-                          
-                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mb: 1 }}>
-                            <LocationOn sx={{ fontSize: 14, color: theme === 'dark' ? '#a8b2d1' : '#666666' }} />
-                            <Typography variant="caption" color={theme === 'dark' ? '#a8b2d1' : '#666666'}>
-                              {house.location.city}, {house.location.state}
-                            </Typography>
-                          </Box>
-                          
-                          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, mb: 2 }}>
-                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                              <Bed sx={{ fontSize: 14, color: theme === 'dark' ? '#a8b2d1' : '#666666' }} />
-                              <Typography variant="body2" color={theme === 'dark' ? '#ccd6f6' : '#333333'}>{house.details.bedrooms}</Typography>
-                            </Box>
-                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                              <Bathtub sx={{ fontSize: 14, color: theme === 'dark' ? '#a8b2d1' : '#666666' }} />
-                              <Typography variant="body2" color={theme === 'dark' ? '#ccd6f6' : '#333333'}>{house.details.bathrooms}</Typography>
-                            </Box>
-                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                              <SquareFoot sx={{ fontSize: 14, color: theme === 'dark' ? '#a8b2d1' : '#666666' }} />
-                              <Typography variant="body2" color={theme === 'dark' ? '#ccd6f6' : '#333333'}>{house.details.area.toLocaleString()} sqft</Typography>
-                            </Box>
-                          </Box>
-                          
-                          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                            <Typography variant="h5" sx={{ fontWeight: 'bold', color: theme === 'dark' ? '#00ffff' : '#007bff' }}>
-                              {formatPrice(house.pricing.price)}
-                            </Typography>
-                            <Box sx={{ display: 'flex', gap: 1 }}>
-                              <Tooltip title="View on Map">
-                                <IconButton
-                                  size="small"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    window.location.href = `/public/map?house=${house._id}`;
-                                  }}
-                                  sx={{ 
-                                    color: theme === 'dark' ? '#00ffff' : '#007bff',
-                                    '&:hover': { backgroundColor: theme === 'dark' ? '#00ffff20' : '#007bff10' }
-                                  }}
-                                >
-                                  <MapIcon fontSize="small" />
-                                </IconButton>
-                              </Tooltip>
-                              <Button
-                                size="small"
-                                variant="contained"
-                                startIcon={<Visibility />}
-                                sx={{
-                                  background: theme === 'dark' ? 'linear-gradient(135deg, #00ffff, #00b3b3)' : 'linear-gradient(135deg, #007bff, #0056b3)',
-                                  borderRadius: 2
-                                }}
-                              >
-                                View Details
-                              </Button>
-                            </Box>
-                          </Box>
-                        </CardContent>
-                      </Card>
-                    </motion.div>
+                    {/* Top Badges */}
+                    <Box sx={{ position: 'absolute', top: 12, left: 12, display: 'flex', gap: 0.8, flexWrap: 'wrap' }}>
+                      <Chip
+                        size="small"
+                        label={house.transactionType || 'RENT'}
+                        sx={{
+                          bgcolor: house.transactionType === 'BUY' ? '#10b981' : '#06b6d4',
+                          color: 'white',
+                          fontWeight: 700,
+                          fontSize: 11
+                        }}
+                      />
+                      {house.isVerified && (
+                        <Chip
+                          size="small"
+                          icon={<Verified sx={{ fontSize: '14px !important', color: 'white' }} />}
+                          label="Verified"
+                          sx={{ bgcolor: 'rgba(2, 132, 199, 0.9)', color: 'white', fontWeight: 600, fontSize: 11 }}
+                        />
+                      )}
+                      {house.panoramic360?.enabled && (
+                        <Chip
+                          size="small"
+                          icon={<ThreeDRotation sx={{ fontSize: '14px !important', color: 'white' }} />}
+                          label="360°"
+                          sx={{ bgcolor: 'rgba(168, 85, 247, 0.9)', color: 'white', fontWeight: 700, fontSize: 11 }}
+                        />
+                      )}
+                    </Box>
+
+                    {/* Top Right Heart Like & Compare */}
+                    <Box sx={{ position: 'absolute', top: 12, right: 12, display: 'flex', gap: 0.5 }}>
+                      <Tooltip title={isInCompare ? 'Remove from compare' : 'Compare side-by-side'}>
+                        <IconButton
+                          size="small"
+                          onClick={(e) => toggleCompare(e, house)}
+                          sx={{
+                            bgcolor: isInCompare ? '#06b6d4' : 'rgba(15, 23, 42, 0.7)',
+                            color: 'white',
+                            '&:hover': { bgcolor: '#0891b2' }
+                          }}
+                        >
+                          <CompareArrows fontSize="small" />
+                        </IconButton>
+                      </Tooltip>
+
+                      <Tooltip title={isLiked ? 'Unlike' : 'Like listing'}>
+                        <IconButton
+                          size="small"
+                          onClick={(e) => handleLike(e, house)}
+                          sx={{
+                            bgcolor: 'rgba(15, 23, 42, 0.7)',
+                            color: isLiked ? '#f43f5e' : 'white',
+                            '&:hover': { bgcolor: 'rgba(15, 23, 42, 0.9)' }
+                          }}
+                        >
+                          {isLiked ? <Favorite fontSize="small" /> : <FavoriteBorder fontSize="small" />}
+                        </IconButton>
+                      </Tooltip>
+                    </Box>
                   </Box>
-                );
-              })}
-            </AnimatePresence>
+
+                  {/* Card Content */}
+                  <CardContent sx={{ p: 2.5, flex: 1, display: 'flex', flexDirection: 'column' }}>
+                    {/* Location */}
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mb: 0.5 }}>
+                      <LocationOn sx={{ color: 'text.secondary', fontSize: 16 }} />
+                      <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600 }}>
+                        {house.location.neighborhood ? `${house.location.neighborhood}, ` : ''}{house.location.city}
+                      </Typography>
+                    </Box>
+
+                    {/* Title */}
+                    <Typography
+                      component={Link}
+                      href={`/public/houses/${house._id}`}
+                      sx={{
+                        fontWeight: 700,
+                        fontSize: 16,
+                        color: 'text.primary',
+                        textDecoration: 'none',
+                        mb: 1.5,
+                        display: '-webkit-box',
+                        WebkitLineClamp: 2,
+                        WebkitBoxOrient: 'vertical',
+                        overflow: 'hidden',
+                        '&:hover': { color: '#06b6d4' }
+                      }}
+                    >
+                      {house.title}
+                    </Typography>
+
+                    {/* Tags Row */}
+                    {(house.tags && house.tags.length > 0) && (
+                      <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap', mb: 2 }}>
+                        {house.tags.slice(0, 3).map((t, idx) => (
+                          <Chip
+                            key={idx}
+                            label={`#${t}`}
+                            size="small"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              handleTagToggle(t);
+                            }}
+                            sx={{ fontSize: 11, height: 22, bgcolor: 'action.hover' }}
+                          />
+                        ))}
+                      </Box>
+                    )}
+
+                    {/* Details Pill (Bed, Bath, Area) */}
+                    <Box sx={{
+                      display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                      py: 1.2, px: 2, bgcolor: 'action.hover', borderRadius: 2, mb: 2
+                    }}>
+                      {house.details.bedrooms > 0 && (
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                          <Bed sx={{ fontSize: 16, color: 'text.secondary' }} />
+                          <Typography variant="caption" sx={{ fontWeight: 600 }}>{house.details.bedrooms} Beds</Typography>
+                        </Box>
+                      )}
+                      {house.details.bathrooms > 0 && (
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                          <Bathtub sx={{ fontSize: 16, color: 'text.secondary' }} />
+                          <Typography variant="caption" sx={{ fontWeight: 600 }}>{house.details.bathrooms} Baths</Typography>
+                        </Box>
+                      )}
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                        <SquareFoot sx={{ fontSize: 16, color: 'text.secondary' }} />
+                        <Typography variant="caption" sx={{ fontWeight: 600 }}>{house.details.area} m²</Typography>
+                      </Box>
+                    </Box>
+
+                    {/* Price & Action Button */}
+                    <Box sx={{ mt: 'auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <Box>
+                        <Typography variant="caption" sx={{ color: 'text.secondary' }}>Price</Typography>
+                        <Typography variant="h6" sx={{ fontWeight: 800, color: '#06b6d4', lineHeight: 1.1 }}>
+                          {formatPrice(house.pricing.price)}
+                          <Typography component="span" sx={{ fontSize: 12, color: 'text.secondary', ml: 0.5 }}>
+                            {house.transactionType === 'RENT' ? '/ mo' : ''}
+                          </Typography>
+                        </Typography>
+                      </Box>
+
+                      <Button
+                        component={Link}
+                        href={`/public/houses/${house._id}`}
+                        variant="contained"
+                        size="small"
+                        sx={{
+                          borderRadius: 2,
+                          bgcolor: '#06b6d4',
+                          '&:hover': { bgcolor: '#0891b2' },
+                          textTransform: 'none',
+                          fontWeight: 700
+                        }}
+                      >
+                        Explore Details
+                      </Button>
+                    </Box>
+                  </CardContent>
+                </Card>
+              );
+            })}
           </Box>
         )}
-        
+
         {/* Pagination */}
         {pagination.totalPages > 1 && (
-          <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
+          <Box sx={{ display: 'flex', justifyContent: 'center', mt: 6 }}>
             <Pagination
               count={pagination.totalPages}
-              page={filters.page}
-              onChange={(e, page) => handleFilterChange('page', page)}
+              page={pagination.currentPage}
+              onChange={(_, page) => handleFilterChange('page', page)}
               color="primary"
-              size={isMobile ? "small" : "medium"}
-              showFirstButton
-              showLastButton
-              sx={{
-                '& .MuiPaginationItem-root': {
-                  color: theme === 'dark' ? '#ccd6f6' : '#333333',
-                  '&.Mui-selected': { backgroundColor: theme === 'dark' ? '#00ffff' : '#007bff', color: theme === 'dark' ? '#0a192f' : 'white' }
-                }
-              }}
+              size="large"
             />
           </Box>
         )}
-        
-        {/* Filter Drawer */}
-        <Drawer
-          anchor="right"
-          open={filterDrawerOpen}
-          onClose={() => setFilterDrawerOpen(false)}
-          PaperProps={{ sx: { backgroundColor: theme === 'dark' ? '#0f172a' : 'white' } }}
-        >
-          <FilterContent />
-        </Drawer>
-        
-        <Snackbar open={!!error} autoHideDuration={6000} onClose={() => setError('')} anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}>
-          <Alert severity="error" onClose={() => setError('')} sx={{ borderRadius: 2 }}>{error}</Alert>
-        </Snackbar>
       </Box>
-    </div>
-  );
-};
 
-export default PublicHousesPage;
+      {/* Floating Bottom Comparison Tray */}
+      {compareList.length > 0 && (
+        <Box sx={{
+          position: 'fixed', bottom: 24, left: '50%', transform: 'translateX(-50%)',
+          bgcolor: 'rgba(15, 23, 42, 0.95)', backdropFilter: 'blur(10px)',
+          px: 3, py: 1.5, borderRadius: 4, zIndex: 50,
+          boxShadow: '0 10px 40px rgba(0,0,0,0.3)',
+          display: 'flex', alignItems: 'center', gap: 2,
+          border: '1px solid rgba(255,255,255,0.1)'
+        }}>
+          <Typography sx={{ color: 'white', fontWeight: 600, fontSize: 14 }}>
+            {compareList.length} properties selected for comparison
+          </Typography>
+
+          <Button
+            variant="contained"
+            size="small"
+            onClick={() => setCompareModalOpen(true)}
+            startIcon={<CompareArrows />}
+            sx={{
+              bgcolor: '#06b6d4',
+              '&:hover': { bgcolor: '#0891b2' },
+              borderRadius: 2,
+              fontWeight: 700,
+              textTransform: 'none'
+            }}
+          >
+            Compare Now
+          </Button>
+
+          <IconButton size="small" onClick={() => setCompareList([])} sx={{ color: '#94a3b8' }}>
+            <Close fontSize="small" />
+          </IconButton>
+        </Box>
+      )}
+
+      {/* Side-by-Side Compare Modal */}
+      <PropertyCompareModal
+        open={compareModalOpen}
+        onClose={() => setCompareModalOpen(false)}
+        properties={compareList}
+        onRemoveProperty={(id) => setCompareList(prev => prev.filter(p => p._id !== id))}
+      />
+
+      {/* Save Search Modal */}
+      <Dialog open={saveSearchModalOpen} onClose={() => setSaveSearchModalOpen(false)} maxWidth="xs" fullWidth>
+        <DialogTitle sx={{ fontWeight: 700 }}>Save Search Alert</DialogTitle>
+        <DialogContent dividers sx={{ py: 2 }}>
+          <Typography variant="body2" sx={{ color: 'text.secondary', mb: 2 }}>
+            Receive instant notifications when new properties matching your current criteria are listed!
+          </Typography>
+          <TextField
+            label="Search Alert Name"
+            fullWidth
+            placeholder="e.g. Bole 3-Bed Apartments Under 70k"
+            value={savedSearchName}
+            onChange={(e) => setSavedSearchName(e.target.value)}
+          />
+        </DialogContent>
+        <DialogActions sx={{ p: 2 }}>
+          <Button onClick={() => setSaveSearchModalOpen(false)}>Cancel</Button>
+          <Button variant="contained" onClick={handleSaveSearch} sx={{ bgcolor: '#10b981', '&:hover': { bgcolor: '#059669' } }}>
+            Save Alert
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Notification Snackbar */}
+      <Snackbar
+        open={Boolean(snackbarMessage)}
+        autoHideDuration={3000}
+        onClose={() => setSnackbarMessage('')}
+        message={snackbarMessage}
+      />
+    </Box>
+  );
+}

@@ -19,7 +19,9 @@ import {
   CheckCircle, Cancel, LocalParking, AcUnit,
   Pool, FitnessCenter, Security, Wifi,
   Yard, Garage, Elevator,
-  Balcony, SmartToy, Map
+  Balcony, SmartToy, Map,
+  Verified, Tag as TagIcon, VideoLibrary,
+  Panorama, Architecture, Shield, Handshake
 } from '@mui/icons-material';
 import api from '@/app/utils/api';
 import { PropertyType } from '@/types/houses';
@@ -30,6 +32,21 @@ const propertyTypes = [
   { value: PropertyType.CONDO, label: 'Condo' },
   { value: PropertyType.HOUSE, label: 'House' },
   { value: PropertyType.LAND, label: 'Land' }
+];
+
+const transactionTypeOptions = [
+  { value: 'RENT', label: 'For Rent (Monthly/Yearly)' },
+  { value: 'BUY', label: 'For Sale (Purchase)' },
+  { value: 'SHORT_STAY', label: 'Short Stay / Vacation' }
+];
+
+const intendedPurposeOptions = [
+  { value: 'LIVING', label: 'Residential / Living' },
+  { value: 'COMMERCIAL', label: 'Commercial Retail / Shop' },
+  { value: 'OFFICE', label: 'Corporate Office' },
+  { value: 'INDUSTRIAL', label: 'Industrial / Warehouse' },
+  { value: 'EVENT_SHORT_STAY', label: 'Event Venue / Vacation' },
+  { value: 'MIXED_USE', label: 'Mixed Use' }
 ];
 
 const amenitiesOptions = [
@@ -69,6 +86,10 @@ const CreateHousePage = () => {
     title: '',
     description: '',
     propertyType: '',
+    transactionType: 'RENT' as 'RENT' | 'BUY' | 'SHORT_STAY',
+    intendedPurpose: 'LIVING' as 'LIVING' | 'COMMERCIAL' | 'OFFICE' | 'INDUSTRIAL' | 'EVENT_SHORT_STAY' | 'MIXED_USE',
+    tags: '',
+    isVerified: false,
     quantity: 1,
     
     location: {
@@ -99,6 +120,26 @@ const CreateHousePage = () => {
       taxAmount: 0,
       securityDeposit: 0
     },
+
+    rentalPricing: {
+      frequency: 'monthly' as 'daily' | 'weekly' | 'monthly',
+      securityDeposit: 0,
+      advancePayments: 1,
+      minLeaseDuration: 6
+    },
+
+    saleTerms: {
+      askingPrice: 0,
+      ownershipDocType: 'Freehold Title Deed',
+      isNegotiable: true,
+      escrowSupported: true,
+      downPaymentMin: 20
+    },
+
+    videoUrl: '',
+    panoramic360Url: '',
+    panoramic360Caption: '360° Virtual Tour View',
+    floorPlanUrl: '',
     
     virtualTour: {
       enabled: false,
@@ -188,12 +229,43 @@ const CreateHousePage = () => {
       formDataToSend.append('title', formData.title);
       formDataToSend.append('description', formData.description);
       formDataToSend.append('propertyType', formData.propertyType);
+      formDataToSend.append('transactionType', formData.transactionType);
+      formDataToSend.append('intendedPurpose', formData.intendedPurpose);
+      formDataToSend.append('isVerified', formData.isVerified ? 'true' : 'false');
+      formDataToSend.append('tags', formData.tags);
       formDataToSend.append('quantity', formData.quantity.toString());
       formDataToSend.append('location', JSON.stringify(formData.location));
       formDataToSend.append('details', JSON.stringify(formData.details));
       formDataToSend.append('pricing', JSON.stringify(formData.pricing));
       formDataToSend.append('virtualTour', JSON.stringify(formData.virtualTour));
       
+      if (formData.videoUrl) formDataToSend.append('videoUrl', formData.videoUrl);
+      if (formData.panoramic360Url) {
+        formDataToSend.append('panoramic360', JSON.stringify({
+          enabled: true,
+          imageUrl: formData.panoramic360Url,
+          caption: formData.panoramic360Caption || '360° Virtual Tour View'
+        }));
+      }
+      if (formData.transactionType === 'RENT' || formData.transactionType === 'SHORT_STAY') {
+        formDataToSend.append('rentalPricing', JSON.stringify(formData.rentalPricing));
+      }
+      if (formData.transactionType === 'BUY') {
+        formDataToSend.append('saleTerms', JSON.stringify({
+          ...formData.saleTerms,
+          askingPrice: formData.saleTerms.askingPrice || formData.pricing.price
+        }));
+      }
+      if (formData.floorPlanUrl) {
+        formDataToSend.append('floorPlan', JSON.stringify({
+          url: formData.floorPlanUrl,
+          rooms: [
+            { name: 'Living Room', dimensions: '6.0m x 4.5m', areaSqM: 27 },
+            { name: 'Master Bedroom', dimensions: '4.5m x 4.0m', areaSqM: 18 }
+          ]
+        }));
+      }
+
       images.forEach((image) => {
         formDataToSend.append('images', image);
       });
@@ -252,24 +324,104 @@ const CreateHousePage = () => {
         helperText="Include key features, condition, and selling points"
         sx={textFieldStyle}
       />
-      
-      <FormControl fullWidth>
-        <InputLabel sx={{ color: theme === 'dark' ? '#a8b2d1' : '#666666' }}>Property Type</InputLabel>
-        <Select
-          value={formData.propertyType}
-          label="Property Type"
-          onChange={(e) => handleInputChange('propertyType', e.target.value)}
-          required
-          sx={{
-            backgroundColor: theme === 'dark' ? '#1e293b' : 'white',
-            color: theme === 'dark' ? '#ccd6f6' : '#333333'
-          }}
-        >
-          {propertyTypes.map(type => (
-            <MenuItem key={type.value} value={type.value}>{type.label}</MenuItem>
-          ))}
-        </Select>
-      </FormControl>
+
+      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
+        <Box sx={{ flex: 1, minWidth: '220px' }}>
+          <FormControl fullWidth>
+            <InputLabel sx={{ color: theme === 'dark' ? '#a8b2d1' : '#666666' }}>Transaction Type</InputLabel>
+            <Select
+              value={formData.transactionType}
+              label="Transaction Type"
+              onChange={(e) => handleInputChange('transactionType', e.target.value)}
+              required
+              sx={{
+                backgroundColor: theme === 'dark' ? '#1e293b' : 'white',
+                color: theme === 'dark' ? '#ccd6f6' : '#333333'
+              }}
+            >
+              {transactionTypeOptions.map(t => (
+                <MenuItem key={t.value} value={t.value}>{t.label}</MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        </Box>
+
+        <Box sx={{ flex: 1, minWidth: '220px' }}>
+          <FormControl fullWidth>
+            <InputLabel sx={{ color: theme === 'dark' ? '#a8b2d1' : '#666666' }}>Intended Purpose</InputLabel>
+            <Select
+              value={formData.intendedPurpose}
+              label="Intended Purpose"
+              onChange={(e) => handleInputChange('intendedPurpose', e.target.value)}
+              required
+              sx={{
+                backgroundColor: theme === 'dark' ? '#1e293b' : 'white',
+                color: theme === 'dark' ? '#ccd6f6' : '#333333'
+              }}
+            >
+              {intendedPurposeOptions.map(p => (
+                <MenuItem key={p.value} value={p.value}>{p.label}</MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        </Box>
+
+        <Box sx={{ flex: 1, minWidth: '220px' }}>
+          <FormControl fullWidth>
+            <InputLabel sx={{ color: theme === 'dark' ? '#a8b2d1' : '#666666' }}>Property Category</InputLabel>
+            <Select
+              value={formData.propertyType}
+              label="Property Category"
+              onChange={(e) => handleInputChange('propertyType', e.target.value)}
+              required
+              sx={{
+                backgroundColor: theme === 'dark' ? '#1e293b' : 'white',
+                color: theme === 'dark' ? '#ccd6f6' : '#333333'
+              }}
+            >
+              {propertyTypes.map(type => (
+                <MenuItem key={type.value} value={type.value}>{type.label}</MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        </Box>
+      </Box>
+
+      {/* YouTube Style Tags */}
+      <TextField
+        fullWidth
+        label="Tags (YouTube-Style Search Tags)"
+        value={formData.tags}
+        onChange={(e) => handleInputChange('tags', e.target.value)}
+        placeholder="e.g. Bole, Luxury, Furnished, DiplomatArea, NewBuild"
+        helperText="Comma-separated tags for instant hashtag discovery (e.g. #Bole, #Furnished)"
+        InputProps={{ startAdornment: <TagIcon sx={{ mr: 1, color: theme === 'dark' ? '#00ffff' : '#007bff' }} /> }}
+        sx={textFieldStyle}
+      />
+
+      {/* Verified Certification */}
+      <Box sx={{ p: 2, borderRadius: 2, border: `1px solid ${formData.isVerified ? (theme === 'dark' ? '#00ff0040' : '#28a74540') : (theme === 'dark' ? '#334155' : '#e5e7eb')}`, bgcolor: formData.isVerified ? (theme === 'dark' ? '#00ff0010' : '#28a74510') : 'transparent' }}>
+        <FormControlLabel
+          control={
+            <Switch
+              checked={formData.isVerified}
+              onChange={(e) => handleInputChange('isVerified', e.target.checked)}
+              color="success"
+            />
+          }
+          label={
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <Shield sx={{ color: formData.isVerified ? '#00ff00' : 'text.secondary' }} />
+              <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+                Verified Property Listing
+              </Typography>
+            </Box>
+          }
+        />
+        <Typography variant="caption" sx={{ display: 'block', mt: 0.5, color: theme === 'dark' ? '#94a3b8' : '#666666' }}>
+          Mark this listing as officially verified with confirmed ownership title deeds, physical inspection, and verified agent credentials.
+        </Typography>
+      </Box>
     </Box>
   );
 
@@ -499,13 +651,17 @@ const CreateHousePage = () => {
           />
         )}
         renderTags={(value, getTagProps) =>
-          value.map((option, index) => (
-            <Chip
-              label={option}
-              {...getTagProps({ index })}
-              sx={{ backgroundColor: theme === 'dark' ? '#334155' : '#e5e7eb' }}
-            />
-          ))
+          value.map((option, index) => {
+            const { key, ...tagProps } = getTagProps({ index });
+            return (
+              <Chip
+                key={key}
+                label={option}
+                {...tagProps}
+                sx={{ backgroundColor: theme === 'dark' ? '#334155' : '#e5e7eb' }}
+              />
+            );
+          })
         }
       />
     </Box>
@@ -513,46 +669,159 @@ const CreateHousePage = () => {
 
   const renderPricingMedia = () => (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-      <Typography variant="h6" sx={{ color: theme === 'dark' ? '#00ffff' : '#007bff', mb: 2 }}>
-        Pricing & Availability
+      <Typography variant="h6" sx={{ color: theme === 'dark' ? '#00ffff' : '#007bff', mb: 1 }}>
+        Pricing & Terms ({formData.transactionType === 'BUY' ? 'For Sale' : formData.transactionType === 'SHORT_STAY' ? 'Short Stay' : 'Rental'})
       </Typography>
       
       <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
         <Box sx={{ flex: 1, minWidth: '200px' }}>
           <TextField
             fullWidth
-            label="Price"
+            label={formData.transactionType === 'BUY' ? 'Listing Price ($)' : 'Rent Amount ($)'}
             type="number"
             value={formData.pricing.price}
-            onChange={(e) => handleNestedChange('pricing', 'price', parseFloat(e.target.value))}
+            onChange={(e) => handleNestedChange('pricing', 'price', parseFloat(e.target.value) || 0)}
             required
             InputProps={{ startAdornment: <AttachMoney sx={{ mr: 1 }} /> }}
+            helperText={formData.transactionType === 'BUY' ? 'Total purchase price' : 'Base rent according to billing frequency'}
             sx={textFieldStyle}
           />
         </Box>
         <Box sx={{ flex: 1, minWidth: '200px' }}>
           <TextField
             fullWidth
-            label="Quantity Available"
+            label="Quantity / Units Available"
             type="number"
             value={formData.quantity}
             onChange={(e) => handleInputChange('quantity', Math.max(1, parseInt(e.target.value) || 1))}
             required
             InputProps={{ inputProps: { min: 1 } }}
-            helperText="Number of units available"
+            helperText="Number of identical units available"
             sx={textFieldStyle}
           />
         </Box>
       </Box>
+
+      {/* Transaction Type Specific Terms */}
+      {formData.transactionType === 'BUY' ? (
+        <Box sx={{ p: 2.5, borderRadius: 2, bgcolor: theme === 'dark' ? '#1e293b80' : '#f8fafc', border: `1px solid ${theme === 'dark' ? '#334155' : '#e2e8f0'}` }}>
+          <Typography variant="subtitle1" sx={{ fontWeight: 600, color: theme === 'dark' ? '#f59e0b' : '#d97706', mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
+            <Handshake /> Purchase Terms & Documentation
+          </Typography>
+          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, mb: 2 }}>
+            <Box sx={{ flex: 1, minWidth: '220px' }}>
+              <TextField
+                fullWidth
+                label="Ownership Document / Title Deed Type"
+                value={formData.saleTerms.ownershipDocType}
+                onChange={(e) => handleNestedChange('saleTerms', 'ownershipDocType', e.target.value)}
+                placeholder="e.g. Freehold Title Deed, 99-Yr Lease, Condo Cert"
+                helperText="Type of official property ownership document"
+                sx={textFieldStyle}
+              />
+            </Box>
+            <Box sx={{ flex: 1, minWidth: '180px' }}>
+              <TextField
+                fullWidth
+                label="Min Down Payment (%)"
+                type="number"
+                value={formData.saleTerms.downPaymentMin}
+                onChange={(e) => handleNestedChange('saleTerms', 'downPaymentMin', parseFloat(e.target.value) || 0)}
+                helperText="Minimum initial milestone deposit %"
+                sx={textFieldStyle}
+              />
+            </Box>
+          </Box>
+          <Box sx={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
+            <FormControlLabel
+              control={
+                <Switch
+                  checked={formData.saleTerms.isNegotiable}
+                  onChange={(e) => handleNestedChange('saleTerms', 'isNegotiable', e.target.checked)}
+                />
+              }
+              label="Price Negotiable (Accept Offers)"
+            />
+            <FormControlLabel
+              control={
+                <Switch
+                  checked={formData.saleTerms.escrowSupported}
+                  onChange={(e) => handleNestedChange('saleTerms', 'escrowSupported', e.target.checked)}
+                />
+              }
+              label="Escrow Account Supported"
+            />
+          </Box>
+        </Box>
+      ) : (
+        <Box sx={{ p: 2.5, borderRadius: 2, bgcolor: theme === 'dark' ? '#1e293b80' : '#f8fafc', border: `1px solid ${theme === 'dark' ? '#334155' : '#e2e8f0'}` }}>
+          <Typography variant="subtitle1" sx={{ fontWeight: 600, color: theme === 'dark' ? '#00ffff' : '#007bff', mb: 2 }}>
+            Rental Lease Terms & Schedule
+          </Typography>
+          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
+            <Box sx={{ flex: 1, minWidth: '180px' }}>
+              <FormControl fullWidth>
+                <InputLabel sx={{ color: theme === 'dark' ? '#a8b2d1' : '#666666' }}>Billing Frequency</InputLabel>
+                <Select
+                  value={formData.rentalPricing.frequency}
+                  label="Billing Frequency"
+                  onChange={(e) => handleNestedChange('rentalPricing', 'frequency', e.target.value)}
+                  sx={{
+                    backgroundColor: theme === 'dark' ? '#1e293b' : 'white',
+                    color: theme === 'dark' ? '#ccd6f6' : '#333333'
+                  }}
+                >
+                  <MenuItem value="monthly">Monthly</MenuItem>
+                  <MenuItem value="weekly">Weekly</MenuItem>
+                  <MenuItem value="daily">Daily (Short Stay)</MenuItem>
+                </Select>
+              </FormControl>
+            </Box>
+            <Box sx={{ flex: 1, minWidth: '180px' }}>
+              <TextField
+                fullWidth
+                label="Advance Rent (Months)"
+                type="number"
+                value={formData.rentalPricing.advancePayments}
+                onChange={(e) => handleNestedChange('rentalPricing', 'advancePayments', parseInt(e.target.value) || 1)}
+                helperText="Required advance rent upfront"
+                sx={textFieldStyle}
+              />
+            </Box>
+            <Box sx={{ flex: 1, minWidth: '180px' }}>
+              <TextField
+                fullWidth
+                label="Security Deposit ($)"
+                type="number"
+                value={formData.rentalPricing.securityDeposit}
+                onChange={(e) => handleNestedChange('rentalPricing', 'securityDeposit', parseFloat(e.target.value) || 0)}
+                helperText="Refundable damage deposit"
+                sx={textFieldStyle}
+              />
+            </Box>
+            <Box sx={{ flex: 1, minWidth: '180px' }}>
+              <TextField
+                fullWidth
+                label="Min Lease Duration (Months)"
+                type="number"
+                value={formData.rentalPricing.minLeaseDuration}
+                onChange={(e) => handleNestedChange('rentalPricing', 'minLeaseDuration', parseInt(e.target.value) || 1)}
+                helperText="Minimum contract duration"
+                sx={textFieldStyle}
+              />
+            </Box>
+          </Box>
+        </Box>
+      )}
       
       <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
         <Box sx={{ flex: 1, minWidth: '200px' }}>
           <TextField
             fullWidth
-            label="Maintenance Fee"
+            label="Maintenance / HOA Fee ($)"
             type="number"
             value={formData.pricing.maintenanceFee}
-            onChange={(e) => handleNestedChange('pricing', 'maintenanceFee', parseFloat(e.target.value))}
+            onChange={(e) => handleNestedChange('pricing', 'maintenanceFee', parseFloat(e.target.value) || 0)}
             InputProps={{ startAdornment: <AttachMoney sx={{ mr: 1 }} /> }}
             sx={textFieldStyle}
           />
@@ -560,10 +829,10 @@ const CreateHousePage = () => {
         <Box sx={{ flex: 1, minWidth: '200px' }}>
           <TextField
             fullWidth
-            label="Tax Amount"
+            label="Tax Amount ($)"
             type="number"
             value={formData.pricing.taxAmount}
-            onChange={(e) => handleNestedChange('pricing', 'taxAmount', parseFloat(e.target.value))}
+            onChange={(e) => handleNestedChange('pricing', 'taxAmount', parseFloat(e.target.value) || 0)}
             InputProps={{ startAdornment: <AttachMoney sx={{ mr: 1 }} /> }}
             sx={textFieldStyle}
           />
@@ -573,7 +842,7 @@ const CreateHousePage = () => {
       <Divider sx={{ my: 2 }} />
       
       <Typography variant="h6" sx={{ color: theme === 'dark' ? '#00ffff' : '#007bff', mb: 2 }}>
-        Property Images
+        Property Photos
       </Typography>
       
       <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
@@ -600,15 +869,71 @@ const CreateHousePage = () => {
           }}
         >
           <CloudUpload sx={{ fontSize: 32, color: theme === 'dark' ? '#a8b2d1' : '#666666' }} />
-          <Typography variant="caption" color={theme === 'dark' ? '#a8b2d1' : '#666666'}>Upload Image</Typography>
+          <Typography variant="caption" color={theme === 'dark' ? '#a8b2d1' : '#666666'}>Upload Photo</Typography>
         </Box>
         <input ref={imageInputRef} type="file" accept="image/*" multiple hidden onChange={handleImageUpload} />
       </Box>
       
       <Divider sx={{ my: 2 }} />
       
+      {/* Rich Media Section */}
+      <Typography variant="h6" sx={{ color: theme === 'dark' ? '#00ffff' : '#007bff', mb: 1, display: 'flex', alignItems: 'center', gap: 1 }}>
+        <Panorama /> Rich Media: 360° Virtual Tour & Walkthrough Video
+      </Typography>
+
+      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
+        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
+          <Box sx={{ flex: 2, minWidth: '260px' }}>
+            <TextField
+              fullWidth
+              label="360° Panoramic Equirectangular Image URL"
+              value={formData.panoramic360Url}
+              onChange={(e) => handleInputChange('panoramic360Url', e.target.value)}
+              placeholder="https://images.unsplash.com/... or cloud image URL"
+              helperText="Enables interactive Three.js 360 virtual tour"
+              InputProps={{ startAdornment: <Panorama sx={{ mr: 1, color: theme === 'dark' ? '#00ffff' : '#007bff' }} /> }}
+              sx={textFieldStyle}
+            />
+          </Box>
+          <Box sx={{ flex: 1, minWidth: '180px' }}>
+            <TextField
+              fullWidth
+              label="360 Tour Caption"
+              value={formData.panoramic360Caption}
+              onChange={(e) => handleInputChange('panoramic360Caption', e.target.value)}
+              placeholder="e.g. Master Suite & Living Room"
+              sx={textFieldStyle}
+            />
+          </Box>
+        </Box>
+
+        <TextField
+          fullWidth
+          label="Walkthrough Video URL (YouTube, Vimeo, or MP4)"
+          value={formData.videoUrl}
+          onChange={(e) => handleInputChange('videoUrl', e.target.value)}
+          placeholder="https://www.youtube.com/watch?v=... or direct MP4 URL"
+          helperText="Embedded video walkthrough for remote buyers/tenants"
+          InputProps={{ startAdornment: <VideoLibrary sx={{ mr: 1, color: theme === 'dark' ? '#00ffff' : '#007bff' }} /> }}
+          sx={textFieldStyle}
+        />
+
+        <TextField
+          fullWidth
+          label="Architectural Floor Plan Image URL"
+          value={formData.floorPlanUrl}
+          onChange={(e) => handleInputChange('floorPlanUrl', e.target.value)}
+          placeholder="https://images.unsplash.com/... or architectural blueprint URL"
+          helperText="Display interactive room dimensions and layout"
+          InputProps={{ startAdornment: <Architecture sx={{ mr: 1, color: theme === 'dark' ? '#00ffff' : '#007bff' }} /> }}
+          sx={textFieldStyle}
+        />
+      </Box>
+
+      <Divider sx={{ my: 2 }} />
+
       <Typography variant="h6" sx={{ color: theme === 'dark' ? '#00ffff' : '#007bff', mb: 2 }}>
-        3D Models (Optional)
+        3D Models (.glb / .gltf)
       </Typography>
       
       <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
@@ -639,7 +964,7 @@ const CreateHousePage = () => {
         >
           <ThreeDRotation sx={{ fontSize: 32, color: theme === 'dark' ? '#a8b2d1' : '#666666' }} />
           <Typography variant="caption" color={theme === 'dark' ? '#a8b2d1' : '#666666'}>Upload 3D Model</Typography>
-          <Typography variant="caption" color={theme === 'dark' ? '#94a3b8' : '#999999'} fontSize="10px">.glb, .gltf, .obj</Typography>
+          <Typography variant="caption" color={theme === 'dark' ? '#94a3b8' : '#999999'} fontSize="10px">.glb, .gltf</Typography>
         </Box>
         <input ref={modelInputRef} type="file" accept=".glb,.gltf,.obj" multiple hidden onChange={handleModelUpload} />
       </Box>
@@ -647,7 +972,7 @@ const CreateHousePage = () => {
       <Divider sx={{ my: 2 }} />
       
       <Typography variant="h6" sx={{ color: theme === 'dark' ? '#00ffff' : '#007bff', mb: 2 }}>
-        Virtual Tour (Optional)
+        Virtual Tour Embed (Optional)
       </Typography>
       
       <FormControlLabel
@@ -657,7 +982,7 @@ const CreateHousePage = () => {
             onChange={(e) => handleNestedChange('virtualTour', 'enabled', e.target.checked)}
           />
         }
-        label="Enable Virtual Tour"
+        label="Enable External 3rd Party Tour Embed"
       />
       
       {formData.virtualTour.enabled && (
@@ -672,7 +997,7 @@ const CreateHousePage = () => {
           />
           <TextField
             fullWidth
-            label="Embed Code"
+            label="Embed Code (Matterport / Kuula)"
             value={formData.virtualTour.embedCode}
             onChange={(e) => handleNestedChange('virtualTour', 'embedCode', e.target.value)}
             multiline

@@ -12,6 +12,7 @@ import {
   FaGlobe,
   FaChevronDown,
 } from 'react-icons/fa';
+import NotificationCenter from '@/components/NotificationCenter';
 
 const Navbar: React.FC = () => {
   const { user, logout } = useAuth();
@@ -102,9 +103,10 @@ const Navbar: React.FC = () => {
 
   const navLinks = [
     { href: '/', label: 'Home' },
+    { href: '/public/houses', label: 'Properties' },
+    { href: '/public/map', label: 'Map Search' },
+    { href: '/customer', label: 'My Portal' },
     { href: '/about', label: 'About' },
-    { href: '/services', label: 'Services' },
-    { href: '/public/houses', label: 'Visit Houses' },
     { href: '/contact', label: 'Contact' },
   ];
 
@@ -203,6 +205,11 @@ const Navbar: React.FC = () => {
               </div>
               
             )}
+
+            {/* In-App Notifications */}
+            <div className="ml-2 sm:ml-3">
+              <NotificationCenter />
+            </div>
 
             {/* Language Dropdown */}
             <div className="relative ml-2 sm:ml-4">

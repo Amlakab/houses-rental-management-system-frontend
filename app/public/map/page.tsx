@@ -68,7 +68,9 @@ export default function MapViewPage() {
 
   const [filters, setFilters] = useState({
     search: '',
+    transactionType: '',
     propertyType: '',
+    isVerified: '',
     minPrice: 0,
     maxPrice: 50000000,
     minBedrooms: 0,
@@ -125,7 +127,9 @@ export default function MapViewPage() {
   const resetFilters = () => {
     setFilters({
       search: '',
+      transactionType: '',
       propertyType: '',
+      isVerified: '',
       minPrice: 0,
       maxPrice: 50000000,
       minBedrooms: 0,

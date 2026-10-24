@@ -83,10 +83,10 @@ const AdminDashboardPage = () => {
 
   // Chart data
   const propertyTypeData = {
-    labels: houseStats?.propertyTypeStats?.map(s => s._id) || [],
+    labels: houseStats?.propertyTypeStats?.map((s: any) => s._id) || [],
     datasets: [{
       label: 'Number of Properties',
-      data: houseStats?.propertyTypeStats?.map(s => s.count) || [],
+      data: houseStats?.propertyTypeStats?.map((s: any) => s.count) || [],
       backgroundColor: theme === 'dark' 
         ? ['#00ffff', '#00b3b3', '#008080', '#00ffff80', '#00b3b380']
         : ['#007bff', '#0056b3', '#004080', '#007bff80', '#0056b380'],
@@ -110,10 +110,10 @@ const AdminDashboardPage = () => {
   };
 
   const topViewedData = {
-    labels: houseStats?.topViewedHouses?.map(h => h.title.substring(0, 20)) || [],
+    labels: houseStats?.topViewedHouses?.map((h: any) => h.title.substring(0, 20)) || [],
     datasets: [{
       label: 'Views',
-      data: houseStats?.topViewedHouses?.map(h => h.views) || [],
+      data: houseStats?.topViewedHouses?.map((h: any) => h.views) || [],
       backgroundColor: theme === 'dark' ? '#00ffff' : '#007bff',
       borderRadius: 8
     }]
@@ -260,7 +260,7 @@ const AdminDashboardPage = () => {
                   Recent Orders
                 </Typography>
                 <List sx={{ maxHeight: 300, overflow: 'auto' }}>
-                  {orderStats?.recentOrders?.slice(0, 5).map((order) => (
+                  {orderStats?.recentOrders?.slice(0, 5).map((order: any) => (
                     <ListItem key={order._id} divider>
                       <ListItemAvatar>
                         <Avatar sx={{ bgcolor: theme === 'dark' ? '#00ffff20' : '#007bff10', color: theme === 'dark' ? '#00ffff' : '#007bff' }}>
@@ -344,7 +344,7 @@ const AdminDashboardPage = () => {
                   Order Types
                 </Typography>
                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                  {orderStats?.ordersByType?.map(type => (
+                  {orderStats?.ordersByType?.map((type: any) => (
                     <Box key={type._id}>
                       <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                         <Typography variant="body2">{type._id}</Typography>
