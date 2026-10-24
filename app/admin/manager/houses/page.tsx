@@ -32,9 +32,6 @@ const propertyTypeLabels: Record<PropertyType, string> = {
   [PropertyType.CONDO]: 'Condo',
   [PropertyType.HOUSE]: 'House',
   [PropertyType.LAND]: 'Land',
-  [PropertyType.OFFICE]: 'Office',
-  [PropertyType.SHOP]: 'Shop',
-  [PropertyType.WAREHOUSE]: 'Warehouse'
 };
 
 const approvalStatusColors: Record<string, 'success' | 'warning' | 'error' | 'info' | 'default'> = {
