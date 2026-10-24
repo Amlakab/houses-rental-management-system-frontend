@@ -21,6 +21,7 @@ class WebSocketService {
   }
 
   connect() {
+    if (typeof window === 'undefined') return;
     try {
       // Clear any existing connection timeout
       if (this.connectionTimeout) {

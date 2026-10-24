@@ -32,6 +32,14 @@ export default function NotificationCenter() {
   const [loading, setLoading] = useState(false);
 
   const fetchNotifications = async () => {
+    if (typeof window === 'undefined') return;
+    const token = localStorage.getItem('token');
+    if (!token) {
+      setNotifications([]);
+      setUnreadCount(0);
+      return;
+    }
+
     try {
       setLoading(true);
       const res = await api.get('/workflows/notifications');
@@ -47,6 +55,10 @@ export default function NotificationCenter() {
   };
 
   useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const token = localStorage.getItem('token');
+    if (!token) return;
+
     fetchNotifications();
     const interval = setInterval(fetchNotifications, 30000);
     return () => clearInterval(interval);
@@ -139,7 +151,7 @@ export default function NotificationCenter() {
             <MenuItem
               key={item._id}
               component={Link}
-              href={item.link || '/customer'}
+              href={item.link || '/admin/customer'}
               onClick={handleClose}
               sx={{
                 borderRadius: 1.5,

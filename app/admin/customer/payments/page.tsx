@@ -637,7 +637,7 @@ const CustomerPaymentsPage = () => {
                   <Button
                     variant="contained"
                     startIcon={<PaymentIcon />}
-                    href={`/customer/orders`}
+                    href={`/admin/customer/orders`}
                   >
                     View Related Order
                   </Button>

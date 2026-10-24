@@ -5,7 +5,7 @@ import { useAuth } from '@/lib/auth';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import {
-  Users, UserPlus, UserCheck, UserX,
+  Users, UserPlus, UserCheck, UserX, User,
   TrendingUp, ArrowRight,
   Settings, Briefcase, PieChart,
   FileText, BarChart, Shield,
@@ -179,9 +179,10 @@ const ROLE_CONTENT: Record<Role, RoleContent> = {
       { label: 'Saved Listings',   value: 8,     change: '+3', icon: <Home size={20} />,          color: 'purple' },
     ],
     quickActions: [
-      { icon: <Home size={20} />,           label: 'Browse Houses',  href: '/public/houses' },
-      { icon: <ClipboardList size={20} />,  label: 'My Orders',      href: '/admin/customer/orders' },
-      { icon: <DollarSign size={20} />,     label: 'My Payments',    href: '/admin/customer/payments' },
+      { icon: <Home size={20} />,           label: 'Browse Houses',    href: '/public/houses' },
+      { icon: <User size={20} />,           label: 'Customer Portal',  href: '/admin/customer' },
+      { icon: <ClipboardList size={20} />,  label: 'My Orders',        href: '/admin/customer/orders' },
+      { icon: <DollarSign size={20} />,     label: 'My Payments',      href: '/admin/customer/payments' },
       ...COMMON_ACTIONS,
     ],
     announcements: COMMON_ANNOUNCEMENTS,
@@ -196,8 +197,9 @@ const ROLE_CONTENT: Record<Role, RoleContent> = {
       { label: 'Payments',         value: 0,     change: '0',  icon: <DollarSign size={20} />,   color: 'purple' },
     ],
     quickActions: [
-      { icon: <Home size={20} />,          label: 'Browse Houses', href: '/public/houses' },
-      { icon: <ClipboardList size={20} />, label: 'My Orders',     href: '/admin/customer/orders' },
+      { icon: <Home size={20} />,          label: 'Browse Houses',    href: '/public/houses' },
+      { icon: <User size={20} />,          label: 'Customer Portal',  href: '/admin/customer' },
+      { icon: <ClipboardList size={20} />, label: 'My Orders',        href: '/admin/customer/orders' },
       ...COMMON_ACTIONS,
     ],
     announcements: COMMON_ANNOUNCEMENTS,
