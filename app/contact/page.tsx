@@ -116,7 +116,7 @@ export default function ContactPage() {
         theme={theme === 'dark' ? 'dark' : 'light'}
       />
       
-      <div className="pt-16">
+      <div className="pt-16 sm:pt-20">
         <section className={`py-12 sm:py-16 px-4 ${
           theme === 'dark' ? 'bg-transparent' : 'bg-background'
         }`}>

@@ -413,7 +413,7 @@ const formatPrice = (price: number): string => {
     }`}>
       <Navbar />
       
-      <div className="pt-16">
+      <div className="pt-16 sm:pt-20">
         {/* Hero Section */}
         <section className={`py-8 px-4 ${
           theme === 'dark' ? 'bg-transparent' : 'bg-transparent'

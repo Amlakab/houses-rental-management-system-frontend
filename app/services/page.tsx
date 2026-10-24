@@ -273,7 +273,7 @@ const ServicePage = () => {
     }`}>
       <Navbar />
       
-      <div className="pt-16">
+      <div className="pt-16 sm:pt-20">
         {/* Hero Section */}
         <section className="relative py-16 sm:py-20 overflow-hidden">
           <div className="absolute inset-0 z-0">

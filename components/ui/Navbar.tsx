@@ -135,13 +135,13 @@ const Navbar: React.FC = () => {
   if (!mounted) return null;
 
   return (
-    <nav className="bg-surface dark:bg-surface border-b border-border dark:border-border shadow-md fixed w-full z-50 transition-colors duration-300">
+    <nav className="fixed top-0 left-0 right-0 w-full z-50 bg-surface dark:bg-surface border-b border-border dark:border-border shadow-md transition-colors duration-300">
       <div className="container mx-auto px-3 sm:px-4">
-        <div className="flex justify-between items-center h-16 sm:h-20 md:h-24">
+        <div className="flex justify-between items-center h-16 sm:h-20">
           
           {/* Logo + Brand Name */}
           <Link href="/" className="flex items-center space-x-2 sm:space-x-3 group">
-            <div className="relative w-10 h-10 sm:w-14 sm:h-14 md:w-20 md:h-20 transition-transform duration-300 group-hover:scale-105">
+            <div className="relative w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 transition-transform duration-300 group-hover:scale-105">
               <Image
                 src="/images/hrms-logo.jpg"
                 alt="Zelalem Cafterya Logo"

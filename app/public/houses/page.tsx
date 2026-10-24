@@ -233,7 +233,7 @@ export default function PublicHousesPage() {
   };
 
   return (
-    <Box sx={{ minHeight: '100vh', bgcolor: 'background.default', pt: { xs: 8, md: 10 }, pb: 8 }}>
+    <Box sx={{ minHeight: '100vh', bgcolor: 'background.default', pt: { xs: '64px', sm: '80px' }, pb: 8 }}>
       <Navbar />
 
       <Box sx={{ maxWidth: 1320, mx: 'auto', px: { xs: 2, sm: 3 } }}>

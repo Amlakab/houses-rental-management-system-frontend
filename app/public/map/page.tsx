@@ -313,11 +313,11 @@ export default function MapViewPage() {
       }`}
     >
       <Navbar />
-      <Toolbar />
-      <Toolbar />
-
-      {/* Header */}
-      <Box sx={{ px: { xs: 2, md: 4 }, pt: 2, pb: 2 }}>
+      
+      {/* Page Content below Navbar */}
+      <div className="pt-16 sm:pt-20">
+        {/* Header */}
+        <Box sx={{ px: { xs: 2, md: 4 }, pt: 2, pb: 2 }}>
         <Typography
           variant="h4"
           sx={{
@@ -741,6 +741,7 @@ export default function MapViewPage() {
           {error}
         </Alert>
       </Snackbar>
+      </div>
     </div>
   );
 }

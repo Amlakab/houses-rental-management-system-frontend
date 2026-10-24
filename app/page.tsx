@@ -345,7 +345,7 @@ useEffect(() => {
         theme={theme === 'dark' ? 'dark' : 'light'}
       />
       
-      <div className="pt-16">
+      <div className="pt-16 sm:pt-20">
         {/* Hero Section with Slideshow */}
         <section className="relative h-screen overflow-hidden">
           <AnimatePresence mode="wait">

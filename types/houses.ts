@@ -467,3 +467,18 @@ export interface OrderStats {
   ordersByType: Array<{ _id: string; count: number }>;
   recentOrders: Order[];
 }
+
+export interface ListingReport {
+  _id: string;
+  houseId: House | any;
+  reporterId?: any;
+  reporterEmail: string;
+  reason: string;
+  description: string;
+  evidenceUrl?: string;
+  status: 'PENDING' | 'UNDER_INVESTIGATION' | 'RESOLVED' | 'DISMISSED';
+  adminNotes?: string;
+  reviewedBy?: any;
+  reviewedAt?: string;
+  createdAt: string;
+}

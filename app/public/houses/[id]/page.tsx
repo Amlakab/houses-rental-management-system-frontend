@@ -227,7 +227,7 @@ export default function PublicHouseDetailPage() {
   const isShortStay = house.transactionType === 'SHORT_STAY';
 
   return (
-    <Box sx={{ minHeight: '100vh', bgcolor: 'background.default', pt: { xs: 8, md: 10 }, pb: 10 }}>
+    <Box sx={{ minHeight: '100vh', bgcolor: 'background.default', pt: { xs: '64px', sm: '80px' }, pb: 10 }}>
       <Navbar />
 
       <Box sx={{ maxWidth: 1320, mx: 'auto', px: { xs: 2, sm: 3 } }}>
