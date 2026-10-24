@@ -18,22 +18,17 @@ import {
   Visibility, ShoppingCart, CheckCircle,
   Cancel, Apartment, Villa, Landscape,
   Pool, FitnessCenter, Security, LocalParking, Wifi,
-  Map as MapIcon, Image as ImageIcon,
-  Business
+  Map as MapIcon, Image as ImageIcon
 } from '@mui/icons-material';
 import api from '@/app/utils/api';
 import { House, PropertyType, PaginationData } from '@/types/houses';
-import { Store, Warehouse } from 'lucide-react';
 
 const propertyTypeIcons: Record<PropertyType, React.ReactElement> = {
   [PropertyType.APARTMENT]: <Apartment />,
   [PropertyType.VILLA]: <Villa />,
   [PropertyType.CONDO]: <Villa />,
   [PropertyType.HOUSE]: <Home />,
-  [PropertyType.LAND]: <Landscape />,
-  [PropertyType.OFFICE]: <Business />,
-  [PropertyType.SHOP]: <Store />,
-  [PropertyType.WAREHOUSE]: <Warehouse />
+  [PropertyType.LAND]: <Landscape />
 };
 
 const propertyTypeLabels: Record<PropertyType, string> = {
@@ -41,10 +36,7 @@ const propertyTypeLabels: Record<PropertyType, string> = {
   [PropertyType.VILLA]: 'Villa',
   [PropertyType.CONDO]: 'Condo',
   [PropertyType.HOUSE]: 'House',
-  [PropertyType.LAND]: 'Land',
-  [PropertyType.OFFICE]: 'Office',
-  [PropertyType.SHOP]: 'Shop',
-  [PropertyType.WAREHOUSE]: 'Warehouse'
+  [PropertyType.LAND]: 'Land'
 };
 
 const amenityIcons: Record<string, React.ReactElement> = {
@@ -72,7 +64,6 @@ const PublicHousesPage = () => {
   const [filters, setFilters] = useState({
     search: '',
     propertyType: '',
-    transactionType: '', // ADDED
     minPrice: 0,
     maxPrice: 1000000,
     minBedrooms: 0,
@@ -88,6 +79,7 @@ const PublicHousesPage = () => {
   const [amenitiesList, setAmenitiesList] = useState<string[]>([]);
   const [imageErrors, setImageErrors] = useState<Record<string, boolean>>({});
 
+  // Use the same image URL pattern as detail page but with API endpoint
   const getImageUrl = (houseId: string): string => {
     const serverUrl = process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:3001/api';
     return `${serverUrl}/public/houses/${houseId}/image`;
@@ -171,7 +163,6 @@ const PublicHousesPage = () => {
     setFilters({
       search: '',
       propertyType: '',
-      transactionType: '',
       minPrice: priceRange[0],
       maxPrice: priceRange[1],
       minBedrooms: 0,
@@ -206,20 +197,6 @@ const PublicHousesPage = () => {
       
       <Divider sx={{ mb: 2 }} />
       
-      <FormControl fullWidth size="small" sx={{ mb: 2 }}>
-        <InputLabel>Purpose</InputLabel>
-        <Select
-          value={filters.transactionType}
-          label="Purpose"
-          onChange={(e) => handleFilterChange('transactionType', e.target.value)}
-        >
-          <MenuItem value="">All</MenuItem>
-          <MenuItem value="SALE">For Sale</MenuItem>
-          <MenuItem value="RENT">For Rent</MenuItem>
-          <MenuItem value="SHORT_STAY">Short Stay</MenuItem>
-        </Select>
-      </FormControl>
-
       <FormControl fullWidth size="small" sx={{ mb: 2 }}>
         <InputLabel>Property Type</InputLabel>
         <Select
@@ -326,6 +303,23 @@ const PublicHousesPage = () => {
             <Typography variant="body1" color={theme === 'dark' ? '#a8b2d1' : '#666666'} sx={{ maxWidth: 600, mx: 'auto' }}>
               Discover the perfect property from our curated collection of homes, apartments, and villas
             </Typography>
+            
+            {/* <Button
+              variant="outlined"
+              startIcon={<MapIcon />}
+              onClick={() => window.location.href = '/public/map'}
+              sx={{
+                mt: 2,
+                borderColor: theme === 'dark' ? '#00ffff' : '#007bff',
+                color: theme === 'dark' ? '#00ffff' : '#007bff',
+                '&:hover': {
+                  borderColor: theme === 'dark' ? '#00b3b3' : '#0056b3',
+                  backgroundColor: theme === 'dark' ? '#00ffff20' : '#007bff10'
+                }
+              }}
+            >
+              View on Map
+            </Button> */}
           </Box>
         </motion.div>
         
@@ -346,21 +340,6 @@ const PublicHousesPage = () => {
                   InputProps={{ startAdornment: <Search sx={{ mr: 1 }} /> }}
                   sx={{ flex: 1 }}
                 />
-
-                <FormControl sx={{ minWidth: 120 }}>
-                  <InputLabel>Purpose</InputLabel>
-                  <Select
-                    value={filters.transactionType}
-                    label="Purpose"
-                    onChange={(e) => handleFilterChange('transactionType', e.target.value)}
-                  >
-                    <MenuItem value="">All</MenuItem>
-                    <MenuItem value="SALE">For Sale</MenuItem>
-                    <MenuItem value="RENT">For Rent</MenuItem>
-                    <MenuItem value="SHORT_STAY">Short Stay</MenuItem>
-                  </Select>
-                </FormControl>
-
                 <FormControl sx={{ minWidth: 150 }}>
                   <Select
                     value={filters.sortBy}
@@ -479,15 +458,6 @@ const PublicHousesPage = () => {
                               </Typography>
                             </Box>
                           )}
-                          
-                          {/* ADDED: Transaction Type Badge */}
-                          <Chip
-                            label={house.transactionType === 'RENT' ? 'For Rent' : house.transactionType === 'SHORT_STAY' ? 'Short Stay' : 'For Sale'}
-                            size="small"
-                            color={house.transactionType === 'RENT' ? 'success' : house.transactionType === 'SHORT_STAY' ? 'warning' : 'primary'}
-                            sx={{ position: 'absolute', top: 12, left: 12, height: 24, zIndex: 1, fontWeight: 'bold' }}
-                          />
-
                           <Chip
                             label={propertyTypeLabels[house.propertyType]}
                             size="small"
@@ -517,19 +487,6 @@ const PublicHousesPage = () => {
                           <Typography variant="h6" sx={{ fontWeight: 'bold', color: theme === 'dark' ? '#ccd6f6' : '#333333', mb: 1, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
                             {house.title}
                           </Typography>
-
-                          {/* ADDED: Tags */}
-                          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, mb: 1 }}>
-                            {house.tags?.slice(0, 3).map((tag: string) => (
-                              <Chip 
-                                key={tag} 
-                                label={`#${tag}`} 
-                                size="small" 
-                                variant="outlined" 
-                                sx={{ height: 20, fontSize: '0.7rem', color: theme === 'dark' ? '#00ffff' : '#007bff', borderColor: theme === 'dark' ? '#00ffff50' : '#007bff50' }}
-                              />
-                            ))}
-                          </Box>
                           
                           <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mb: 1 }}>
                             <LocationOn sx={{ fontSize: 14, color: theme === 'dark' ? '#a8b2d1' : '#666666' }} />

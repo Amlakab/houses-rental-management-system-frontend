@@ -38,9 +38,6 @@ const propertyTypeIcons: Record<PropertyType, React.ReactElement> = {
   [PropertyType.CONDO]: <Villa />,
   [PropertyType.HOUSE]: <Home />,
   [PropertyType.LAND]: <Landscape />,
-  [PropertyType.OFFICE]: <Business />,
-  [PropertyType.SHOP]: <Store />,
-  [PropertyType.WAREHOUSE]: <Warehouse />
 };
 
 const propertyTypeLabels: Record<PropertyType, string> = {
@@ -49,9 +46,6 @@ const propertyTypeLabels: Record<PropertyType, string> = {
   [PropertyType.CONDO]: 'Condo',
   [PropertyType.HOUSE]: 'House',
   [PropertyType.LAND]: 'Land',
-  [PropertyType.OFFICE]: 'Office',
-  [PropertyType.SHOP]: 'Shop',
-  [PropertyType.WAREHOUSE]: 'Warehouse'
 };
 
 const amenityIcons: Record<string, React.ReactElement> = {

@@ -1,18 +1,9 @@
-export enum TransactionType {
-  SALE = "SALE",
-  RENT = "RENT",
-  SHORT_STAY = "SHORT_STAY"
-}
-
 export enum PropertyType {
   APARTMENT = "APARTMENT",
   VILLA = "VILLA",
   CONDO = "CONDO",
   HOUSE = "HOUSE",
-  LAND = "LAND",
-  OFFICE = "OFFICE",
-  SHOP = "SHOP",
-  WAREHOUSE = "WAREHOUSE"
+  LAND = "LAND"
 }
 
 export enum HouseStatus {
@@ -97,7 +88,8 @@ export interface Pricing {
   maintenanceFee: number;
   taxAmount: number;
   securityDeposit: number;
-  quantity: number;
+  quantity: number;  // ADD THIS LINE
+
 }
 
 export interface VirtualTour {
@@ -111,10 +103,6 @@ export interface House {
   title: string;
   description: string;
   propertyType: PropertyType;
-  transactionType: TransactionType; // ADDED
-  tags: string[];                   // ADDED
-  likes: number;                    // ADDED
-  favoritesCount: number;           // ADDED
   status: HouseStatus;
   approvalStatus: ApprovalStatus;
   location: Location;
@@ -146,7 +134,7 @@ export interface OrderDetails {
   numberOfPeople?: number;
   specialRequests?: string;
   preferredContactMethod: string[];
-  quantity: number;
+  quantity: number; // ADD THIS LINE
 }
 
 export interface Order {
