@@ -482,3 +482,21 @@ export interface ListingReport {
   reviewedAt?: string;
   createdAt: string;
 }
+
+export interface RentalApplication {
+  _id: string;
+  houseId: House | any;
+  userId?: any;
+  fullName: string;
+  email: string;
+  phone: string;
+  occupation: string;
+  monthlyIncome: number;
+  numberOfOccupants: number;
+  preferredMoveInDate: string;
+  message?: string;
+  status: 'PENDING' | 'APPROVED' | 'REJECTED' | 'CANCELLED';
+  adminNotes?: string;
+  created_at: string;
+  updated_at: string;
+}

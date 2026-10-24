@@ -15,10 +15,10 @@ import {
   Build, Receipt, CheckCircle, Warning, HourglassEmpty,
   Add, Close, Print, Visibility, LocationOn, Person, Phone, Email,
   ShoppingCart, Payment as PaymentIcon, Refresh, ArrowForward,
-  Home, CheckCircleOutline, AccessTime, InfoOutlined
+  Home, CheckCircleOutline, AccessTime, InfoOutlined, Description
 } from '@mui/icons-material';
 import api from '@/app/utils/api';
-import { Appointment, LeaseAgreement, PurchaseOffer, MaintenanceRequest, SavedSearch, House } from '@/types/houses';
+import { Appointment, LeaseAgreement, PurchaseOffer, MaintenanceRequest, SavedSearch, House, RentalApplication } from '@/types/houses';
 import LeaseAgreementModal from '@/components/LeaseAgreementModal';
 import Link from 'next/link';
 
@@ -30,6 +30,7 @@ export default function AdminCustomerPage() {
 
   // Data states
   const [appointments, setAppointments] = useState<Appointment[]>([]);
+  const [applications, setApplications] = useState<RentalApplication[]>([]);
   const [leases, setLeases] = useState<LeaseAgreement[]>([]);
   const [offers, setOffers] = useState<PurchaseOffer[]>([]);
   const [maintenanceTickets, setMaintenanceTickets] = useState<MaintenanceRequest[]>([]);
@@ -57,12 +58,13 @@ export default function AdminCustomerPage() {
       if (isManualRefresh) setRefreshing(true);
       else setLoading(true);
 
-      const [appRes, leaseRes, offerRes, maintRes, searchRes] = await Promise.allSettled([
+      const [appRes, leaseRes, offerRes, maintRes, searchRes, appListRes] = await Promise.allSettled([
         api.get('/workflows/appointments'),
         api.get('/workflows/leases'),
         api.get('/workflows/offers'),
         api.get('/workflows/maintenance'),
-        api.get('/properties/saved-searches')
+        api.get('/properties/saved-searches'),
+        api.get('/houses/applications')
       ]);
 
       if (appRes.status === 'fulfilled') setAppointments(appRes.value.data?.data || []);
@@ -70,6 +72,7 @@ export default function AdminCustomerPage() {
       if (offerRes.status === 'fulfilled') setOffers(offerRes.value.data?.data || []);
       if (maintRes.status === 'fulfilled') setMaintenanceTickets(maintRes.value.data?.data || []);
       if (searchRes.status === 'fulfilled') setSavedSearches(searchRes.value.data?.data || []);
+      if (appListRes.status === 'fulfilled') setApplications(appListRes.value.data?.data?.applications || []);
 
       // Fetch sample favorited properties
       try {
@@ -137,9 +140,10 @@ export default function AdminCustomerPage() {
 
   const statCards = [
     { title: 'My Viewings', count: appointments.length, icon: <CalendarMonth />, color: '#06b6d4', tabIndex: 0 },
-    { title: 'Active Leases', count: leases.length, icon: <Article />, color: '#10b981', tabIndex: 1 },
-    { title: 'Purchase Offers', count: offers.length, icon: <LocalOffer />, color: '#f59e0b', tabIndex: 2 },
-    { title: 'Repair Tickets', count: maintenanceTickets.length, icon: <Build />, color: '#ef4444', tabIndex: 3 },
+    { title: 'Rental Apps', count: applications.length, icon: <Description />, color: '#8b5cf6', tabIndex: 1 },
+    { title: 'Active Leases', count: leases.length, icon: <Article />, color: '#10b981', tabIndex: 2 },
+    { title: 'Purchase Offers', count: offers.length, icon: <LocalOffer />, color: '#f59e0b', tabIndex: 3 },
+    { title: 'Repair Tickets', count: maintenanceTickets.length, icon: <Build />, color: '#ef4444', tabIndex: 4 },
   ];
 
   return (
@@ -315,6 +319,7 @@ export default function AdminCustomerPage() {
           }}
         >
           <Tab icon={<CalendarMonth />} iconPosition="start" label={`My Viewings (${appointments.length})`} />
+          <Tab icon={<Description />} iconPosition="start" label={`Rental Applications (${applications.length})`} />
           <Tab icon={<Article />} iconPosition="start" label={`Active Leases (${leases.length})`} />
           <Tab icon={<LocalOffer />} iconPosition="start" label={`Purchase Offers (${offers.length})`} />
           <Tab icon={<Build />} iconPosition="start" label={`Maintenance (${maintenanceTickets.length})`} />
@@ -482,8 +487,156 @@ export default function AdminCustomerPage() {
             </motion.div>
           )}
 
-          {/* ════ TAB 1: ACTIVE LEASES & RECEIPTS ════ */}
+          {/* ════ TAB 1: RENTAL LEASE APPLICATIONS ════ */}
           {activeTab === 1 && (
+            <motion.div key="tab-apps" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={{ duration: 0.3 }}>
+              <Typography variant="h6" sx={{ fontWeight: 700, color: isDark ? '#ccd6f6' : '#0f172a', mb: 3 }}>
+                My Rental Lease Applications
+              </Typography>
+
+              {applications.length === 0 ? (
+                <Paper
+                  elevation={0}
+                  sx={{
+                    p: 6,
+                    textAlign: 'center',
+                    borderRadius: 3,
+                    border: '1px dashed',
+                    borderColor: isDark ? 'rgba(0, 255, 255, 0.2)' : '#cbd5e1',
+                    bgcolor: isDark ? '#0f172a40' : '#f8fafc'
+                  }}
+                >
+                  <Description sx={{ fontSize: 56, color: '#8b5cf6', mb: 1.5, opacity: 0.8 }} />
+                  <Typography variant="h6" sx={{ fontWeight: 700, color: isDark ? '#ccd6f6' : '#0f172a' }}>
+                    No rental applications submitted
+                  </Typography>
+                  <Typography variant="body2" sx={{ color: isDark ? '#8892b0' : '#64748b', mb: 3, maxWidth: 450, mx: 'auto' }}>
+                    Browse our rental properties and click &quot;Apply for Rental Lease&quot; on any house to submit your tenancy application.
+                  </Typography>
+                  <Button
+                    component={Link}
+                    href="/public/houses"
+                    variant="contained"
+                    sx={{
+                      bgcolor: isDark ? '#00ffff' : '#0284c7',
+                      color: isDark ? '#0a192f' : '#ffffff',
+                      borderRadius: 2,
+                      fontWeight: 700,
+                      textTransform: 'none',
+                      '&:hover': { bgcolor: isDark ? '#38bdf8' : '#0369a1' }
+                    }}
+                  >
+                    Browse Rental Houses
+                  </Button>
+                </Paper>
+              ) : (
+                <Grid container spacing={3}>
+                  {applications.map((app) => (
+                    <Grid item xs={12} md={6} key={app._id}>
+                      <Card
+                        sx={{
+                          borderRadius: 3,
+                          bgcolor: isDark ? '#0f172a80' : '#ffffff',
+                          border: isDark ? '1px solid rgba(0, 255, 255, 0.15)' : '1px solid #e2e8f0',
+                          transition: 'all 0.2s',
+                          '&:hover': { borderColor: isDark ? '#00ffff' : '#0284c7' }
+                        }}
+                      >
+                        <CardContent>
+                          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
+                            <Box>
+                              <Typography variant="h6" sx={{ fontWeight: 700, color: isDark ? '#ccd6f6' : '#0f172a' }}>
+                                {typeof app.houseId === 'object' ? app.houseId.title : 'Rental Property'}
+                              </Typography>
+                              <Typography variant="caption" sx={{ color: isDark ? '#8892b0' : '#64748b' }}>
+                                Applied on: {new Date(app.created_at).toLocaleDateString()}
+                              </Typography>
+                            </Box>
+                            <Chip
+                              size="small"
+                              label={
+                                app.status === 'APPROVED' ? 'Approved! Lease Ready' :
+                                app.status === 'PENDING' ? 'Under Review' :
+                                app.status === 'REJECTED' ? 'Declined' : app.status
+                              }
+                              color={
+                                app.status === 'APPROVED' ? 'success' :
+                                app.status === 'PENDING' ? 'warning' : 'error'
+                              }
+                              sx={{ fontWeight: 700 }}
+                            />
+                          </Box>
+
+                          <Divider sx={{ my: 1.5, borderColor: isDark ? 'rgba(255, 255, 255, 0.08)' : '#e2e8f0' }} />
+
+                          <Grid container spacing={1.5} sx={{ mb: 2 }}>
+                            <Grid item xs={6}>
+                              <Typography variant="caption" sx={{ color: isDark ? '#8892b0' : '#64748b' }}>Move-In Date</Typography>
+                              <Typography variant="body2" sx={{ fontWeight: 600, color: isDark ? '#ccd6f6' : '#0f172a' }}>
+                                {new Date(app.preferredMoveInDate).toLocaleDateString()}
+                              </Typography>
+                            </Grid>
+                            <Grid item xs={6}>
+                              <Typography variant="caption" sx={{ color: isDark ? '#8892b0' : '#64748b' }}>Stated Monthly Income</Typography>
+                              <Typography variant="body2" sx={{ fontWeight: 600, color: '#8b5cf6' }}>
+                                ETB {app.monthlyIncome?.toLocaleString()}
+                              </Typography>
+                            </Grid>
+                            <Grid item xs={6}>
+                              <Typography variant="caption" sx={{ color: isDark ? '#8892b0' : '#64748b' }}>Occupants</Typography>
+                              <Typography variant="body2" sx={{ fontWeight: 600, color: isDark ? '#ccd6f6' : '#0f172a' }}>
+                                {app.numberOfOccupants} Person(s)
+                              </Typography>
+                            </Grid>
+                            <Grid item xs={6}>
+                              <Typography variant="caption" sx={{ color: isDark ? '#8892b0' : '#64748b' }}>Occupation</Typography>
+                              <Typography variant="body2" sx={{ fontWeight: 600, color: isDark ? '#ccd6f6' : '#0f172a' }}>
+                                {app.occupation}
+                              </Typography>
+                            </Grid>
+                          </Grid>
+
+                          {app.adminNotes && (
+                            <Box sx={{ p: 1.5, borderRadius: 2, bgcolor: isDark ? 'rgba(16, 185, 129, 0.1)' : '#f0fdf4', mb: 2, borderLeft: '3px solid #10b981' }}>
+                              <Typography variant="caption" sx={{ fontWeight: 700, color: '#10b981' }}>Manager Feedback:</Typography>
+                              <Typography variant="body2" sx={{ color: isDark ? '#ccd6f6' : '#334155' }}>{app.adminNotes}</Typography>
+                            </Box>
+                          )}
+
+                          {app.status === 'APPROVED' ? (
+                            <Button
+                              variant="contained"
+                              color="success"
+                              fullWidth
+                              onClick={() => setActiveTab(2)}
+                              startIcon={<Article />}
+                              sx={{ textTransform: 'none', fontWeight: 700, borderRadius: 2 }}
+                            >
+                              Review & Sign Lease Contract
+                            </Button>
+                          ) : typeof app.houseId === 'object' ? (
+                            <Button
+                              component={Link}
+                              href={`/public/houses/${app.houseId._id}`}
+                              variant="outlined"
+                              size="small"
+                              fullWidth
+                              sx={{ textTransform: 'none', borderRadius: 2 }}
+                            >
+                              View Property Details
+                            </Button>
+                          ) : null}
+                        </CardContent>
+                      </Card>
+                    </Grid>
+                  ))}
+                </Grid>
+              )}
+            </motion.div>
+          )}
+
+          {/* ════ TAB 2: ACTIVE LEASES & RECEIPTS ════ */}
+          {activeTab === 2 && (
             <motion.div key="tab-1" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={{ duration: 0.3 }}>
               <Typography variant="h6" sx={{ fontWeight: 700, color: isDark ? '#ccd6f6' : '#0f172a', mb: 3 }}>
                 My Active Tenancy Agreements & Rent Payment Records
@@ -595,8 +748,8 @@ export default function AdminCustomerPage() {
             </motion.div>
           )}
 
-          {/* ════ TAB 2: PURCHASE OFFERS & NEGOTIATIONS ════ */}
-          {activeTab === 2 && (
+          {/* ════ TAB 3: PURCHASE OFFERS & NEGOTIATIONS ════ */}
+          {activeTab === 3 && (
             <motion.div key="tab-2" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={{ duration: 0.3 }}>
               <Typography variant="h6" sx={{ fontWeight: 700, color: isDark ? '#ccd6f6' : '#0f172a', mb: 3 }}>
                 My Outright Purchase Offers & Negotiations
@@ -733,8 +886,8 @@ export default function AdminCustomerPage() {
             </motion.div>
           )}
 
-          {/* ════ TAB 3: MAINTENANCE TICKETS ════ */}
-          {activeTab === 3 && (
+          {/* ════ TAB 4: MAINTENANCE TICKETS ════ */}
+          {activeTab === 4 && (
             <motion.div key="tab-3" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={{ duration: 0.3 }}>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
                 <Typography variant="h6" sx={{ fontWeight: 700, color: isDark ? '#ccd6f6' : '#0f172a' }}>
@@ -844,8 +997,8 @@ export default function AdminCustomerPage() {
             </motion.div>
           )}
 
-          {/* ════ TAB 4: SAVED SEARCHES ════ */}
-          {activeTab === 4 && (
+          {/* ════ TAB 5: SAVED SEARCHES ════ */}
+          {activeTab === 5 && (
             <motion.div key="tab-4" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={{ duration: 0.3 }}>
               <Typography variant="h6" sx={{ fontWeight: 700, color: isDark ? '#ccd6f6' : '#0f172a', mb: 3 }}>
                 My Saved Searches & Property Alerts
@@ -935,8 +1088,8 @@ export default function AdminCustomerPage() {
             </motion.div>
           )}
 
-          {/* ════ TAB 5: FAVORITES / WISHLIST ════ */}
-          {activeTab === 5 && (
+          {/* ════ TAB 6: FAVORITES / WISHLIST ════ */}
+          {activeTab === 6 && (
             <motion.div key="tab-5" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={{ duration: 0.3 }}>
               <Typography variant="h6" sx={{ fontWeight: 700, color: isDark ? '#ccd6f6' : '#0f172a', mb: 3 }}>
                 Saved & Favorited Properties

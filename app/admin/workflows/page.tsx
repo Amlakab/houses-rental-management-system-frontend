@@ -14,12 +14,13 @@ import { useAuth } from '@/lib/auth';
 import {
   CalendarMonth, Article, LocalOffer, Build, ReportProblem,
   CheckCircle, Cancel, HourglassEmpty, Refresh, Person, Phone, Email,
-  LocationOn, Receipt, Add, Warning, Schedule, AttachMoney, Shield
+  LocationOn, Receipt, Add, Warning, Schedule, AttachMoney, Shield,
+  Description
 } from '@mui/icons-material';
 import api from '@/app/utils/api';
 import {
   Appointment, LeaseAgreement, PurchaseOffer, MaintenanceRequest,
-  ListingReport, House
+  ListingReport, House, RentalApplication
 } from '@/types/houses';
 import LeaseAgreementModal from '@/components/LeaseAgreementModal';
 import Link from 'next/link';
@@ -37,6 +38,7 @@ export default function AdminWorkflowManagementPage() {
 
   // Data states
   const [appointments, setAppointments] = useState<Appointment[]>([]);
+  const [applications, setApplications] = useState<RentalApplication[]>([]);
   const [leases, setLeases] = useState<LeaseAgreement[]>([]);
   const [offers, setOffers] = useState<PurchaseOffer[]>([]);
   const [maintenanceTickets, setMaintenanceTickets] = useState<MaintenanceRequest[]>([]);
@@ -45,6 +47,12 @@ export default function AdminWorkflowManagementPage() {
 
   // Modals state
   const [selectedLease, setSelectedLease] = useState<LeaseAgreement | null>(null);
+
+  // Rental Application Review Modal
+  const [selectedApp, setSelectedApp] = useState<RentalApplication | null>(null);
+  const [appReviewModalOpen, setAppReviewModalOpen] = useState(false);
+  const [appReviewStatus, setAppReviewStatus] = useState<'APPROVED' | 'REJECTED'>('APPROVED');
+  const [appAdminNotes, setAppAdminNotes] = useState('');
 
   // Reschedule Appointment Modal
   const [rescheduleModalOpen, setRescheduleModalOpen] = useState(false);
@@ -109,12 +117,13 @@ export default function AdminWorkflowManagementPage() {
       if (isManual) setRefreshing(true);
       else setLoading(true);
 
-      const [appRes, leaseRes, offerRes, maintRes, houseRes] = await Promise.allSettled([
+      const [appRes, leaseRes, offerRes, maintRes, houseRes, rentalAppRes] = await Promise.allSettled([
         api.get('/workflows/appointments'),
         api.get('/workflows/leases'),
         api.get('/workflows/offers'),
         api.get('/workflows/maintenance'),
-        api.get('/houses/my-houses?limit=50')
+        api.get('/houses/my-houses?limit=50'),
+        api.get('/houses/applications')
       ]);
 
       if (appRes.status === 'fulfilled') setAppointments(appRes.value.data?.data || []);
@@ -122,6 +131,7 @@ export default function AdminWorkflowManagementPage() {
       if (offerRes.status === 'fulfilled') setOffers(offerRes.value.data?.data || []);
       if (maintRes.status === 'fulfilled') setMaintenanceTickets(maintRes.value.data?.data || []);
       if (houseRes.status === 'fulfilled') setHouses(houseRes.value.data?.data?.houses || houseRes.value.data?.data || []);
+      if (rentalAppRes.status === 'fulfilled') setApplications(rentalAppRes.value.data?.data?.applications || []);
 
       // If admin, fetch reports
       if (user?.role === 'admin') {
@@ -278,11 +288,32 @@ export default function AdminWorkflowManagementPage() {
     }
   };
 
+  // Review Rental Application Handler
+  const handleUpdateAppStatus = async (status: 'APPROVED' | 'REJECTED') => {
+    if (!selectedApp) return;
+    try {
+      await api.patch(`/houses/applications/${selectedApp._id}`, {
+        status,
+        adminNotes: appAdminNotes
+      });
+      setSnackbar(`Rental application marked as ${status.toLowerCase()}! Draft lease prepared.`);
+      setSnackbarSeverity('success');
+      setAppReviewModalOpen(false);
+      setSelectedApp(null);
+      setAppAdminNotes('');
+      fetchData();
+    } catch (err: any) {
+      setSnackbar(err?.response?.data?.message || 'Failed to update application');
+      setSnackbarSeverity('error');
+    }
+  };
+
   const statMetrics = [
     { title: 'Appointments', count: appointments.filter(a => a.status === 'REQUESTED').length, total: appointments.length, icon: <CalendarMonth />, color: '#06b6d4', tab: 0 },
-    { title: 'Leases', count: leases.filter(l => l.status === 'PENDING_SIGNATURE').length, total: leases.length, icon: <Article />, color: '#10b981', tab: 1 },
-    { title: 'Purchase Offers', count: offers.filter(o => o.status === 'OFFER_SUBMITTED' || o.status === 'UNDER_NEGOTIATION').length, total: offers.length, icon: <LocalOffer />, color: '#f59e0b', tab: 2 },
-    { title: 'Maintenance', count: maintenanceTickets.filter(m => m.status === 'PENDING' || m.status === 'IN_PROGRESS').length, total: maintenanceTickets.length, icon: <Build />, color: '#ef4444', tab: 3 },
+    { title: 'Rental Apps', count: applications.filter(a => a.status === 'PENDING').length, total: applications.length, icon: <Description />, color: '#8b5cf6', tab: 1 },
+    { title: 'Active Leases', count: leases.filter(l => l.status === 'PENDING_SIGNATURE').length, total: leases.length, icon: <Article />, color: '#10b981', tab: 2 },
+    { title: 'Purchase Offers', count: offers.filter(o => o.status === 'OFFER_SUBMITTED' || o.status === 'UNDER_NEGOTIATION').length, total: offers.length, icon: <LocalOffer />, color: '#f59e0b', tab: 3 },
+    { title: 'Maintenance', count: maintenanceTickets.filter(m => m.status === 'PENDING' || m.status === 'IN_PROGRESS').length, total: maintenanceTickets.length, icon: <Build />, color: '#ef4444', tab: 4 },
   ];
 
   return (
@@ -401,6 +432,7 @@ export default function AdminWorkflowManagementPage() {
           }}
         >
           <Tab icon={<CalendarMonth />} iconPosition="start" label={`Viewing Appointments (${appointments.length})`} />
+          <Tab icon={<Description />} iconPosition="start" label={`Rental Applications (${applications.length})`} />
           <Tab icon={<Article />} iconPosition="start" label={`Lease Agreements (${leases.length})`} />
           <Tab icon={<LocalOffer />} iconPosition="start" label={`Purchase Offers (${offers.length})`} />
           <Tab icon={<Build />} iconPosition="start" label={`Maintenance Dispatch (${maintenanceTickets.length})`} />
@@ -539,8 +571,139 @@ export default function AdminWorkflowManagementPage() {
             </motion.div>
           )}
 
-          {/* ════ TAB 1: LEASES ════ */}
+          {/* ════ TAB 1: RENTAL APPLICATIONS ════ */}
           {activeTab === 1 && (
+            <motion.div key="tab-apps" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
+              {applications.length === 0 ? (
+                <Paper elevation={0} sx={{ p: 6, textAlign: 'center', borderRadius: 3, border: '1px dashed', borderColor: isDark ? 'rgba(0, 255, 255, 0.2)' : '#cbd5e1', bgcolor: isDark ? '#0f172a40' : '#f8fafc' }}>
+                  <Description sx={{ fontSize: 48, color: '#8b5cf6', mb: 1, opacity: 0.8 }} />
+                  <Typography variant="h6" sx={{ fontWeight: 700, color: isDark ? '#ccd6f6' : '#0f172a' }}>No rental applications submitted</Typography>
+                  <Typography variant="body2" sx={{ color: isDark ? '#8892b0' : '#64748b' }}>When prospective tenants apply for rental properties from the marketplace, their background, income, and preferred move-in requests appear here.</Typography>
+                </Paper>
+              ) : (
+                <Stack spacing={3}>
+                  {applications.map((app) => (
+                    <Card key={app._id} sx={{ borderRadius: 3, bgcolor: isDark ? '#0f172a80' : '#ffffff', border: isDark ? '1px solid rgba(0, 255, 255, 0.15)' : '1px solid #e2e8f0', p: 1 }}>
+                      <CardContent>
+                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 2, mb: 2 }}>
+                          <Box>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
+                              <Typography variant="h6" sx={{ fontWeight: 800, color: isDark ? '#ccd6f6' : '#0f172a' }}>
+                                {app.fullName}
+                              </Typography>
+                              <Chip
+                                size="small"
+                                label={app.status}
+                                color={app.status === 'APPROVED' ? 'success' : app.status === 'PENDING' ? 'warning' : 'error'}
+                                sx={{ fontWeight: 700 }}
+                              />
+                            </Box>
+                            <Typography variant="body2" sx={{ color: isDark ? '#8892b0' : '#64748b' }}>
+                              Property: {typeof app.houseId === 'object' ? app.houseId.title : 'Rental Listing'}
+                            </Typography>
+                            <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', mt: 0.5 }}>
+                              <Typography variant="caption" sx={{ display: 'flex', alignItems: 'center', gap: 0.5, color: isDark ? '#ccd6f6' : '#334155' }}>
+                                <Phone sx={{ fontSize: 14 }} /> {app.phone}
+                              </Typography>
+                              <Typography variant="caption" sx={{ display: 'flex', alignItems: 'center', gap: 0.5, color: isDark ? '#ccd6f6' : '#334155' }}>
+                                <Email sx={{ fontSize: 14 }} /> {app.email}
+                              </Typography>
+                            </Box>
+                          </Box>
+
+                          <Box sx={{ textAlign: { xs: 'left', sm: 'right' } }}>
+                            <Typography variant="caption" sx={{ color: isDark ? '#8892b0' : '#64748b' }}>Monthly Income Stated</Typography>
+                            <Typography variant="h5" sx={{ fontWeight: 800, color: '#8b5cf6' }}>
+                              ETB {app.monthlyIncome?.toLocaleString()}
+                            </Typography>
+                          </Box>
+                        </Box>
+
+                        <Divider sx={{ my: 2, borderColor: isDark ? 'rgba(255, 255, 255, 0.08)' : '#e2e8f0' }} />
+
+                        <Grid container spacing={2} sx={{ mb: 2 }}>
+                          <Grid item xs={12} sm={3}>
+                            <Typography variant="caption" sx={{ color: isDark ? '#8892b0' : '#64748b' }}>Occupation / Employer</Typography>
+                            <Typography variant="body2" sx={{ fontWeight: 600, color: isDark ? '#ccd6f6' : '#0f172a' }}>
+                              {app.occupation}
+                            </Typography>
+                          </Grid>
+                          <Grid item xs={12} sm={3}>
+                            <Typography variant="caption" sx={{ color: isDark ? '#8892b0' : '#64748b' }}>Occupants</Typography>
+                            <Typography variant="body2" sx={{ fontWeight: 600, color: isDark ? '#ccd6f6' : '#0f172a' }}>
+                              {app.numberOfOccupants} Person(s)
+                            </Typography>
+                          </Grid>
+                          <Grid item xs={12} sm={3}>
+                            <Typography variant="caption" sx={{ color: isDark ? '#8892b0' : '#64748b' }}>Preferred Move-In</Typography>
+                            <Typography variant="body2" sx={{ fontWeight: 600, color: isDark ? '#ccd6f6' : '#0f172a' }}>
+                              {new Date(app.preferredMoveInDate).toLocaleDateString()}
+                            </Typography>
+                          </Grid>
+                          <Grid item xs={12} sm={3}>
+                            <Typography variant="caption" sx={{ color: isDark ? '#8892b0' : '#64748b' }}>Submitted On</Typography>
+                            <Typography variant="body2" sx={{ fontWeight: 600, color: isDark ? '#ccd6f6' : '#0f172a' }}>
+                              {new Date(app.created_at).toLocaleDateString()}
+                            </Typography>
+                          </Grid>
+                        </Grid>
+
+                        {app.message && (
+                          <Box sx={{ p: 1.5, borderRadius: 2, bgcolor: isDark ? '#1e293b' : '#f8fafc', mb: 2, borderLeft: '4px solid #8b5cf6' }}>
+                            <Typography variant="caption" sx={{ fontWeight: 700, color: '#8b5cf6' }}>Applicant Note:</Typography>
+                            <Typography variant="body2" sx={{ color: isDark ? '#ccd6f6' : '#334155' }}>{app.message}</Typography>
+                          </Box>
+                        )}
+
+                        {app.adminNotes && (
+                          <Box sx={{ p: 1.5, borderRadius: 2, bgcolor: isDark ? '#1e293b' : '#f8fafc', mb: 2, borderLeft: '4px solid #10b981' }}>
+                            <Typography variant="caption" sx={{ fontWeight: 700, color: '#10b981' }}>Admin Notes:</Typography>
+                            <Typography variant="body2" sx={{ color: isDark ? '#ccd6f6' : '#334155' }}>{app.adminNotes}</Typography>
+                          </Box>
+                        )}
+
+                        {app.status === 'PENDING' && (
+                          <Box sx={{ display: 'flex', gap: 1.5, flexWrap: 'wrap', mt: 2 }}>
+                            <Button
+                              variant="contained"
+                              color="success"
+                              startIcon={<CheckCircle />}
+                              onClick={() => {
+                                setSelectedApp(app);
+                                setAppReviewStatus('APPROVED');
+                                setAppAdminNotes('');
+                                setAppReviewModalOpen(true);
+                              }}
+                              sx={{ borderRadius: 2, textTransform: 'none', fontWeight: 700 }}
+                            >
+                              Approve & Draft Lease
+                            </Button>
+                            <Button
+                              variant="outlined"
+                              color="error"
+                              startIcon={<Cancel />}
+                              onClick={() => {
+                                setSelectedApp(app);
+                                setAppReviewStatus('REJECTED');
+                                setAppAdminNotes('');
+                                setAppReviewModalOpen(true);
+                              }}
+                              sx={{ borderRadius: 2, textTransform: 'none' }}
+                            >
+                              Decline Application
+                            </Button>
+                          </Box>
+                        )}
+                      </CardContent>
+                    </Card>
+                  ))}
+                </Stack>
+              )}
+            </motion.div>
+          )}
+
+          {/* ════ TAB 2: LEASES ════ */}
+          {activeTab === 2 && (
             <motion.div key="tab-leases" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
               {leases.length === 0 ? (
                 <Paper elevation={0} sx={{ p: 6, textAlign: 'center', borderRadius: 3, border: '1px dashed', borderColor: isDark ? 'rgba(0, 255, 255, 0.2)' : '#cbd5e1', bgcolor: isDark ? '#0f172a40' : '#f8fafc' }}>
@@ -639,8 +802,8 @@ export default function AdminWorkflowManagementPage() {
             </motion.div>
           )}
 
-          {/* ════ TAB 2: PURCHASE OFFERS ════ */}
-          {activeTab === 2 && (
+          {/* ════ TAB 3: PURCHASE OFFERS ════ */}
+          {activeTab === 3 && (
             <motion.div key="tab-offers" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
               {offers.length === 0 ? (
                 <Paper elevation={0} sx={{ p: 6, textAlign: 'center', borderRadius: 3, border: '1px dashed', borderColor: isDark ? 'rgba(0, 255, 255, 0.2)' : '#cbd5e1', bgcolor: isDark ? '#0f172a40' : '#f8fafc' }}>
@@ -768,8 +931,8 @@ export default function AdminWorkflowManagementPage() {
             </motion.div>
           )}
 
-          {/* ════ TAB 3: MAINTENANCE ════ */}
-          {activeTab === 3 && (
+          {/* ════ TAB 4: MAINTENANCE ════ */}
+          {activeTab === 4 && (
             <motion.div key="tab-maint" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
               {maintenanceTickets.length === 0 ? (
                 <Paper elevation={0} sx={{ p: 6, textAlign: 'center', borderRadius: 3, border: '1px dashed', borderColor: isDark ? 'rgba(0, 255, 255, 0.2)' : '#cbd5e1', bgcolor: isDark ? '#0f172a40' : '#f8fafc' }}>
@@ -852,8 +1015,8 @@ export default function AdminWorkflowManagementPage() {
             </motion.div>
           )}
 
-          {/* ════ TAB 4: LISTING REPORTS (ADMIN ONLY) ════ */}
-          {activeTab === 4 && user?.role === 'admin' && (
+          {/* ════ TAB 5: LISTING REPORTS (ADMIN ONLY) ════ */}
+          {activeTab === 5 && user?.role === 'admin' && (
             <motion.div key="tab-reports" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
               {reports.length === 0 ? (
                 <Paper elevation={0} sx={{ p: 6, textAlign: 'center', borderRadius: 3, border: '1px dashed', borderColor: isDark ? 'rgba(0, 255, 255, 0.2)' : '#cbd5e1', bgcolor: isDark ? '#0f172a40' : '#f8fafc' }}>
@@ -1246,6 +1409,55 @@ export default function AdminWorkflowManagementPage() {
             </Button>
           </DialogActions>
         </form>
+      </Dialog>
+
+      {/* 8. Review Rental Application Modal */}
+      <Dialog open={appReviewModalOpen} onClose={() => setAppReviewModalOpen(false)} maxWidth="sm" fullWidth>
+        <DialogTitle sx={{ fontWeight: 800 }}>
+          {appReviewStatus === 'APPROVED' ? 'Approve Rental Application & Generate Lease' : 'Decline Rental Application'}
+        </DialogTitle>
+        <DialogContent dividers sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+          {selectedApp && (
+            <Box sx={{ p: 2, borderRadius: 2, bgcolor: isDark ? '#1e293b' : '#f1f5f9' }}>
+              <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
+                Applicant: {selectedApp.fullName}
+              </Typography>
+              <Typography variant="body2" sx={{ color: isDark ? '#8892b0' : '#64748b' }}>
+                Property: {typeof selectedApp.houseId === 'object' ? selectedApp.houseId.title : 'Property'}
+              </Typography>
+              <Typography variant="body2" sx={{ color: isDark ? '#8892b0' : '#64748b' }}>
+                Income: ETB {selectedApp.monthlyIncome?.toLocaleString()} • Move-in: {new Date(selectedApp.preferredMoveInDate).toLocaleDateString()}
+              </Typography>
+            </Box>
+          )}
+
+          <Typography variant="body2" sx={{ color: isDark ? '#ccd6f6' : '#334155' }}>
+            {appReviewStatus === 'APPROVED'
+              ? 'Approving this application will automatically generate a draft Lease Agreement for this tenant and notify them in their Customer Portal to review and sign.'
+              : 'Declining this application will notify the applicant with your optional notes.'}
+          </Typography>
+
+          <TextField
+            label="Decision / Reviewer Notes (Optional)"
+            multiline
+            rows={3}
+            fullWidth
+            value={appAdminNotes}
+            onChange={(e) => setAppAdminNotes(e.target.value)}
+            placeholder="Add any instructions or conditions for the applicant..."
+          />
+        </DialogContent>
+        <DialogActions sx={{ p: 2 }}>
+          <Button onClick={() => setAppReviewModalOpen(false)}>Cancel</Button>
+          <Button
+            variant="contained"
+            color={appReviewStatus === 'APPROVED' ? 'success' : 'error'}
+            onClick={() => handleUpdateAppStatus(appReviewStatus)}
+            sx={{ fontWeight: 700 }}
+          >
+            {appReviewStatus === 'APPROVED' ? 'Confirm Approval & Create Lease' : 'Confirm Decline'}
+          </Button>
+        </DialogActions>
       </Dialog>
 
       {/* 7. Lease Viewer Modal */}

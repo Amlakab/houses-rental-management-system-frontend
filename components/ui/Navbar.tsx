@@ -152,7 +152,7 @@ const Navbar: React.FC = () => {
               />
             </div>
             <span className="text-base sm:text-xl md:text-2xl font-bold text-text-primary dark:text-text-primary transition-colors duration-300 group-hover:text-primary dark:group-hover:text-primary">
-              House Selling
+              HRMS
             </span>
           </Link>
 
