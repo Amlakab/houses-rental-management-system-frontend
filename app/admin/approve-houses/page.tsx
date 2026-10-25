@@ -13,6 +13,7 @@ import {
 } from '@mui/material';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTheme } from '@/lib/theme-context';
+import { useLanguage } from '@/lib/language-context';
 import {
   Home, CheckCircle, Cancel, Pending,
   Visibility, LocationOn, AttachMoney,
@@ -92,6 +93,7 @@ const statusOptions = [
 
 const HouseApprovalPage = () => {
   const { theme } = useTheme();
+  const { t, isAmharic } = useLanguage();
   const isMobile = useMediaQuery('(max-width: 768px)');
   
   const [applications, setApplications] = useState<RentalApplication[]>([]);
@@ -131,39 +133,39 @@ const HouseApprovalPage = () => {
       ? 'linear-gradient(135deg, #0a192f, #112240)' 
       : 'linear-gradient(135deg, #f0f0f0, #ffffff)',
     textColor: theme === 'dark' ? '#ccd6f6' : '#333333',
-    primaryColor: theme === 'dark' ? '#00ffff' : '#007bff',
-    cardBg: theme === 'dark' ? '#0f172a80' : '#ffffff',
-    cardBorder: theme === 'dark' ? '#334155' : '#e5e7eb',
+    primaryColor: theme === 'dark' ? '#3b82f6' : '#2563eb',
+    cardBg: theme === 'dark' ? '#112240' : '#ffffff',
+    cardBorder: theme === 'dark' ? '#233554' : '#e5e7eb',
   };
 
   const textFieldStyle = {
     '& .MuiOutlinedInput-root': {
       backgroundColor: theme === 'dark' ? '#1e293b' : 'white',
-      color: theme === 'dark' ? '#ccd6f6' : '#333333',
+      color: theme === 'dark' ? '#f1f5f9' : '#0f172a',
       '& fieldset': {
         borderColor: theme === 'dark' ? '#334155' : '#e5e7eb',
       },
       '&:hover fieldset': {
-        borderColor: theme === 'dark' ? '#00ffff' : '#007bff',
+        borderColor: theme === 'dark' ? '#3b82f6' : '#2563eb',
       },
       '&.Mui-focused fieldset': {
-        borderColor: theme === 'dark' ? '#00ffff' : '#007bff',
+        borderColor: theme === 'dark' ? '#3b82f6' : '#2563eb',
       },
     },
     '& .MuiInputLabel-root': {
-      color: theme === 'dark' ? '#a8b2d1' : '#666666',
+      color: theme === 'dark' ? '#94a3b8' : '#64748b',
     },
   };
 
   const selectStyle = {
     borderRadius: 1,
     backgroundColor: theme === 'dark' ? '#1e293b' : 'white',
-    color: theme === 'dark' ? '#ccd6f6' : '#333333',
+    color: theme === 'dark' ? '#f1f5f9' : '#0f172a',
     '& .MuiOutlinedInput-notchedOutline': {
       borderColor: theme === 'dark' ? '#334155' : '#e5e7eb',
     },
     '&:hover .MuiOutlinedInput-notchedOutline': {
-      borderColor: theme === 'dark' ? '#00ffff' : '#007bff',
+      borderColor: theme === 'dark' ? '#3b82f6' : '#2563eb',
     },
   };
 
@@ -224,10 +226,8 @@ const HouseApprovalPage = () => {
   };
 
   const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD'
-    }).format(price);
+    if (!price && price !== 0) return '0 ETB';
+    return `${Number(price).toLocaleString()} ETB`;
   };
 
   const formatDate = (dateString: string) => {
@@ -248,41 +248,47 @@ const HouseApprovalPage = () => {
 
   const getStatusBadge = (status: string) => {
     const config = statusColors[status as keyof typeof statusColors] || statusColors.PENDING;
+    const labelMap: Record<string, string> = {
+      PENDING: isAmharic ? 'በመጠባበቅ ላይ' : 'PENDING',
+      APPROVED: isAmharic ? 'የጸደቀ' : 'APPROVED',
+      REJECTED: isAmharic ? 'ውድቅ የተደረገ' : 'REJECTED',
+      CANCELLED: isAmharic ? 'የተሰረዘ' : 'CANCELLED'
+    };
     return (
       <Chip
-        label={status}
+        label={labelMap[status] || status}
         size="small"
         icon={config.icon}
         sx={{
           backgroundColor: config.bg,
           color: config.color,
           '& .MuiChip-icon': { color: config.color },
-          fontWeight: 500
+          fontWeight: 600
         }}
       />
     );
   };
 
   const getIncomeLevel = (income: number) => {
-    if (income >= 5000) return { label: 'High', color: '#00ff00' };
-    if (income >= 3000) return { label: 'Medium', color: '#ff9900' };
-    return { label: 'Low', color: '#ff0000' };
+    if (income >= 50000) return { label: isAmharic ? 'ከፍተኛ' : 'High', color: '#10b981' };
+    if (income >= 25000) return { label: isAmharic ? 'መካከለኛ' : 'Medium', color: '#f59e0b' };
+    return { label: isAmharic ? 'ዝቅተኛ' : 'Low', color: '#ef4444' };
   };
 
   const statCards = [
-    { title: 'Total Applications', value: stats.total, icon: <Assignment />, color: theme === 'dark' ? '#00ffff' : '#007bff' },
-    { title: 'Pending Review', value: stats.pending, icon: <Pending />, color: '#ff9900' },
-    { title: 'Approved', value: stats.approved, icon: <CheckCircle />, color: '#00ff00' },
-    { title: 'Rejected', value: stats.rejected, icon: <Cancel />, color: '#ff0000' }
+    { title: isAmharic ? 'ጠቅላላ ማመልከቻዎች' : 'Total Applications', value: stats.total, icon: <Assignment />, color: '#2563eb' },
+    { title: t('review.pending_approval'), value: stats.pending, icon: <Pending />, color: '#f59e0b' },
+    { title: t('review.approved'), value: stats.approved, icon: <CheckCircle />, color: '#10b981' },
+    { title: t('review.rejected'), value: stats.rejected, icon: <Cancel />, color: '#ef4444' }
   ];
 
   return (
     <div className={`min-h-screen transition-colors duration-300 ${
       theme === 'dark' 
         ? 'bg-gradient-to-br from-[#0a192f] to-[#112240] text-white' 
-        : 'bg-gradient-to-br from-[#f0f0f0] to-[#ffffff] text-[#333333]'
+        : 'bg-gradient-to-br from-[#f8fafc] to-[#ffffff] text-slate-900'
     }`}>
-      <Box sx={{ py: 3, px: 2 }}>
+      <Box sx={{ py: 3, px: { xs: 1.5, sm: 2, md: 3 } }}>
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
@@ -291,14 +297,14 @@ const HouseApprovalPage = () => {
         >
           <Box sx={{ mb: 4 }}>
             <Typography variant={isMobile ? "h5" : "h4"} sx={{ 
-              fontWeight: 'bold', 
-              color: theme === 'dark' ? '#ccd6f6' : '#333333',
+              fontWeight: 700, 
+              color: theme === 'dark' ? '#f1f5f9' : '#0f172a',
               mb: 1 
             }}>
-              Rental Applications
+              {t('applications.title')}
             </Typography>
-            <Typography variant={isMobile ? "body2" : "body1"} color={theme === 'dark' ? '#a8b2d1' : '#666666'}>
-              Review and manage tenant applications
+            <Typography variant={isMobile ? "body2" : "body1"} color={theme === 'dark' ? '#94a3b8' : '#64748b'}>
+              {t('applications.subtitle')}
             </Typography>
           </Box>
         </motion.div>
@@ -382,7 +388,7 @@ const HouseApprovalPage = () => {
                   alignItems: 'center',
                   gap: 1
                 }}>
-                  <Assignment /> Applications
+                  <Assignment /> {isAmharic ? 'ማመልከቻዎች' : 'Applications'}
                 </Typography>
                 
                 <Box sx={{ display: 'flex', gap: 2, flexDirection: { xs: 'column', sm: 'row' } }}>
@@ -394,16 +400,17 @@ const HouseApprovalPage = () => {
                     sx={{
                       '& .MuiToggleButton-root': {
                         borderColor: theme === 'dark' ? '#334155' : '#e5e7eb',
-                        color: theme === 'dark' ? '#a8b2d1' : '#666666',
+                        color: theme === 'dark' ? '#94a3b8' : '#64748b',
+                        textTransform: 'none',
                         '&.Mui-selected': {
-                          backgroundColor: theme === 'dark' ? '#00ffff20' : '#007bff10',
-                          color: theme === 'dark' ? '#00ffff' : '#007bff',
+                          backgroundColor: theme === 'dark' ? 'rgba(59, 130, 246, 0.2)' : 'rgba(37, 99, 235, 0.1)',
+                          color: theme === 'dark' ? '#60a5fa' : '#2563eb',
                         }
                       }
                     }}
                   >
-                    <ToggleButton value="cards">Cards</ToggleButton>
-                    <ToggleButton value="list">List</ToggleButton>
+                    <ToggleButton value="cards">{isAmharic ? 'ካርዶች' : 'Cards'}</ToggleButton>
+                    <ToggleButton value="list">{isAmharic ? 'ዝርዝር' : 'List'}</ToggleButton>
                   </ToggleButtonGroup>
                   
                   <Button
@@ -411,12 +418,13 @@ const HouseApprovalPage = () => {
                     startIcon={<Refresh />}
                     onClick={() => fetchApplications()}
                     sx={{ 
-                      borderRadius: 1,
-                      borderColor: theme === 'dark' ? '#00ffff' : '#007bff',
-                      color: theme === 'dark' ? '#00ffff' : '#007bff',
+                      borderRadius: 1.5,
+                      textTransform: 'none',
+                      borderColor: theme === 'dark' ? '#3b82f6' : '#2563eb',
+                      color: theme === 'dark' ? '#60a5fa' : '#2563eb',
                     }}
                   >
-                    Refresh
+                    {isAmharic ? 'አድስ' : 'Refresh'}
                   </Button>
                 </Box>
               </Box>
@@ -433,10 +441,10 @@ const HouseApprovalPage = () => {
               }}>
                 <TextField
                   size="small"
-                  label="Search"
+                  label={isAmharic ? 'ፈልግ' : 'Search'}
                   value={filters.search}
                   onChange={(e) => setFilters({ ...filters, search: e.target.value, page: 1 })}
-                  placeholder="Name, email, phone..."
+                  placeholder={isAmharic ? 'በስም፣ ኢሜይል፣ ስልክ...' : 'Name, email, phone...'}
                   InputProps={{
                     startAdornment: <Search sx={{ mr: 1, fontSize: 20 }} />
                   }}
@@ -444,14 +452,14 @@ const HouseApprovalPage = () => {
                 />
                 
                 <FormControl size="small">
-                  <InputLabel>Status</InputLabel>
+                  <InputLabel>{isAmharic ? 'ሁኔታ' : 'Status'}</InputLabel>
                   <Select
                     value={filters.status}
-                    label="Status"
+                    label={isAmharic ? 'ሁኔታ' : 'Status'}
                     onChange={(e) => setFilters({ ...filters, status: e.target.value, page: 1 })}
                     sx={selectStyle}
                   >
-                    <MenuItem value="">All</MenuItem>
+                    <MenuItem value="">{isAmharic ? 'ሁሉም' : 'All'}</MenuItem>
                     {statusOptions.map(opt => (
                       <MenuItem key={opt.value} value={opt.value}>{opt.label}</MenuItem>
                     ))}
@@ -465,7 +473,7 @@ const HouseApprovalPage = () => {
         {/* Applications List */}
         {loading ? (
           <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '400px' }}>
-            <CircularProgress size={60} sx={{ color: theme === 'dark' ? '#00ffff' : '#007bff' }} />
+            <CircularProgress size={48} sx={{ color: '#2563eb' }} />
           </Box>
         ) : applications.length === 0 ? (
           <Card sx={{ 
@@ -516,7 +524,7 @@ const HouseApprovalPage = () => {
                       {/* Header with Property Info */}
                       <Box sx={{ 
                         p: 2, 
-                        background: theme === 'dark' ? 'linear-gradient(135deg, #00ffff20, #00b3b320)' : 'linear-gradient(135deg, #007bff10, #0056b310)',
+                        background: theme === 'dark' ? 'linear-gradient(135deg, rgba(37, 99, 235, 0.15), rgba(30, 58, 138, 0.15))' : 'linear-gradient(135deg, rgba(37, 99, 235, 0.06), rgba(219, 234, 254, 0.3))',
                         borderBottom: theme === 'dark' ? '1px solid #334155' : '1px solid #e5e7eb'
                       }}>
                         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1 }}>
@@ -557,7 +565,7 @@ const HouseApprovalPage = () => {
                       {/* Applicant Info */}
                       <CardContent sx={{ p: 2 }}>
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
-                          <Avatar sx={{ bgcolor: theme === 'dark' ? '#00ffff' : '#007bff' }}>
+                          <Avatar sx={{ bgcolor: theme === 'dark' ? '#3b82f6' : '#2563eb' }}>
                             <Person />
                           </Avatar>
                           <Box>
@@ -586,7 +594,7 @@ const HouseApprovalPage = () => {
                         }}>
                           <Box>
                             <Typography variant="caption" color={theme === 'dark' ? '#a8b2d1' : '#666666'}>
-                              Occupation
+                              {t('applications.occupation')}
                             </Typography>
                             <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                               <Work sx={{ fontSize: 14 }} />
@@ -595,24 +603,24 @@ const HouseApprovalPage = () => {
                           </Box>
                           <Box>
                             <Typography variant="caption" color={theme === 'dark' ? '#a8b2d1' : '#666666'}>
-                              Monthly Income
+                              {t('applications.monthly_income')}
                             </Typography>
                             <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                               <AttachMoney sx={{ fontSize: 14 }} />
-                              <Typography variant="body2" sx={{ color: incomeLevel.color }}>
+                              <Typography variant="body2" sx={{ color: incomeLevel.color, fontWeight: 600 }}>
                                 {formatPrice(app.monthlyIncome)} ({incomeLevel.label})
                               </Typography>
                             </Box>
                           </Box>
                           <Box>
                             <Typography variant="caption" color={theme === 'dark' ? '#a8b2d1' : '#666666'}>
-                              Occupants
+                              {t('applications.occupants')}
                             </Typography>
-                            <Typography variant="body2">{app.numberOfOccupants} people</Typography>
+                            <Typography variant="body2">{app.numberOfOccupants} {isAmharic ? 'ሰዎች' : 'people'}</Typography>
                           </Box>
                           <Box>
                             <Typography variant="caption" color={theme === 'dark' ? '#a8b2d1' : '#666666'}>
-                              Move-in Date
+                              {t('applications.move_in_date')}
                             </Typography>
                             <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                               <CalendarToday sx={{ fontSize: 14 }} />
@@ -624,7 +632,7 @@ const HouseApprovalPage = () => {
                         {app.message && (
                           <Box sx={{ mb: 2 }}>
                             <Typography variant="caption" color={theme === 'dark' ? '#a8b2d1' : '#666666'}>
-                              Message
+                              {isAmharic ? 'መልእክት' : 'Message'}
                             </Typography>
                             <Typography variant="body2" sx={{ 
                               p: 1, 
@@ -638,7 +646,7 @@ const HouseApprovalPage = () => {
                         )}
                         
                         <Typography variant="caption" color={theme === 'dark' ? '#94a3b8' : '#999999'} sx={{ display: 'block', mb: 2 }}>
-                          Applied: {formatDateTime(app.created_at)}
+                          {isAmharic ? 'የቀረበበት ቀን:' : 'Applied:'} {formatDateTime(app.created_at)}
                         </Typography>
                         
                         {/* Action Buttons */}
@@ -653,11 +661,13 @@ const HouseApprovalPage = () => {
                             }}
                             fullWidth
                             sx={{
-                              borderColor: theme === 'dark' ? '#00ffff' : '#007bff',
-                              color: theme === 'dark' ? '#00ffff' : '#007bff',
+                              borderColor: theme === 'dark' ? '#3b82f6' : '#2563eb',
+                              color: theme === 'dark' ? '#60a5fa' : '#2563eb',
+                              textTransform: 'none',
+                              fontWeight: 600
                             }}
                           >
-                            View Details
+                            {isAmharic ? 'ዝርዝር እይ' : 'View Details'}
                           </Button>
                           
                           {app.status === 'PENDING' && (
@@ -672,11 +682,13 @@ const HouseApprovalPage = () => {
                                 setOpenReviewDialog(true);
                               }}
                               sx={{
-                                background: 'linear-gradient(135deg, #00ff00, #00b300)',
-                                '&:hover': { background: 'linear-gradient(135deg, #00b300, #008000)' }
+                                bgcolor: '#059669',
+                                '&:hover': { bgcolor: '#047857' },
+                                textTransform: 'none',
+                                fontWeight: 600
                               }}
                             >
-                              Approve
+                              {t('applications.approve')}
                             </Button>
                           )}
                         </Box>
@@ -690,8 +702,9 @@ const HouseApprovalPage = () => {
         ) : (
           // List View - Table
           <Card sx={{ 
-            borderRadius: 2,
-            backgroundColor: theme === 'dark' ? '#0f172a80' : 'white',
+            borderRadius: 2.5,
+            backgroundColor: theme === 'dark' ? '#112240' : 'white',
+            border: theme === 'dark' ? '1px solid #233554' : '1px solid #e2e8f0',
             overflowX: 'auto'
           }}>
             <Box sx={{ minWidth: 1000 }}>
@@ -699,18 +712,18 @@ const HouseApprovalPage = () => {
               <Box sx={{ 
                 display: 'flex',
                 background: theme === 'dark'
-                  ? 'linear-gradient(135deg, #00ffff, #00b3b3)'
-                  : 'linear-gradient(135deg, #007bff, #0056b3)',
+                  ? 'linear-gradient(135deg, #1e3a8a, #2563eb)'
+                  : 'linear-gradient(135deg, #2563eb, #1d4ed8)',
                 p: 2,
                 color: 'white',
-                fontWeight: 'bold'
+                fontWeight: 600
               }}>
-                <Box sx={{ flex: 2 }}>Applicant / Property</Box>
-                <Box sx={{ flex: 1 }}>Contact</Box>
-                <Box sx={{ flex: 1 }}>Financial</Box>
-                <Box sx={{ flex: 1 }}>Move-in</Box>
-                <Box sx={{ flex: 1 }}>Status</Box>
-                <Box sx={{ flex: 1 }}>Actions</Box>
+                <Box sx={{ flex: 2 }}>{isAmharic ? 'አመልካች / ቤት' : 'Applicant / Property'}</Box>
+                <Box sx={{ flex: 1 }}>{isAmharic ? 'አድራሻ' : 'Contact'}</Box>
+                <Box sx={{ flex: 1 }}>{isAmharic ? 'የገንዘብ ሁኔታ' : 'Financial'}</Box>
+                <Box sx={{ flex: 1 }}>{isAmharic ? 'የመግቢያ ቀን' : 'Move-in'}</Box>
+                <Box sx={{ flex: 1 }}>{isAmharic ? 'ሁኔታ' : 'Status'}</Box>
+                <Box sx={{ flex: 1 }}>{isAmharic ? 'እርምጃዎች' : 'Actions'}</Box>
               </Box>
               
               {/* Body */}
@@ -723,35 +736,37 @@ const HouseApprovalPage = () => {
                     sx={{ 
                       display: 'flex',
                       p: 2,
-                      borderBottom: theme === 'dark' ? '1px solid #334155' : '1px solid #e5e7eb',
+                      borderBottom: theme === 'dark' ? '1px solid #233554' : '1px solid #e2e8f0',
                       alignItems: 'center',
                       '&:hover': { backgroundColor: theme === 'dark' ? '#1e293b' : '#f8fafc' }
                     }}
                   >
                     <Box sx={{ flex: 2 }}>
-                      <Typography variant="body2" sx={{ fontWeight: 500 }}>{app.fullName}</Typography>
-                      <Typography variant="caption" color={theme === 'dark' ? '#a8b2d1' : '#666666'}>
+                      <Typography variant="body2" sx={{ fontWeight: 600 }}>{app.fullName}</Typography>
+                      <Typography variant="caption" color={theme === 'dark' ? '#94a3b8' : '#64748b'}>
                         {app.houseId?.title} - {app.houseId?.city}
                       </Typography>
                     </Box>
                     
                     <Box sx={{ flex: 1 }}>
                       <Typography variant="caption" sx={{ display: 'block' }}>{app.email}</Typography>
-                      <Typography variant="caption" color={theme === 'dark' ? '#a8b2d1' : '#666666'}>
+                      <Typography variant="caption" color={theme === 'dark' ? '#94a3b8' : '#64748b'}>
                         {app.phone}
                       </Typography>
                     </Box>
                     
                     <Box sx={{ flex: 1 }}>
                       <Typography variant="body2">{app.occupation}</Typography>
-                      <Typography variant="caption" sx={{ color: incomeLevel.color }}>
+                      <Typography variant="caption" sx={{ color: incomeLevel.color, fontWeight: 600 }}>
                         {formatPrice(app.monthlyIncome)} ({incomeLevel.label})
                       </Typography>
                     </Box>
                     
                     <Box sx={{ flex: 1 }}>
                       <Typography variant="body2">{formatDate(app.preferredMoveInDate)}</Typography>
-                      <Typography variant="caption">{app.numberOfOccupants} occupants</Typography>
+                      <Typography variant="caption" color={theme === 'dark' ? '#94a3b8' : '#64748b'}>
+                        {app.numberOfOccupants} {isAmharic ? 'ሰዎች' : 'occupants'}
+                      </Typography>
                     </Box>
                     
                     <Box sx={{ flex: 1 }}>
@@ -765,7 +780,7 @@ const HouseApprovalPage = () => {
                           setSelectedApp(app);
                           setOpenViewDialog(true);
                         }}
-                        sx={{ color: theme === 'dark' ? '#00ffff' : '#007bff' }}
+                        sx={{ color: theme === 'dark' ? '#60a5fa' : '#2563eb' }}
                       >
                         <Visibility />
                       </IconButton>
@@ -805,8 +820,8 @@ const HouseApprovalPage = () => {
                 '& .MuiPaginationItem-root': {
                   color: theme === 'dark' ? '#ccd6f6' : '#333333',
                   '&.Mui-selected': {
-                    backgroundColor: theme === 'dark' ? '#00ffff' : '#007bff',
-                    color: theme === 'dark' ? '#0a192f' : 'white',
+                    backgroundColor: '#2563eb',
+                    color: 'white',
                   }
                 }
               }}
@@ -823,8 +838,9 @@ const HouseApprovalPage = () => {
           fullScreen={isMobile}
           PaperProps={{
             sx: { 
-              borderRadius: 2,
-              backgroundColor: theme === 'dark' ? '#0f172a' : 'white',
+              borderRadius: isMobile ? 0 : 2.5,
+              backgroundColor: theme === 'dark' ? '#112240' : 'white',
+              border: theme === 'dark' ? '1px solid #233554' : '1px solid #e2e8f0',
               maxHeight: '90vh'
             }
           }}
@@ -832,13 +848,15 @@ const HouseApprovalPage = () => {
           {selectedApp && (
             <>
               <DialogTitle sx={{ 
-                borderBottom: theme === 'dark' ? '1px solid #334155' : '1px solid #e5e7eb',
+                borderBottom: theme === 'dark' ? '1px solid #233554' : '1px solid #e2e8f0',
                 py: 2,
                 display: 'flex',
                 justifyContent: 'space-between',
                 alignItems: 'center'
               }}>
-                <Typography variant="h6">Application Details</Typography>
+                <Typography variant="h6" sx={{ fontWeight: 700 }}>
+                  {isAmharic ? 'የማመልከቻ ዝርዝር' : 'Application Details'}
+                </Typography>
                 {getStatusBadge(selectedApp.status)}
               </DialogTitle>
               
@@ -846,29 +864,31 @@ const HouseApprovalPage = () => {
                 {/* Property Info */}
                 <Box sx={{ mb: 3 }}>
                   <Typography variant="subtitle2" sx={{ 
-                    color: theme === 'dark' ? '#00ffff' : '#007bff',
+                    color: theme === 'dark' ? '#60a5fa' : '#2563eb',
                     mb: 1,
                     display: 'flex',
                     alignItems: 'center',
-                    gap: 1
+                    gap: 1,
+                    fontWeight: 600
                   }}>
-                    <Home /> Property Information
+                    <Home /> {isAmharic ? 'የቤቱ መረጃ' : 'Property Information'}
                   </Typography>
                   <Box sx={{ 
                     p: 2, 
-                    borderRadius: 1,
-                    backgroundColor: theme === 'dark' ? '#1e293b' : '#f8f9fa'
+                    borderRadius: 1.5,
+                    backgroundColor: theme === 'dark' ? '#1e293b' : '#f8f9fa',
+                    border: theme === 'dark' ? '1px solid #334155' : '1px solid #e2e8f0'
                   }}>
                     <Typography variant="body1" sx={{ fontWeight: 'bold', mb: 0.5 }}>
                       {selectedApp.houseId?.title}
                     </Typography>
-                    <Typography variant="body2" color={theme === 'dark' ? '#a8b2d1' : '#666666'} sx={{ mb: 1 }}>
+                    <Typography variant="body2" color={theme === 'dark' ? '#94a3b8' : '#64748b'} sx={{ mb: 1 }}>
                       {selectedApp.houseId?.address}
                     </Typography>
                     <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
-                      <Typography variant="body2">{formatPrice(selectedApp.houseId?.price)}/month</Typography>
-                      <Typography variant="body2">{selectedApp.houseId?.bedrooms} beds</Typography>
-                      <Typography variant="body2">{selectedApp.houseId?.bathrooms} baths</Typography>
+                      <Typography variant="body2" sx={{ fontWeight: 600 }}>{formatPrice(selectedApp.houseId?.price)}/month</Typography>
+                      <Typography variant="body2">{selectedApp.houseId?.bedrooms} {isAmharic ? 'መኝታ ክፍሎች' : 'beds'}</Typography>
+                      <Typography variant="body2">{selectedApp.houseId?.bathrooms} {isAmharic ? 'መታጠቢያዎች' : 'baths'}</Typography>
                       <Typography variant="body2">{selectedApp.houseId?.area} sqft</Typography>
                     </Box>
                   </Box>
@@ -877,13 +897,14 @@ const HouseApprovalPage = () => {
                 {/* Applicant Info */}
                 <Box sx={{ mb: 3 }}>
                   <Typography variant="subtitle2" sx={{ 
-                    color: theme === 'dark' ? '#00ffff' : '#007bff',
+                    color: theme === 'dark' ? '#60a5fa' : '#2563eb',
                     mb: 1,
                     display: 'flex',
                     alignItems: 'center',
-                    gap: 1
+                    gap: 1,
+                    fontWeight: 600
                   }}>
-                    <Person /> Applicant Information
+                    <Person /> {isAmharic ? 'የአመልካች መረጃ' : 'Applicant Information'}
                   </Typography>
                   <Box sx={{ 
                     display: 'flex',
@@ -891,20 +912,20 @@ const HouseApprovalPage = () => {
                     gap: 2
                   }}>
                     <Box sx={{ flex: 1, minWidth: '200px' }}>
-                      <Typography variant="caption" color={theme === 'dark' ? '#a8b2d1' : '#666666'}>
-                        Full Name
+                      <Typography variant="caption" color={theme === 'dark' ? '#94a3b8' : '#64748b'}>
+                        {isAmharic ? 'ሙሉ ስም' : 'Full Name'}
                       </Typography>
-                      <Typography variant="body2">{selectedApp.fullName}</Typography>
+                      <Typography variant="body2" sx={{ fontWeight: 600 }}>{selectedApp.fullName}</Typography>
                     </Box>
                     <Box sx={{ flex: 1, minWidth: '200px' }}>
-                      <Typography variant="caption" color={theme === 'dark' ? '#a8b2d1' : '#666666'}>
-                        Email
+                      <Typography variant="caption" color={theme === 'dark' ? '#94a3b8' : '#64748b'}>
+                        {isAmharic ? 'ኢሜይል' : 'Email'}
                       </Typography>
                       <Typography variant="body2">{selectedApp.email}</Typography>
                     </Box>
                     <Box sx={{ flex: 1, minWidth: '200px' }}>
-                      <Typography variant="caption" color={theme === 'dark' ? '#a8b2d1' : '#666666'}>
-                        Phone
+                      <Typography variant="caption" color={theme === 'dark' ? '#94a3b8' : '#64748b'}>
+                        {isAmharic ? 'ስልክ ቁጥር' : 'Phone'}
                       </Typography>
                       <Typography variant="body2">{selectedApp.phone}</Typography>
                     </Box>
@@ -914,13 +935,14 @@ const HouseApprovalPage = () => {
                 {/* Employment & Income */}
                 <Box sx={{ mb: 3 }}>
                   <Typography variant="subtitle2" sx={{ 
-                    color: theme === 'dark' ? '#00ffff' : '#007bff',
+                    color: theme === 'dark' ? '#60a5fa' : '#2563eb',
                     mb: 1,
                     display: 'flex',
                     alignItems: 'center',
-                    gap: 1
+                    gap: 1,
+                    fontWeight: 600
                   }}>
-                    <Work /> Employment & Income
+                    <Work /> {isAmharic ? 'የስራ እና የገቢ ሁኔታ' : 'Employment & Income'}
                   </Typography>
                   <Box sx={{ 
                     display: 'flex',
@@ -928,14 +950,14 @@ const HouseApprovalPage = () => {
                     gap: 2
                   }}>
                     <Box sx={{ flex: 1, minWidth: '200px' }}>
-                      <Typography variant="caption" color={theme === 'dark' ? '#a8b2d1' : '#666666'}>
-                        Occupation
+                      <Typography variant="caption" color={theme === 'dark' ? '#94a3b8' : '#64748b'}>
+                        {t('applications.occupation')}
                       </Typography>
                       <Typography variant="body2">{selectedApp.occupation}</Typography>
                     </Box>
                     <Box sx={{ flex: 1, minWidth: '200px' }}>
-                      <Typography variant="caption" color={theme === 'dark' ? '#a8b2d1' : '#666666'}>
-                        Monthly Income
+                      <Typography variant="caption" color={theme === 'dark' ? '#94a3b8' : '#64748b'}>
+                        {t('applications.monthly_income')}
                       </Typography>
                       <Typography variant="body2" sx={{ 
                         color: getIncomeLevel(selectedApp.monthlyIncome).color,
@@ -945,10 +967,10 @@ const HouseApprovalPage = () => {
                       </Typography>
                     </Box>
                     <Box sx={{ flex: 1, minWidth: '200px' }}>
-                      <Typography variant="caption" color={theme === 'dark' ? '#a8b2d1' : '#666666'}>
-                        Number of Occupants
+                      <Typography variant="caption" color={theme === 'dark' ? '#94a3b8' : '#64748b'}>
+                        {t('applications.occupants')}
                       </Typography>
-                      <Typography variant="body2">{selectedApp.numberOfOccupants}</Typography>
+                      <Typography variant="body2">{selectedApp.numberOfOccupants} {isAmharic ? 'ሰዎች' : 'people'}</Typography>
                     </Box>
                   </Box>
                 </Box>
@@ -956,13 +978,14 @@ const HouseApprovalPage = () => {
                 {/* Move-in Details */}
                 <Box sx={{ mb: 3 }}>
                   <Typography variant="subtitle2" sx={{ 
-                    color: theme === 'dark' ? '#00ffff' : '#007bff',
+                    color: theme === 'dark' ? '#60a5fa' : '#2563eb',
                     mb: 1,
                     display: 'flex',
                     alignItems: 'center',
-                    gap: 1
+                    gap: 1,
+                    fontWeight: 600
                   }}>
-                    <CalendarToday /> Move-in Details
+                    <CalendarToday /> {isAmharic ? 'የመግቢያ ዝርዝር' : 'Move-in Details'}
                   </Typography>
                   <Box sx={{ 
                     display: 'flex',
@@ -970,14 +993,14 @@ const HouseApprovalPage = () => {
                     gap: 2
                   }}>
                     <Box sx={{ flex: 1, minWidth: '200px' }}>
-                      <Typography variant="caption" color={theme === 'dark' ? '#a8b2d1' : '#666666'}>
-                        Preferred Move-in Date
+                      <Typography variant="caption" color={theme === 'dark' ? '#94a3b8' : '#64748b'}>
+                        {t('applications.move_in_date')}
                       </Typography>
                       <Typography variant="body2">{formatDate(selectedApp.preferredMoveInDate)}</Typography>
                     </Box>
                     <Box sx={{ flex: 1, minWidth: '200px' }}>
-                      <Typography variant="caption" color={theme === 'dark' ? '#a8b2d1' : '#666666'}>
-                        Application Date
+                      <Typography variant="caption" color={theme === 'dark' ? '#94a3b8' : '#64748b'}>
+                        {isAmharic ? 'የቀረበበት ቀን' : 'Application Date'}
                       </Typography>
                       <Typography variant="body2">{formatDateTime(selectedApp.created_at)}</Typography>
                     </Box>
@@ -988,19 +1011,21 @@ const HouseApprovalPage = () => {
                 {selectedApp.message && (
                   <Box sx={{ mb: 3 }}>
                     <Typography variant="subtitle2" sx={{ 
-                      color: theme === 'dark' ? '#00ffff' : '#007bff',
+                      color: theme === 'dark' ? '#60a5fa' : '#2563eb',
                       mb: 1,
                       display: 'flex',
                       alignItems: 'center',
-                      gap: 1
+                      gap: 1,
+                      fontWeight: 600
                     }}>
-                      <Description /> Message from Applicant
+                      <Description /> {isAmharic ? 'ከአመልካች የተላከ መልእክት' : 'Message from Applicant'}
                     </Typography>
                     <Box sx={{ 
                       p: 2, 
-                      borderRadius: 1,
+                      borderRadius: 1.5,
                       backgroundColor: theme === 'dark' ? '#1e293b' : '#f8f9fa',
-                      fontStyle: 'italic'
+                      fontStyle: 'italic',
+                      border: theme === 'dark' ? '1px solid #334155' : '1px solid #e2e8f0'
                     }}>
                       "{selectedApp.message}"
                     </Box>
@@ -1011,18 +1036,20 @@ const HouseApprovalPage = () => {
                 {selectedApp.adminNotes && (
                   <Box>
                     <Typography variant="subtitle2" sx={{ 
-                      color: theme === 'dark' ? '#00ffff' : '#007bff',
+                      color: theme === 'dark' ? '#60a5fa' : '#2563eb',
                       mb: 1,
                       display: 'flex',
                       alignItems: 'center',
-                      gap: 1
+                      gap: 1,
+                      fontWeight: 600
                     }}>
-                      <Receipt /> Admin Notes
+                      <Receipt /> {isAmharic ? 'የአድሚን ማስታወሻ' : 'Admin Notes'}
                     </Typography>
                     <Box sx={{ 
                       p: 2, 
-                      borderRadius: 1,
-                      backgroundColor: theme === 'dark' ? '#1e293b' : '#f8f9fa'
+                      borderRadius: 1.5,
+                      backgroundColor: theme === 'dark' ? '#1e293b' : '#f8f9fa',
+                      border: theme === 'dark' ? '1px solid #334155' : '1px solid #e2e8f0'
                     }}>
                       {selectedApp.adminNotes}
                     </Box>
@@ -1031,10 +1058,12 @@ const HouseApprovalPage = () => {
               </DialogContent>
               
               <DialogActions sx={{ 
-                p: 3,
-                borderTop: theme === 'dark' ? '1px solid #334155' : '1px solid #e5e7eb'
+                p: 2.5,
+                borderTop: theme === 'dark' ? '1px solid #233554' : '1px solid #e2e8f0'
               }}>
-                <Button onClick={() => setOpenViewDialog(false)}>Close</Button>
+                <Button onClick={() => setOpenViewDialog(false)} sx={{ textTransform: 'none' }}>
+                  {isAmharic ? 'ዝጋ' : 'Close'}
+                </Button>
                 {selectedApp.status === 'PENDING' && (
                   <>
                     <Button 
@@ -1046,8 +1075,9 @@ const HouseApprovalPage = () => {
                       }}
                       variant="outlined"
                       color="error"
+                      sx={{ textTransform: 'none', fontWeight: 600 }}
                     >
-                      Reject
+                      {t('applications.reject')}
                     </Button>
                     <Button 
                       onClick={() => {
@@ -1057,9 +1087,14 @@ const HouseApprovalPage = () => {
                         setOpenReviewDialog(true);
                       }}
                       variant="contained"
-                      sx={{ background: 'linear-gradient(135deg, #00ff00, #00b300)' }}
+                      sx={{ 
+                        bgcolor: '#059669', 
+                        '&:hover': { bgcolor: '#047857' },
+                        textTransform: 'none', 
+                        fontWeight: 600 
+                      }}
                     >
-                      Approve Application
+                      {t('applications.approve')}
                     </Button>
                   </>
                 )}
@@ -1076,46 +1111,50 @@ const HouseApprovalPage = () => {
           fullWidth
           PaperProps={{
             sx: { 
-              borderRadius: 2,
-              backgroundColor: theme === 'dark' ? '#0f172a' : 'white'
+              borderRadius: 2.5,
+              backgroundColor: theme === 'dark' ? '#112240' : 'white',
+              border: theme === 'dark' ? '1px solid #233554' : '1px solid #e2e8f0'
             }
           }}
         >
-          <DialogTitle>
-            <Typography variant="h6">
-              {reviewStatus === 'APPROVED' ? 'Approve Application' : 'Reject Application'}
+          <DialogTitle sx={{ borderBottom: theme === 'dark' ? '1px solid #233554' : '1px solid #e2e8f0', py: 2 }}>
+            <Typography variant="h6" sx={{ fontWeight: 700 }}>
+              {reviewStatus === 'APPROVED' ? t('applications.approve') : t('applications.reject')}
             </Typography>
           </DialogTitle>
-          <DialogContent>
-            <Typography variant="body2" sx={{ mb: 2 }}>
+          <DialogContent sx={{ pt: 2.5 }}>
+            <Typography variant="body2" sx={{ mb: 2, color: theme === 'dark' ? '#cbd5e1' : '#475569' }}>
               {reviewStatus === 'APPROVED' 
-                ? 'Are you sure you want to approve this rental application? This will mark the property as rented.'
-                : 'Are you sure you want to reject this rental application?'
+                ? (isAmharic ? 'ይህን የኪራይ ማመልከቻ በእርግጥ ማጽደቅ ይፈልጋሉ? ይሄ ቤቱን እንደተከራየ ያደርገዋል።' : 'Are you sure you want to approve this rental application? This will mark the property as rented.')
+                : (isAmharic ? 'ይህን የኪራይ ማመልከቻ በእርግጥ ውድቅ ማድረግ ይፈልጋሉ?' : 'Are you sure you want to reject this rental application?')
               }
             </Typography>
             <TextField
               fullWidth
-              label="Admin Notes (Optional)"
+              label={isAmharic ? 'የአድሚን ማስታወሻ (አማራጭ)' : 'Admin Notes (Optional)'}
               multiline
               rows={3}
               value={adminNotes}
               onChange={(e) => setAdminNotes(e.target.value)}
-              placeholder="Add any notes about this decision..."
+              placeholder={isAmharic ? 'ስለ ውሳኔው ተጨማሪ ማስታወሻ ያስገቡ...' : 'Add any notes about this decision...'}
               sx={textFieldStyle}
             />
           </DialogContent>
-          <DialogActions>
-            <Button onClick={() => setOpenReviewDialog(false)}>Cancel</Button>
+          <DialogActions sx={{ p: 2.5, borderTop: theme === 'dark' ? '1px solid #233554' : '1px solid #e2e8f0' }}>
+            <Button onClick={() => setOpenReviewDialog(false)} sx={{ textTransform: 'none' }}>
+              {isAmharic ? 'ሰርዝ' : 'Cancel'}
+            </Button>
             <Button 
               onClick={handleUpdateStatus}
               variant="contained"
               sx={{
-                background: reviewStatus === 'APPROVED' 
-                  ? 'linear-gradient(135deg, #00ff00, #00b300)'
-                  : 'linear-gradient(135deg, #ff0000, #cc0000)'
+                bgcolor: reviewStatus === 'APPROVED' ? '#059669' : '#dc2626',
+                '&:hover': { bgcolor: reviewStatus === 'APPROVED' ? '#047857' : '#b91c1c' },
+                textTransform: 'none',
+                fontWeight: 600
               }}
             >
-              {reviewStatus === 'APPROVED' ? 'Approve' : 'Reject'}
+              {reviewStatus === 'APPROVED' ? (isAmharic ? 'አጽድቅ' : 'Approve') : (isAmharic ? 'ውድቅ አድርግ' : 'Reject')}
             </Button>
           </DialogActions>
         </Dialog>

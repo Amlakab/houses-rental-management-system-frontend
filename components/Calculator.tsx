@@ -438,30 +438,26 @@ export default function Calculator() {
   ]
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex flex-col items-center justify-start sm:justify-center p-2 sm:p-4">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-[#0a192f] dark:to-[#112240] transition-colors duration-200 flex flex-col items-center justify-start sm:justify-center p-2 sm:p-4">
       <div className="w-full max-w-xs sm:max-w-sm md:max-w-md lg:max-w-lg">
-        {/* <div className="mb-4 sm:mb-6 md:mb-8 text-center px-2">
-          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-800 mb-1 sm:mb-2">Scientific Calculator</h1>
-        </div> */}
-        
-        <div className="bg-white rounded-xl sm:rounded-2xl shadow-lg sm:shadow-2xl overflow-hidden border border-gray-200">
+        <div className="bg-white dark:bg-[#112240] rounded-xl sm:rounded-2xl shadow-lg sm:shadow-2xl overflow-hidden border border-gray-200 dark:border-slate-800 transition-colors">
           <Display fullExpression={state.fullExpression} currentValue={state.currentValue} />
           
-          <div className="grid grid-cols-4 gap-1 sm:gap-2 p-2 sm:p-3 md:p-4 bg-gray-50">
+          <div className="grid grid-cols-4 gap-1.5 sm:gap-2 p-2.5 sm:p-3 md:p-4 bg-gray-50 dark:bg-[#0b172a] transition-colors">
             {buttons.flat().map((btn, i) => {
               // Determine button styling based on type
               let btnClass = ''
               
               if (btn === '=') {
-                btnClass = 'col-span-1 bg-gradient-to-r from-blue-500 to-blue-600 text-white hover:from-blue-600 hover:to-blue-700 shadow-sm'
-              } else if (['÷', '×', '-', '+', '='].includes(btn)) {
-                btnClass = 'bg-gradient-to-r from-orange-500 to-orange-600 text-white hover:from-orange-600 hover:to-orange-700 shadow-sm'
+                btnClass = 'col-span-1 bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800 shadow-md shadow-blue-500/20'
+              } else if (['÷', '×', '-', '+'].includes(btn)) {
+                btnClass = 'bg-gradient-to-r from-amber-500 to-orange-600 text-white hover:from-amber-600 hover:to-orange-700 shadow-sm'
               } else if (['C', '±', '%'].includes(btn)) {
-                btnClass = 'bg-gradient-to-r from-gray-300 to-gray-400 text-gray-800 hover:from-gray-400 hover:to-gray-500 shadow-sm'
+                btnClass = 'bg-gradient-to-r from-gray-200 to-gray-300 dark:from-slate-700 dark:to-slate-600 text-gray-800 dark:text-white hover:from-gray-300 hover:to-gray-400 dark:hover:from-slate-600 dark:hover:to-slate-500 shadow-sm font-semibold'
               } else if (['sin', 'cos', 'tan', '√', 'log', 'ln', 'π', '^', '(', ')', '!', 'e'].includes(btn)) {
-                btnClass = 'bg-gradient-to-r from-purple-100 to-purple-200 text-purple-800 hover:from-purple-200 hover:to-purple-300 shadow-sm text-xs sm:text-sm'
+                btnClass = 'bg-gradient-to-r from-blue-50 to-indigo-100 dark:from-slate-800/90 dark:to-indigo-950/60 text-blue-700 dark:text-blue-300 hover:from-blue-100 hover:to-indigo-200 dark:hover:from-slate-800 dark:hover:to-indigo-900 shadow-sm text-xs sm:text-sm font-medium border border-blue-200/50 dark:border-slate-700/50'
               } else if (!isNaN(Number(btn)) || btn === '.' || btn === '⌫') {
-                btnClass = 'bg-gradient-to-r from-gray-100 to-gray-200 text-gray-800 hover:from-gray-200 hover:to-gray-300 shadow-sm'
+                btnClass = 'bg-gradient-to-r from-white to-gray-100 dark:from-slate-800 dark:to-slate-700/90 text-gray-900 dark:text-slate-100 hover:from-gray-100 hover:to-gray-200 dark:hover:from-slate-700 dark:hover:to-slate-600 shadow-sm border border-gray-200/70 dark:border-slate-700/50'
               }
               
               return (

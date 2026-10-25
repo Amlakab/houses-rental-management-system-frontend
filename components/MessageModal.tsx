@@ -11,6 +11,7 @@ import {
 } from '@mui/material';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTheme } from '@/lib/theme-context';
+import { useLanguage } from '@/lib/language-context';
 import { 
   Close, Send, Person, Email, Phone, Message as MessageIcon,
   Home, CheckCircle, Error as ErrorIcon, Subject,
@@ -50,6 +51,8 @@ const MessageModal: React.FC<MessageModalProps> = ({
   orderId 
 }) => {
   const { theme } = useTheme();
+  const { t, language } = useLanguage();
+  const isDark = theme === 'dark';
   const { user: authUser } = useAuth();
   
   const [messages, setMessages] = useState<Message[]>([]);
@@ -67,38 +70,38 @@ const MessageModal: React.FC<MessageModalProps> = ({
   });
 
   const themeStyles = {
-    background: theme === 'dark' 
-      ? 'linear-gradient(135deg, #0a192f, #112240)' 
-      : 'linear-gradient(135deg, #f8f5ff, #ffffff)',
-    textColor: theme === 'dark' ? '#ccd6f6' : '#333333',
-    primaryColor: theme === 'dark' ? '#00ffff' : '#8B5CF6',
-    cardBg: theme === 'dark' ? '#0f172a80' : '#ffffff',
-    cardBorder: theme === 'dark' ? '#334155' : '#e5e7eb',
-    headerBg: theme === 'dark' 
-      ? 'linear-gradient(135deg, #00ffff, #00b3b3)' 
-      : 'linear-gradient(135deg, #8B5CF6, #EC4899)',
+    background: isDark ? '#0a192f' : '#f8fafc',
+    textColor: isDark ? '#f1f5f9' : '#0f172a',
+    mutedColor: isDark ? '#94a3b8' : '#64748b',
+    primaryColor: isDark ? '#38bdf8' : '#2563eb',
+    cardBg: isDark ? '#112240' : '#ffffff',
+    cardBorder: isDark ? '#233554' : '#e2e8f0',
   };
 
   const textFieldStyle = {
     '& .MuiOutlinedInput-root': {
-      backgroundColor: theme === 'dark' ? '#1e293b' : 'white',
-      color: theme === 'dark' ? '#ccd6f6' : '#333333',
+      backgroundColor: isDark ? '#0a192f' : '#ffffff',
+      color: isDark ? '#f1f5f9' : '#0f172a',
+      borderRadius: '10px',
       '& fieldset': {
-        borderColor: theme === 'dark' ? '#334155' : '#e5e7eb',
+        borderColor: isDark ? '#233554' : '#cbd5e1',
       },
       '&:hover fieldset': {
-        borderColor: theme === 'dark' ? '#00ffff' : '#8B5CF6',
+        borderColor: themeStyles.primaryColor,
       },
       '&.Mui-focused fieldset': {
-        borderColor: theme === 'dark' ? '#00ffff' : '#8B5CF6',
+        borderColor: themeStyles.primaryColor,
       },
     },
     '& .MuiInputLabel-root': {
-      color: theme === 'dark' ? '#a8b2d1' : '#666666',
+      color: themeStyles.mutedColor,
     },
     '& .MuiInputLabel-root.Mui-focused': {
-      color: theme === 'dark' ? '#00ffff' : '#8B5CF6',
+      color: themeStyles.primaryColor,
     },
+    '& .MuiFormHelperText-root': {
+      color: themeStyles.mutedColor
+    }
   };
 
   const fetchMessages = async () => {
@@ -219,15 +222,18 @@ const MessageModal: React.FC<MessageModalProps> = ({
   };
 
   const getSubjectLabel = (subject: string) => {
-    const labels: Record<string, string> = {
-      'general': 'General',
-      'property-inquiry': 'Property Inquiry',
-      'booking-request': 'Booking Request',
-      'payment-issue': 'Payment Issue',
-      'support': 'Support',
-      'other': 'Other'
+    const labels: Record<string, { en: string; am: string }> = {
+      'general': { en: 'General', am: 'አጠቃላይ' },
+      'property-inquiry': { en: 'Property Inquiry', am: 'ስለ ንብረቱ' },
+      'booking-request': { en: 'Booking Request', am: 'የቀጠሮ ጥያቄ' },
+      'payment-issue': { en: 'Payment Issue', am: 'የክፍያ ጉዳይ' },
+      'support': { en: 'Support', am: 'ድጋፍ' },
+      'other': { en: 'Other', am: 'ሌላ' }
     };
-    return labels[subject] || subject;
+    if (labels[subject]) {
+      return language === 'am' ? labels[subject].am : labels[subject].en;
+    }
+    return subject;
   };
 
   return (
@@ -239,14 +245,15 @@ const MessageModal: React.FC<MessageModalProps> = ({
       PaperProps={{
         sx: {
           borderRadius: 3,
-          backgroundColor: theme === 'dark' ? '#0f172a' : 'white',
+          backgroundColor: themeStyles.cardBg,
+          border: `1px solid ${themeStyles.cardBorder}`,
+          color: themeStyles.textColor,
           maxHeight: '90vh'
         }
       }}
     >
       <DialogTitle sx={{ 
-        borderBottom: 1, 
-        borderColor: 'divider',
+        borderBottom: `1px solid ${themeStyles.cardBorder}`,
         display: 'flex',
         justifyContent: 'space-between',
         alignItems: 'center',
@@ -255,46 +262,45 @@ const MessageModal: React.FC<MessageModalProps> = ({
         <Box>
           <Typography variant="h6" sx={{ 
             fontWeight: 'bold',
-            background: themeStyles.headerBg,
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: 'transparent'
+            color: themeStyles.textColor
           }}>
-            Messages & Inquiries
+            {t('message.title', 'Messages & Inquiries')}
           </Typography>
-          <Typography variant="body2" color="text.secondary">
+          <Typography variant="body2" sx={{ color: themeStyles.mutedColor }}>
             {houseTitle}
           </Typography>
         </Box>
-        <IconButton onClick={onClose} size="small">
+        <IconButton onClick={onClose} size="small" sx={{ color: themeStyles.mutedColor }}>
           <Close />
         </IconButton>
       </DialogTitle>
       
       <DialogContent sx={{ p: 0, overflowY: 'auto' }}>
         {/* Message History */}
-        <Box sx={{ p: 2, borderBottom: 1, borderColor: 'divider' }}>
+        <Box sx={{ p: 2.5, borderBottom: `1px solid ${themeStyles.cardBorder}` }}>
           <Typography variant="subtitle2" sx={{ 
             mb: 2,
-            color: theme === 'dark' ? '#00ffff' : '#8B5CF6',
+            color: themeStyles.primaryColor,
             fontWeight: 'bold'
           }}>
-            Conversation History
+            {language === 'am' ? 'የመልእክት ታሪክ' : 'Conversation History'}
           </Typography>
           
           {loading ? (
             <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
-              <CircularProgress size={32} sx={{ color: theme === 'dark' ? '#00ffff' : '#8B5CF6' }} />
+              <CircularProgress size={32} sx={{ color: themeStyles.primaryColor }} />
             </Box>
           ) : messages.length === 0 ? (
             <Box sx={{ 
               textAlign: 'center', 
               py: 4,
-              backgroundColor: theme === 'dark' ? '#1e293b' : '#f8f9fa',
+              backgroundColor: isDark ? '#0a192f' : '#f8fafc',
+              border: `1px solid ${themeStyles.cardBorder}`,
               borderRadius: 2
             }}>
-              <MessageIcon sx={{ fontSize: 40, color: theme === 'dark' ? '#334155' : '#d1d5db', mb: 1 }} />
-              <Typography variant="body2" color="text.secondary">
-                No messages yet. Start the conversation!
+              <MessageIcon sx={{ fontSize: 40, color: themeStyles.mutedColor, mb: 1 }} />
+              <Typography variant="body2" sx={{ color: themeStyles.mutedColor }}>
+                {language === 'am' ? 'ምንም መልእክት የለም። ውይይት ይጀምሩ!' : 'No messages yet. Start the conversation!'}
               </Typography>
             </Box>
           ) : (
@@ -305,14 +311,15 @@ const MessageModal: React.FC<MessageModalProps> = ({
                     elevation={0}
                     sx={{
                       p: 2,
-                      backgroundColor: theme === 'dark' ? '#1e293b' : '#f8fafc',
-                      borderLeft: `3px solid ${theme === 'dark' ? '#00ffff' : '#8B5CF6'}`,
+                      backgroundColor: isDark ? '#0a192f' : '#f8fafc',
+                      borderLeft: `3px solid ${themeStyles.primaryColor}`,
+                      border: `1px solid ${themeStyles.cardBorder}`,
                       borderRadius: 2
                     }}
                   >
                     <Box sx={{ 
                       display: 'flex', 
-                      justifyContent: 'space-between',
+                      justifyContent: 'space-between', 
                       alignItems: 'flex-start',
                       mb: 1,
                       flexWrap: 'wrap',
@@ -325,23 +332,22 @@ const MessageModal: React.FC<MessageModalProps> = ({
                           size="small"
                           sx={{
                             height: 24,
-                            backgroundColor: theme === 'dark' 
-                              ? 'rgba(0, 255, 255, 0.1)' 
-                              : 'rgba(139, 92, 246, 0.1)',
-                            color: theme === 'dark' ? '#00ffff' : '#8B5CF6'
+                            backgroundColor: `${themeStyles.primaryColor}20`,
+                            color: themeStyles.primaryColor,
+                            fontWeight: 600
                           }}
                         />
-                        <Typography variant="caption" color="text.secondary">
+                        <Typography variant="caption" sx={{ color: themeStyles.mutedColor, fontWeight: 500 }}>
                           {msg.name}
                         </Typography>
                       </Box>
-                      <Typography variant="caption" color="text.secondary">
+                      <Typography variant="caption" sx={{ color: themeStyles.mutedColor }}>
                         {formatDate(msg.createdAt)}
                       </Typography>
                     </Box>
                     
                     <Typography variant="body2" sx={{ 
-                      color: theme === 'dark' ? '#ccd6f6' : '#333333',
+                      color: themeStyles.textColor,
                       mb: msg.response ? 2 : 0,
                       whiteSpace: 'pre-wrap'
                     }}>
@@ -351,32 +357,32 @@ const MessageModal: React.FC<MessageModalProps> = ({
                     {msg.response && (
                       <Fade in={true}>
                         <Box sx={{ 
-                          mt: 1,
-                          pt: 1,
-                          borderTop: 1,
-                          borderColor: 'divider'
+                          mt: 1.5,
+                          pt: 1.5,
+                          borderTop: `1px solid ${themeStyles.cardBorder}`
                         }}>
                           <Typography variant="subtitle2" sx={{ 
-                            color: '#10B981',
+                            color: '#10b981',
                             mb: 0.5,
                             display: 'flex',
                             alignItems: 'center',
-                            gap: 0.5
+                            gap: 0.5,
+                            fontWeight: 700
                           }}>
-                            <CheckCircle fontSize="small" /> Response:
+                            <CheckCircle fontSize="small" /> {language === 'am' ? 'ምላሽ፡' : 'Response:'}
                           </Typography>
                           <Typography variant="body2" sx={{ 
-                            color: theme === 'dark' ? '#a8b2d1' : '#666666',
-                            backgroundColor: theme === 'dark' ? '#0f172a' : '#f0f0f0',
+                            color: themeStyles.textColor,
+                            backgroundColor: isDark ? '#112240' : '#f1f5f9',
                             p: 1.5,
-                            borderRadius: 1,
+                            borderRadius: 1.5,
                             whiteSpace: 'pre-wrap'
                           }}>
                             {msg.response}
                           </Typography>
                           {msg.respondedAt && (
-                            <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5, display: 'block' }}>
-                              Responded: {formatDate(msg.respondedAt)}
+                            <Typography variant="caption" sx={{ color: themeStyles.mutedColor, mt: 0.5, display: 'block' }}>
+                              {language === 'am' ? 'ምላሽ የተሰጠበት ቀን፡' : 'Responded:'} {formatDate(msg.respondedAt)}
                             </Typography>
                           )}
                         </Box>
@@ -390,13 +396,13 @@ const MessageModal: React.FC<MessageModalProps> = ({
         </Box>
         
         {/* Message Form */}
-        <Box sx={{ p: 2 }}>
+        <Box sx={{ p: 2.5 }}>
           <Typography variant="subtitle2" sx={{ 
             mb: 2,
-            color: theme === 'dark' ? '#00ffff' : '#8B5CF6',
+            color: themeStyles.primaryColor,
             fontWeight: 'bold'
           }}>
-            Send New Message
+            {language === 'am' ? 'አዲስ መልእክት ይላኩ' : 'Send New Message'}
           </Typography>
           
           <form onSubmit={handleSubmitMessage}>
@@ -409,39 +415,39 @@ const MessageModal: React.FC<MessageModalProps> = ({
             }}>
               <TextField
                 fullWidth
-                label="Your Name"
+                label={language === 'am' ? 'የእርስዎ ስም' : 'Your Name'}
                 value={messageForm.name}
                 onChange={(e) => handleFormChange('name', e.target.value)}
                 size="small"
                 InputProps={{
-                  startAdornment: <Person fontSize="small" sx={{ mr: 1, color: theme === 'dark' ? '#a8b2d1' : '#666666' }} />,
+                  startAdornment: <Person fontSize="small" sx={{ mr: 1, color: themeStyles.mutedColor }} />,
                 }}
                 sx={textFieldStyle}
               />
               
               <TextField
                 fullWidth
-                label="Phone Number"
+                label={language === 'am' ? 'ስልክ ቁጥር' : 'Phone Number'}
                 value={messageForm.phone}
                 onChange={(e) => handleFormChange('phone', e.target.value)}
                 size="small"
-                helperText={!orderId && !messageForm.email ? "Required if no email or order" : ""}
+                helperText={!orderId && !messageForm.email ? (language === 'am' ? 'ኢሜይል ወይም ትዕዛዝ ከሌለ ስልክ ቁጥር ያስፈልጋል' : 'Required if no email or order') : ''}
                 InputProps={{
-                  startAdornment: <Phone fontSize="small" sx={{ mr: 1, color: theme === 'dark' ? '#a8b2d1' : '#666666' }} />,
+                  startAdornment: <Phone fontSize="small" sx={{ mr: 1, color: themeStyles.mutedColor }} />,
                 }}
                 sx={textFieldStyle}
               />
               
               <TextField
                 fullWidth
-                label="Email Address"
+                label={language === 'am' ? 'ኢሜይል አድራሻ' : 'Email Address'}
                 type="email"
                 value={messageForm.email}
                 onChange={(e) => handleFormChange('email', e.target.value)}
                 size="small"
-                helperText={!orderId && !messageForm.phone ? "Required if no phone or order" : ""}
+                helperText={!orderId && !messageForm.phone ? (language === 'am' ? 'ስልክ ወይም ትዕዛዝ ከሌለ ኢሜይል ያስፈልጋል' : 'Required if no phone or order') : ''}
                 InputProps={{
-                  startAdornment: <Email fontSize="small" sx={{ mr: 1, color: theme === 'dark' ? '#a8b2d1' : '#666666' }} />,
+                  startAdornment: <Email fontSize="small" sx={{ mr: 1, color: themeStyles.mutedColor }} />,
                 }}
                 sx={textFieldStyle}
               />
@@ -450,37 +456,37 @@ const MessageModal: React.FC<MessageModalProps> = ({
             {/* Subject */}
             <FormControl fullWidth size="small" sx={{ mb: 2 }}>
               <InputLabel sx={{ 
-                color: theme === 'dark' ? '#a8b2d1' : '#666666',
-                '&.Mui-focused': { color: theme === 'dark' ? '#00ffff' : '#8B5CF6' }
+                color: themeStyles.mutedColor,
+                '&.Mui-focused': { color: themeStyles.primaryColor }
               }}>
-                Subject
+                {t('message.subject', 'Subject')}
               </InputLabel>
               <Select
                 value={messageForm.subject}
-                label="Subject"
+                label={t('message.subject', 'Subject')}
                 onChange={(e) => handleFormChange('subject', e.target.value)}
                 sx={textFieldStyle}
               >
-                <MenuItem value="general">General Inquiry</MenuItem>
-                <MenuItem value="property-inquiry">Property Inquiry</MenuItem>
-                <MenuItem value="booking-request">Booking Request</MenuItem>
-                <MenuItem value="payment-issue">Payment Issue</MenuItem>
-                <MenuItem value="support">Support</MenuItem>
-                <MenuItem value="other">Other</MenuItem>
+                <MenuItem value="general">{language === 'am' ? 'አጠቃላይ ጥያቄ' : 'General Inquiry'}</MenuItem>
+                <MenuItem value="property-inquiry">{language === 'am' ? 'ስለ ንብረቱ መጠየቅ' : 'Property Inquiry'}</MenuItem>
+                <MenuItem value="booking-request">{language === 'am' ? 'የቀጠሮ ጥያቄ' : 'Booking Request'}</MenuItem>
+                <MenuItem value="payment-issue">{language === 'am' ? 'የክፍያ ጉዳይ' : 'Payment Issue'}</MenuItem>
+                <MenuItem value="support">{language === 'am' ? 'ድጋፍ' : 'Support'}</MenuItem>
+                <MenuItem value="other">{language === 'am' ? 'ሌላ' : 'Other'}</MenuItem>
               </Select>
             </FormControl>
             
             {/* Message */}
             <TextField
               fullWidth
-              label="Your Message *"
+              label={t('message.content', 'Your Message *')}
               value={messageForm.message}
               onChange={(e) => handleFormChange('message', e.target.value)}
               multiline
               rows={4}
               required
-              placeholder="Please share your questions, concerns, or requests..."
-              helperText="This field is required"
+              placeholder={language === 'am' ? 'እባክዎ ጥያቄዎን፣ አስተያየትዎን ወይም ፍላጎትዎን ያካፍሉ...' : 'Please share your questions, concerns, or requests...'}
+              helperText={language === 'am' ? 'ይህ መስክ የግድ መሞላት አለበት' : 'This field is required'}
               sx={{ ...textFieldStyle, mb: 2 }}
             />
             
@@ -489,24 +495,25 @@ const MessageModal: React.FC<MessageModalProps> = ({
               type="submit"
               variant="contained"
               fullWidth
-              startIcon={submitting ? <CircularProgress size={20} /> : <Send />}
+              startIcon={submitting ? <CircularProgress size={20} color="inherit" /> : <Send />}
               disabled={submitting || !messageForm.message.trim()}
               sx={{
-                background: themeStyles.headerBg,
-                borderRadius: 2,
+                bgcolor: themeStyles.primaryColor,
+                color: '#ffffff',
+                borderRadius: '10px',
                 py: 1.2,
                 fontWeight: 'bold',
+                textTransform: 'none',
                 '&:hover': {
-                  background: theme === 'dark'
-                    ? 'linear-gradient(135deg, #00b3b3, #008080)'
-                    : 'linear-gradient(135deg, #7C3AED, #DB2777)'
+                  bgcolor: isDark ? '#0284c7' : '#1d4ed8'
                 },
                 '&.Mui-disabled': {
-                  background: theme === 'dark' ? '#334155' : '#e5e7eb'
+                  bgcolor: isDark ? '#233554' : '#e2e8f0',
+                  color: isDark ? '#64748b' : '#94a3b8'
                 }
               }}
             >
-              {submitting ? 'Sending...' : 'Send Message'}
+              {submitting ? t('action.sending', 'Sending...') : t('message.send', 'Send Message')}
             </Button>
           </form>
         </Box>

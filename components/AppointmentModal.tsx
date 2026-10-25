@@ -22,6 +22,8 @@ import {
   IconButton
 } from '@mui/material';
 import { CalendarMonth, AccessTime, Person, Close, VideoCameraFront, LocationOn } from '@mui/icons-material';
+import { useTheme } from '@/lib/theme-context';
+import { useLanguage } from '@/lib/language-context';
 import api from '@/app/utils/api';
 import { House } from '@/types/houses';
 
@@ -38,6 +40,10 @@ export default function AppointmentModal({
   house,
   onSuccess
 }: AppointmentModalProps) {
+  const { theme } = useTheme();
+  const { t, language } = useLanguage();
+  const isDark = theme === 'dark';
+
   const [visitDate, setVisitDate] = useState('');
   const [timeSlot, setTimeSlot] = useState('10:00 AM - 11:00 AM');
   const [visitType, setVisitType] = useState<'IN_PERSON' | 'VIRTUAL_TOUR'>('IN_PERSON');
@@ -61,10 +67,32 @@ export default function AppointmentModal({
   tomorrow.setDate(tomorrow.getDate() + 1);
   const minDateString = tomorrow.toISOString().split('T')[0];
 
+  const textFieldStyle = {
+    '& .MuiOutlinedInput-root': {
+      backgroundColor: isDark ? '#0a192f' : '#ffffff',
+      color: isDark ? '#f1f5f9' : '#0f172a',
+      borderRadius: '10px',
+      '& fieldset': { borderColor: isDark ? '#233554' : '#cbd5e1' },
+      '&:hover fieldset': { borderColor: isDark ? '#38bdf8' : '#2563eb' },
+      '&.Mui-focused fieldset': { borderColor: isDark ? '#38bdf8' : '#2563eb' }
+    },
+    '& .MuiInputLabel-root': { color: isDark ? '#94a3b8' : '#64748b' }
+  };
+
+  const selectStyle = {
+    backgroundColor: isDark ? '#0a192f' : '#ffffff',
+    color: isDark ? '#f1f5f9' : '#0f172a',
+    borderRadius: '10px',
+    '& .MuiOutlinedInput-notchedOutline': { borderColor: isDark ? '#233554' : '#cbd5e1' },
+    '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: isDark ? '#38bdf8' : '#2563eb' },
+    '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: isDark ? '#38bdf8' : '#2563eb' },
+    '& .MuiSvgIcon-root': { color: isDark ? '#94a3b8' : '#64748b' }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!visitDate) {
-      setError('Please select a visit date');
+      setError(language === 'am' ? 'እባክዎ የጉብኝት ቀን ይምረጡ' : 'Please select a visit date');
       return;
     }
 
@@ -80,14 +108,14 @@ export default function AppointmentModal({
         notes
       });
 
-      setSuccess('Viewing appointment request submitted successfully!');
+      setSuccess(language === 'am' ? 'የጉብኝት ቀጠሮ ጥያቄ በተሳካ ሁኔታ ተልኳል!' : 'Viewing appointment request submitted successfully!');
       setTimeout(() => {
         onSuccess?.();
         onClose();
         setSuccess('');
       }, 1500);
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to schedule appointment. Please try again.');
+      setError(err.response?.data?.message || (language === 'am' ? 'ቀጠሮ ማስያዝ አልተቻለም። እባክዎ እንደገና ይሞክሩ።' : 'Failed to schedule appointment. Please try again.'));
     } finally {
       setLoading(false);
     }
@@ -102,60 +130,67 @@ export default function AppointmentModal({
       PaperProps={{
         sx: {
           borderRadius: 3,
-          bgcolor: 'background.paper',
+          bgcolor: isDark ? '#112240' : '#ffffff',
+          border: isDark ? '1px solid #233554' : '1px solid #e2e8f0',
+          color: isDark ? '#f1f5f9' : '#0f172a',
           backgroundImage: 'none'
         }
       }}
     >
-      <DialogTitle sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', pb: 1 }}>
+      <DialogTitle sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', pb: 1, borderBottom: isDark ? '1px solid #233554' : '1px solid #e2e8f0' }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-          <CalendarMonth sx={{ color: '#06b6d4', fontSize: 28 }} />
+          <CalendarMonth sx={{ color: isDark ? '#38bdf8' : '#2563eb', fontSize: 28 }} />
           <Box>
-            <Typography variant="h6" sx={{ fontWeight: 700 }}>
-              Schedule a Property Viewing
+            <Typography variant="h6" sx={{ fontWeight: 700, color: isDark ? '#f1f5f9' : '#0f172a' }}>
+              {t('appointment.title', 'Schedule a Property Viewing')}
             </Typography>
-            <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+            <Typography variant="body2" sx={{ color: isDark ? '#94a3b8' : '#64748b' }}>
               {house.title}
             </Typography>
           </Box>
         </Box>
-        <IconButton onClick={onClose} size="small">
+        <IconButton onClick={onClose} size="small" sx={{ color: isDark ? '#94a3b8' : '#64748b' }}>
           <Close />
         </IconButton>
       </DialogTitle>
 
       <form onSubmit={handleSubmit}>
-        <DialogContent dividers sx={{ display: 'flex', flexDirection: 'column', gap: 2.5, py: 3 }}>
-          {error && <Alert severity="error">{error}</Alert>}
-          {success && <Alert severity="success">{success}</Alert>}
+        <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 2.5, py: 3 }}>
+          {error && <Alert severity="error" sx={{ borderRadius: 2 }}>{error}</Alert>}
+          {success && <Alert severity="success" sx={{ borderRadius: 2 }}>{success}</Alert>}
 
           {/* Visit Type */}
           <Box>
-            <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1 }}>
-              Viewing Mode
+            <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1, color: isDark ? '#f1f5f9' : '#0f172a' }}>
+              {t('appointment.type', 'Viewing Mode')}
             </Typography>
             <RadioGroup
               row
               value={visitType}
               onChange={(e) => setVisitType(e.target.value as any)}
+              sx={{ gap: { xs: 1, sm: 2 } }}
             >
               <FormControlLabel
                 value="IN_PERSON"
-                control={<Radio sx={{ color: '#06b6d4', '&.Mui-checked': { color: '#06b6d4' } }} />}
+                control={<Radio sx={{ color: isDark ? '#38bdf8' : '#2563eb', '&.Mui-checked': { color: isDark ? '#38bdf8' : '#2563eb' } }} />}
                 label={
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                    <LocationOn fontSize="small" sx={{ color: '#06b6d4' }} />
-                    <Typography variant="body2" sx={{ fontWeight: 600 }}>In-Person Physical Visit</Typography>
+                    <LocationOn fontSize="small" sx={{ color: isDark ? '#38bdf8' : '#2563eb' }} />
+                    <Typography variant="body2" sx={{ fontWeight: 600, color: isDark ? '#f1f5f9' : '#0f172a' }}>
+                      {t('appointment.in_person', 'In-Person Physical Visit')}
+                    </Typography>
                   </Box>
                 }
               />
               <FormControlLabel
                 value="VIRTUAL_TOUR"
-                control={<Radio sx={{ color: '#06b6d4', '&.Mui-checked': { color: '#06b6d4' } }} />}
+                control={<Radio sx={{ color: isDark ? '#38bdf8' : '#2563eb', '&.Mui-checked': { color: isDark ? '#38bdf8' : '#2563eb' } }} />}
                 label={
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                     <VideoCameraFront fontSize="small" sx={{ color: '#a855f7' }} />
-                    <Typography variant="body2" sx={{ fontWeight: 600 }}>Live Video Tour (Virtual)</Typography>
+                    <Typography variant="body2" sx={{ fontWeight: 600, color: isDark ? '#f1f5f9' : '#0f172a' }}>
+                      {t('appointment.virtual', 'Live Video Tour (Virtual)')}
+                    </Typography>
                   </Box>
                 }
               />
@@ -163,9 +198,9 @@ export default function AppointmentModal({
           </Box>
 
           {/* Date & Time */}
-          <Box sx={{ display: 'flex', gap: 2, flexWrap: { xs: 'wrap', sm: 'nowrap' } }}>
+          <Box sx={{ display: 'flex', gap: 2, flexDirection: { xs: 'column', sm: 'row' } }}>
             <TextField
-              label="Select Date"
+              label={t('appointment.date', 'Select Date')}
               type="date"
               fullWidth
               value={visitDate}
@@ -173,13 +208,16 @@ export default function AppointmentModal({
               inputProps={{ min: minDateString }}
               InputLabelProps={{ shrink: true }}
               required
+              sx={textFieldStyle}
             />
 
-            <FormControl fullWidth required>
-              <InputLabel>Available Time Slot</InputLabel>
+            <FormControl fullWidth required sx={selectStyle}>
+              <InputLabel sx={{ color: isDark ? '#94a3b8' : '#64748b' }}>
+                {t('appointment.time', 'Available Time Slot')}
+              </InputLabel>
               <Select
                 value={timeSlot}
-                label="Available Time Slot"
+                label={t('appointment.time', 'Available Time Slot')}
                 onChange={(e) => setTimeSlot(e.target.value)}
               >
                 {timeSlots.map((slot) => (
@@ -193,42 +231,56 @@ export default function AppointmentModal({
 
           {/* Number of Visitors */}
           <TextField
-            label="Number of Attendees"
+            label={t('appointment.visitors', 'Number of Attendees')}
             type="number"
             fullWidth
             value={numberOfVisitors}
             onChange={(e) => setNumberOfVisitors(Math.max(1, parseInt(e.target.value) || 1))}
             inputProps={{ min: 1, max: 10 }}
+            sx={textFieldStyle}
           />
 
           {/* Additional Notes */}
           <TextField
-            label="Special Inquiries or Questions for Agent"
+            label={t('appointment.notes', 'Special Inquiries or Questions for Agent')}
             multiline
             rows={3}
             fullWidth
-            placeholder="e.g. Inquiring about lease start date, parking spaces, or neighborhood schools."
+            placeholder={language === 'am' ? 'ለምሳሌ፡ ስለ ውል ጅምር፣ የመኪና ማቆሚያ፣ ወይም የአካባቢ ትምህርት ቤቶች መጠየቅ።' : 'e.g. Inquiring about lease start date, parking spaces, or neighborhood schools.'}
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
+            sx={textFieldStyle}
           />
         </DialogContent>
 
-        <DialogActions sx={{ p: 2 }}>
-          <Button onClick={onClose} sx={{ color: 'text.secondary' }}>
-            Cancel
+        <DialogActions sx={{ p: 2.5, borderTop: isDark ? '1px solid #233554' : '1px solid #e2e8f0', display: 'flex', flexDirection: { xs: 'column-reverse', sm: 'row' }, gap: 1.5 }}>
+          <Button
+            onClick={onClose}
+            sx={{
+              color: isDark ? '#94a3b8' : '#64748b',
+              width: { xs: '100%', sm: 'auto' },
+              textTransform: 'none'
+            }}
+          >
+            {t('action.cancel', 'Cancel')}
           </Button>
           <Button
             type="submit"
             variant="contained"
             disabled={loading}
             sx={{
-              bgcolor: '#06b6d4',
-              '&:hover': { bgcolor: '#0891b2' },
-              borderRadius: 2,
-              px: 3
+              bgcolor: isDark ? '#38bdf8' : '#2563eb',
+              color: '#ffffff',
+              '&:hover': { bgcolor: isDark ? '#0284c7' : '#1d4ed8' },
+              borderRadius: '10px',
+              px: 3,
+              py: 1,
+              fontWeight: 600,
+              textTransform: 'none',
+              width: { xs: '100%', sm: 'auto' }
             }}
           >
-            {loading ? <CircularProgress size={24} color="inherit" /> : 'Confirm Appointment Request'}
+            {loading ? <CircularProgress size={24} color="inherit" /> : t('appointment.submit', 'Confirm Appointment Request')}
           </Button>
         </DialogActions>
       </form>

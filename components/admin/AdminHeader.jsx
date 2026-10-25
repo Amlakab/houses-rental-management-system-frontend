@@ -7,6 +7,7 @@ import { useLanguage } from '@/lib/language-context';
 import { Bell, LogOut, User, Menu } from 'lucide-react';
 import { FaSun, FaMoon, FaChevronDown, FaCheck } from 'react-icons/fa';
 import { useRouter } from 'next/navigation';
+import NotificationCenter from '@/components/NotificationCenter';
 
 export default function AdminHeader({ onMenuClick, onSidebarToggle, isSidebarCollapsed, isSidebarOpen }) {
   const { user, logout } = useAuth();
@@ -99,6 +100,9 @@ export default function AdminHeader({ onMenuClick, onSidebarToggle, isSidebarCol
       </div>
 
       <div className="flex shrink-0 items-center gap-1.5 sm:gap-2.5">
+        {/* Notifications */}
+        <NotificationCenter />
+
         {/* Theme Toggle */}
         <button
           onClick={toggleTheme}

@@ -24,9 +24,11 @@ import {
 } from '@/types/houses';
 import LeaseAgreementModal from '@/components/LeaseAgreementModal';
 import Link from 'next/link';
+import { useLanguage } from '@/lib/language-context';
 
 export default function AdminWorkflowManagementPage() {
   const { theme } = useTheme();
+  const { t, isAmharic } = useLanguage();
   const { user } = useAuth();
   const isDark = theme === 'dark';
 
@@ -309,65 +311,65 @@ export default function AdminWorkflowManagementPage() {
   };
 
   const statMetrics = [
-    { title: 'Appointments', count: appointments.filter(a => a.status === 'REQUESTED').length, total: appointments.length, icon: <CalendarMonth />, color: '#06b6d4', tab: 0 },
-    { title: 'Rental Apps', count: applications.filter(a => a.status === 'PENDING').length, total: applications.length, icon: <Description />, color: '#8b5cf6', tab: 1 },
-    { title: 'Active Leases', count: leases.filter(l => l.status === 'PENDING_SIGNATURE').length, total: leases.length, icon: <Article />, color: '#10b981', tab: 2 },
-    { title: 'Purchase Offers', count: offers.filter(o => o.status === 'OFFER_SUBMITTED' || o.status === 'UNDER_NEGOTIATION').length, total: offers.length, icon: <LocalOffer />, color: '#f59e0b', tab: 3 },
-    { title: 'Maintenance', count: maintenanceTickets.filter(m => m.status === 'PENDING' || m.status === 'IN_PROGRESS').length, total: maintenanceTickets.length, icon: <Build />, color: '#ef4444', tab: 4 },
+    { title: t('workflows.tab_appointments', 'Appointments'), count: appointments.filter(a => a.status === 'REQUESTED').length, total: appointments.length, icon: <CalendarMonth />, color: '#06b6d4', tab: 0 },
+    { title: t('workflows.tab_applications', 'Rental Applications'), count: applications.filter(a => a.status === 'PENDING').length, total: applications.length, icon: <Description />, color: '#8b5cf6', tab: 1 },
+    { title: t('workflows.tab_leases', 'Lease Agreements'), count: leases.filter(l => l.status === 'PENDING_SIGNATURE').length, total: leases.length, icon: <Article />, color: '#10b981', tab: 2 },
+    { title: t('workflows.tab_offers', 'Purchase Offers'), count: offers.filter(o => o.status === 'OFFER_SUBMITTED' || o.status === 'UNDER_NEGOTIATION').length, total: offers.length, icon: <LocalOffer />, color: '#f59e0b', tab: 3 },
+    { title: t('workflows.tab_maintenance', 'Maintenance Tickets'), count: maintenanceTickets.filter(m => m.status === 'PENDING' || m.status === 'IN_PROGRESS').length, total: maintenanceTickets.length, icon: <Build />, color: '#ef4444', tab: 4 },
   ];
 
   return (
-    <Box sx={{ p: { xs: 2, sm: 3, md: 4 } }}>
+    <Box sx={{ p: { xs: 1.5, sm: 2.5, md: 3 }, width: '100%', maxWidth: '100%', overflowX: 'hidden' }}>
       {/* ─── Header Section ─── */}
       <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, justifyContent: 'space-between', alignItems: { xs: 'flex-start', md: 'center' }, gap: 2, mb: 4 }}>
         <Box>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 0.5 }}>
-            <Typography variant="h4" sx={{ fontWeight: 800, color: isDark ? '#ccd6f6' : '#0f172a' }}>
-              Workflows & Customer Requests
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 0.5, flexWrap: 'wrap' }}>
+            <Typography variant="h4" sx={{ fontWeight: 800, color: isDark ? '#f1f5f9' : '#0f172a', fontSize: { xs: '1.5rem', sm: '2rem' } }}>
+              {t('workflows.title', 'Workflows & Property Requests')}
             </Typography>
             <Chip
               size="small"
-              label="Manager Hub"
+              label={isAmharic ? 'የስራ ማዕከል' : 'Manager Hub'}
               sx={{
-                bgcolor: isDark ? 'rgba(0, 255, 255, 0.15)' : 'rgba(2, 132, 199, 0.1)',
-                color: isDark ? '#00ffff' : '#0284c7',
+                bgcolor: isDark ? 'rgba(56, 189, 248, 0.15)' : 'rgba(37, 99, 235, 0.1)',
+                color: isDark ? '#38bdf8' : '#2563eb',
                 fontWeight: 700,
-                border: isDark ? '1px solid rgba(0, 255, 255, 0.3)' : '1px solid rgba(2, 132, 199, 0.3)'
+                border: `1px solid ${isDark ? 'rgba(56, 189, 248, 0.3)' : 'rgba(37, 99, 235, 0.3)'}`
               }}
             />
           </Box>
-          <Typography variant="body2" sx={{ color: isDark ? '#8892b0' : '#64748b' }}>
-            Review customer viewing requests, generate rental contracts, negotiate purchase bids, and assign maintenance technicians.
+          <Typography variant="body2" sx={{ color: isDark ? '#94a3b8' : '#64748b' }}>
+            {t('workflows.subtitle', 'Manage customer appointments, rental applications, leases, purchase offers, maintenance tickets, and listing reports')}
           </Typography>
         </Box>
 
-        <Stack direction="row" spacing={1.5}>
+        <Stack direction="row" spacing={1.5} sx={{ alignSelf: { xs: 'flex-start', md: 'center' } }}>
           {['admin', 'owner', 'agent'].includes(user?.role || '') && (
             <Button
               variant="contained"
               startIcon={<Add />}
               onClick={() => setCreateLeaseModalOpen(true)}
               sx={{
-                bgcolor: isDark ? '#00ffff' : '#0284c7',
+                bgcolor: isDark ? '#38bdf8' : '#2563eb',
                 color: isDark ? '#0a192f' : '#ffffff',
                 fontWeight: 700,
-                borderRadius: 2,
+                borderRadius: 2.5,
                 textTransform: 'none',
-                '&:hover': { bgcolor: isDark ? '#38bdf8' : '#0369a1' }
+                '&:hover': { bgcolor: isDark ? '#7dd3fc' : '#1d4ed8' }
               }}
             >
-              New Lease Contract
+              {isAmharic ? 'አዲስ ውል ፍጠር' : 'New Lease Contract'}
             </Button>
           )}
 
-          <Tooltip title="Refresh Workflow Hub">
+          <Tooltip title={isAmharic ? 'አድስ' : 'Refresh Workflow Hub'}>
             <IconButton
               onClick={() => fetchData(true)}
               disabled={refreshing || loading}
               sx={{
-                bgcolor: isDark ? '#0f172a' : '#f1f5f9',
-                color: isDark ? '#00ffff' : '#0284c7',
-                border: isDark ? '1px solid rgba(0, 255, 255, 0.2)' : '1px solid #e2e8f0'
+                bgcolor: isDark ? '#112240' : '#ffffff',
+                color: isDark ? '#38bdf8' : '#2563eb',
+                border: `1px solid ${isDark ? '#233554' : '#e2e8f0'}`
               }}
             >
               <Refresh sx={{ animation: refreshing ? 'spin 1s linear infinite' : 'none' }} />
@@ -377,67 +379,79 @@ export default function AdminWorkflowManagementPage() {
       </Box>
 
       {/* ─── Metric Cards ─── */}
-      <Grid container spacing={2.5} sx={{ mb: 4 }}>
+      <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', lg: 'repeat(5, 1fr)' }, gap: 2, mb: 4 }}>
         {statMetrics.map((stat, idx) => (
-          <Grid item xs={12} sm={6} md={3} key={idx}>
-            <Card
-              onClick={() => setActiveTab(stat.tab)}
-              sx={{
-                cursor: 'pointer',
-                borderRadius: 3,
-                p: 0.5,
-                bgcolor: isDark ? '#0f172a80' : '#ffffff',
-                border: isDark ? '1px solid rgba(0, 255, 255, 0.15)' : '1px solid #e2e8f0',
-                borderLeft: `5px solid ${stat.color}`,
-                boxShadow: activeTab === stat.tab ? (isDark ? '0 0 15px rgba(0, 255, 255, 0.25)' : '0 4px 12px rgba(6, 182, 212, 0.2)') : 'none',
-                transition: 'all 0.2s',
-                '&:hover': { transform: 'translateY(-2px)', borderColor: stat.color }
-              }}
-            >
-              <CardContent sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', py: 2 }}>
-                <Box>
-                  <Typography variant="caption" sx={{ color: isDark ? '#8892b0' : '#64748b', fontWeight: 600, textTransform: 'uppercase' }}>
-                    {stat.title}
+          <Card
+            key={idx}
+            onClick={() => setActiveTab(stat.tab)}
+            sx={{
+              cursor: 'pointer',
+              borderRadius: 3,
+              p: 0.5,
+              bgcolor: isDark ? '#112240' : '#ffffff',
+              border: `1px solid ${activeTab === stat.tab ? stat.color : (isDark ? '#233554' : '#e2e8f0')}`,
+              borderLeft: `5px solid ${stat.color}`,
+              boxShadow: activeTab === stat.tab ? (isDark ? `0 0 15px ${stat.color}40` : `0 4px 12px ${stat.color}30`) : 'none',
+              transition: 'all 0.2s ease',
+              '&:hover': { transform: 'translateY(-2px)', borderColor: stat.color }
+            }}
+          >
+            <CardContent sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', py: 1.5, px: 2 }}>
+              <Box sx={{ minWidth: 0 }}>
+                <Typography noWrap variant="caption" sx={{ color: isDark ? '#94a3b8' : '#64748b', fontWeight: 700, textTransform: 'uppercase', display: 'block' }}>
+                  {stat.title}
+                </Typography>
+                <Box sx={{ display: 'flex', alignItems: 'baseline', gap: 1, mt: 0.5 }}>
+                  <Typography variant="h5" sx={{ fontWeight: 800, color: isDark ? '#f1f5f9' : '#0f172a' }}>
+                    {stat.count}
                   </Typography>
-                  <Box sx={{ display: 'flex', alignItems: 'baseline', gap: 1, mt: 0.5 }}>
-                    <Typography variant="h4" sx={{ fontWeight: 800, color: isDark ? '#ccd6f6' : '#0f172a' }}>
-                      {stat.count}
-                    </Typography>
-                    <Typography variant="caption" sx={{ color: isDark ? '#8892b0' : '#64748b' }}>
-                      pending / {stat.total} total
-                    </Typography>
-                  </Box>
+                  <Typography variant="caption" sx={{ color: isDark ? '#94a3b8' : '#64748b' }}>
+                    / {stat.total}
+                  </Typography>
                 </Box>
-                <Avatar sx={{ bgcolor: isDark ? `${stat.color}20` : `${stat.color}15`, color: stat.color, width: 48, height: 48 }}>
-                  {stat.icon}
-                </Avatar>
-              </CardContent>
-            </Card>
-          </Grid>
+              </Box>
+              <Avatar sx={{ bgcolor: `${stat.color}20`, color: stat.color, width: 42, height: 42 }}>
+                {stat.icon}
+              </Avatar>
+            </CardContent>
+          </Card>
         ))}
-      </Grid>
+      </Box>
 
       {/* ─── Navigation Tabs ─── */}
-      <Card sx={{ borderRadius: 3, mb: 4, bgcolor: isDark ? '#0f172a80' : '#ffffff', border: isDark ? '1px solid rgba(0, 255, 255, 0.15)' : '1px solid #e2e8f0' }}>
+      <Card sx={{ borderRadius: 3, mb: 4, bgcolor: isDark ? '#112240' : '#ffffff', border: `1px solid ${isDark ? '#233554' : '#e2e8f0'}`, boxShadow: 'none' }}>
         <Tabs
           value={activeTab}
           onChange={(_, val) => setActiveTab(val)}
           variant="scrollable"
           scrollButtons="auto"
           sx={{
-            px: 2,
-            '& .MuiTab-root': { color: isDark ? '#8892b0' : '#64748b', fontWeight: 600, textTransform: 'none', fontSize: '0.95rem', py: 2 },
-            '& .Mui-selected': { color: isDark ? '#00ffff' : '#0284c7' },
-            '& .MuiTabs-indicator': { bgcolor: isDark ? '#00ffff' : '#0284c7', height: 3 }
+            px: { xs: 1, sm: 2 },
+            '& .MuiTab-root': { 
+              color: isDark ? '#94a3b8' : '#64748b', 
+              fontWeight: 600, 
+              textTransform: 'none', 
+              fontSize: { xs: '0.85rem', sm: '0.95rem' }, 
+              py: 2 
+            },
+            '& .Mui-selected': { 
+              color: isDark ? '#38bdf8 !important' : '#2563eb !important',
+              fontWeight: 700
+            },
+            '& .MuiTabs-indicator': { 
+              bgcolor: isDark ? '#38bdf8' : '#2563eb', 
+              height: 3,
+              borderRadius: 2
+            }
           }}
         >
-          <Tab icon={<CalendarMonth />} iconPosition="start" label={`Viewing Appointments (${appointments.length})`} />
-          <Tab icon={<Description />} iconPosition="start" label={`Rental Applications (${applications.length})`} />
-          <Tab icon={<Article />} iconPosition="start" label={`Lease Agreements (${leases.length})`} />
-          <Tab icon={<LocalOffer />} iconPosition="start" label={`Purchase Offers (${offers.length})`} />
-          <Tab icon={<Build />} iconPosition="start" label={`Maintenance Dispatch (${maintenanceTickets.length})`} />
+          <Tab icon={<CalendarMonth />} iconPosition="start" label={`${t('workflows.tab_appointments', 'Appointments')} (${appointments.length})`} />
+          <Tab icon={<Description />} iconPosition="start" label={`${t('workflows.tab_applications', 'Rental Applications')} (${applications.length})`} />
+          <Tab icon={<Article />} iconPosition="start" label={`${t('workflows.tab_leases', 'Lease Agreements')} (${leases.length})`} />
+          <Tab icon={<LocalOffer />} iconPosition="start" label={`${t('workflows.tab_offers', 'Purchase Offers')} (${offers.length})`} />
+          <Tab icon={<Build />} iconPosition="start" label={`${t('workflows.tab_maintenance', 'Maintenance Dispatch')} (${maintenanceTickets.length})`} />
           {user?.role === 'admin' && (
-            <Tab icon={<ReportProblem />} iconPosition="start" label={`Listing Reports (${reports.length})`} />
+            <Tab icon={<ReportProblem />} iconPosition="start" label={`${t('workflows.tab_reports', 'Listing Reports')} (${reports.length})`} />
           )}
         </Tabs>
       </Card>
@@ -446,7 +460,7 @@ export default function AdminWorkflowManagementPage() {
       {loading ? (
         <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', py: 12 }}>
           <CircularProgress sx={{ color: isDark ? '#00ffff' : '#0284c7', mb: 2 }} />
-          <Typography variant="body2" sx={{ color: isDark ? '#8892b0' : '#64748b' }}>Loading customer workflows...</Typography>
+          <Typography variant="body2" sx={{ color: isDark ? '#94a3b8' : '#64748b' }}>Loading customer workflows...</Typography>
         </Box>
       ) : (
         <AnimatePresence mode="wait">
@@ -456,14 +470,14 @@ export default function AdminWorkflowManagementPage() {
               {appointments.length === 0 ? (
                 <Paper elevation={0} sx={{ p: 6, textAlign: 'center', borderRadius: 3, border: '1px dashed', borderColor: isDark ? 'rgba(0, 255, 255, 0.2)' : '#cbd5e1', bgcolor: isDark ? '#0f172a40' : '#f8fafc' }}>
                   <CalendarMonth sx={{ fontSize: 48, color: '#06b6d4', mb: 1, opacity: 0.8 }} />
-                  <Typography variant="h6" sx={{ fontWeight: 700, color: isDark ? '#ccd6f6' : '#0f172a' }}>No viewing appointments requested</Typography>
-                  <Typography variant="body2" sx={{ color: isDark ? '#8892b0' : '#64748b' }}>When prospective clients schedule on-site visits or virtual tours, they will appear here.</Typography>
+                  <Typography variant="h6" sx={{ fontWeight: 700, color: isDark ? '#f1f5f9' : '#0f172a' }}>No viewing appointments requested</Typography>
+                  <Typography variant="body2" sx={{ color: isDark ? '#94a3b8' : '#64748b' }}>When prospective clients schedule on-site visits or virtual tours, they will appear here.</Typography>
                 </Paper>
               ) : (
                 <Grid container spacing={3}>
                   {appointments.map((app) => (
                     <Grid item xs={12} md={6} key={app._id}>
-                      <Card sx={{ borderRadius: 3, bgcolor: isDark ? '#0f172a80' : '#ffffff', border: isDark ? '1px solid rgba(0, 255, 255, 0.15)' : '1px solid #e2e8f0', p: 1 }}>
+                      <Card sx={{ borderRadius: 3, bgcolor: isDark ? '#112240' : '#ffffff', border: `1px solid ${isDark ? '#233554' : '#e2e8f0'}`, p: 1 }}>
                         <CardContent>
                           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1.5 }}>
                             <Chip
@@ -475,26 +489,26 @@ export default function AdminWorkflowManagementPage() {
                             <Chip size="small" label={app.visitType === 'IN_PERSON' ? 'In-Person Visit' : 'Virtual Live Tour'} sx={{ fontWeight: 600 }} />
                           </Box>
 
-                          <Typography variant="h6" sx={{ fontWeight: 700, color: isDark ? '#ccd6f6' : '#0f172a', mb: 1 }}>
+                          <Typography variant="h6" sx={{ fontWeight: 700, color: isDark ? '#f1f5f9' : '#0f172a', mb: 1 }}>
                             {typeof app.houseId === 'object' ? app.houseId.title : 'Property Viewing'}
                           </Typography>
 
                           <Stack spacing={0.8} sx={{ my: 2 }}>
                             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                               <Person fontSize="small" sx={{ color: isDark ? '#00ffff' : '#0284c7' }} />
-                              <Typography variant="body2" sx={{ fontWeight: 600, color: isDark ? '#ccd6f6' : '#0f172a' }}>
+                              <Typography variant="body2" sx={{ fontWeight: 600, color: isDark ? '#f1f5f9' : '#0f172a' }}>
                                 Client: {app.customerName || app.customerId?.name || 'Customer'}
                               </Typography>
                             </Box>
                             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                              <Phone fontSize="small" sx={{ color: isDark ? '#8892b0' : '#64748b' }} />
-                              <Typography variant="body2" sx={{ color: isDark ? '#8892b0' : '#64748b' }}>
+                              <Phone fontSize="small" sx={{ color: isDark ? '#94a3b8' : '#64748b' }} />
+                              <Typography variant="body2" sx={{ color: isDark ? '#94a3b8' : '#64748b' }}>
                                 Phone: {app.customerPhone || app.customerId?.phone || 'N/A'}
                               </Typography>
                             </Box>
                             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                               <CalendarMonth fontSize="small" sx={{ color: '#10b981' }} />
-                              <Typography variant="body2" sx={{ fontWeight: 600, color: isDark ? '#ccd6f6' : '#0f172a' }}>
+                              <Typography variant="body2" sx={{ fontWeight: 600, color: isDark ? '#f1f5f9' : '#0f172a' }}>
                                 Scheduled: {new Date(app.visitDate).toLocaleDateString()} ({app.timeSlot})
                               </Typography>
                             </Box>
@@ -502,7 +516,7 @@ export default function AdminWorkflowManagementPage() {
 
                           {app.notes && (
                             <Box sx={{ p: 1.5, bgcolor: isDark ? 'rgba(255, 255, 255, 0.04)' : '#f8fafc', borderRadius: 2, mb: 2 }}>
-                              <Typography variant="body2" sx={{ color: isDark ? '#8892b0' : '#64748b', fontSize: 13 }}>
+                              <Typography variant="body2" sx={{ color: isDark ? '#94a3b8' : '#64748b', fontSize: 13 }}>
                                 Client Note: {app.notes}
                               </Typography>
                             </Box>
@@ -577,18 +591,18 @@ export default function AdminWorkflowManagementPage() {
               {applications.length === 0 ? (
                 <Paper elevation={0} sx={{ p: 6, textAlign: 'center', borderRadius: 3, border: '1px dashed', borderColor: isDark ? 'rgba(0, 255, 255, 0.2)' : '#cbd5e1', bgcolor: isDark ? '#0f172a40' : '#f8fafc' }}>
                   <Description sx={{ fontSize: 48, color: '#8b5cf6', mb: 1, opacity: 0.8 }} />
-                  <Typography variant="h6" sx={{ fontWeight: 700, color: isDark ? '#ccd6f6' : '#0f172a' }}>No rental applications submitted</Typography>
-                  <Typography variant="body2" sx={{ color: isDark ? '#8892b0' : '#64748b' }}>When prospective tenants apply for rental properties from the marketplace, their background, income, and preferred move-in requests appear here.</Typography>
+                  <Typography variant="h6" sx={{ fontWeight: 700, color: isDark ? '#f1f5f9' : '#0f172a' }}>No rental applications submitted</Typography>
+                  <Typography variant="body2" sx={{ color: isDark ? '#94a3b8' : '#64748b' }}>When prospective tenants apply for rental properties from the marketplace, their background, income, and preferred move-in requests appear here.</Typography>
                 </Paper>
               ) : (
                 <Stack spacing={3}>
                   {applications.map((app) => (
-                    <Card key={app._id} sx={{ borderRadius: 3, bgcolor: isDark ? '#0f172a80' : '#ffffff', border: isDark ? '1px solid rgba(0, 255, 255, 0.15)' : '1px solid #e2e8f0', p: 1 }}>
+                    <Card key={app._id} sx={{ borderRadius: 3, bgcolor: isDark ? '#112240' : '#ffffff', border: `1px solid ${isDark ? '#233554' : '#e2e8f0'}`, p: 1 }}>
                       <CardContent>
                         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 2, mb: 2 }}>
                           <Box>
                             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
-                              <Typography variant="h6" sx={{ fontWeight: 800, color: isDark ? '#ccd6f6' : '#0f172a' }}>
+                              <Typography variant="h6" sx={{ fontWeight: 800, color: isDark ? '#f1f5f9' : '#0f172a' }}>
                                 {app.fullName}
                               </Typography>
                               <Chip
@@ -598,7 +612,7 @@ export default function AdminWorkflowManagementPage() {
                                 sx={{ fontWeight: 700 }}
                               />
                             </Box>
-                            <Typography variant="body2" sx={{ color: isDark ? '#8892b0' : '#64748b' }}>
+                            <Typography variant="body2" sx={{ color: isDark ? '#94a3b8' : '#64748b' }}>
                               Property: {typeof app.houseId === 'object' ? app.houseId.title : 'Rental Listing'}
                             </Typography>
                             <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', mt: 0.5 }}>
@@ -612,7 +626,7 @@ export default function AdminWorkflowManagementPage() {
                           </Box>
 
                           <Box sx={{ textAlign: { xs: 'left', sm: 'right' } }}>
-                            <Typography variant="caption" sx={{ color: isDark ? '#8892b0' : '#64748b' }}>Monthly Income Stated</Typography>
+                            <Typography variant="caption" sx={{ color: isDark ? '#94a3b8' : '#64748b' }}>Monthly Income Stated</Typography>
                             <Typography variant="h5" sx={{ fontWeight: 800, color: '#8b5cf6' }}>
                               ETB {app.monthlyIncome?.toLocaleString()}
                             </Typography>
@@ -623,26 +637,26 @@ export default function AdminWorkflowManagementPage() {
 
                         <Grid container spacing={2} sx={{ mb: 2 }}>
                           <Grid item xs={12} sm={3}>
-                            <Typography variant="caption" sx={{ color: isDark ? '#8892b0' : '#64748b' }}>Occupation / Employer</Typography>
-                            <Typography variant="body2" sx={{ fontWeight: 600, color: isDark ? '#ccd6f6' : '#0f172a' }}>
+                            <Typography variant="caption" sx={{ color: isDark ? '#94a3b8' : '#64748b' }}>Occupation / Employer</Typography>
+                            <Typography variant="body2" sx={{ fontWeight: 600, color: isDark ? '#f1f5f9' : '#0f172a' }}>
                               {app.occupation}
                             </Typography>
                           </Grid>
                           <Grid item xs={12} sm={3}>
-                            <Typography variant="caption" sx={{ color: isDark ? '#8892b0' : '#64748b' }}>Occupants</Typography>
-                            <Typography variant="body2" sx={{ fontWeight: 600, color: isDark ? '#ccd6f6' : '#0f172a' }}>
+                            <Typography variant="caption" sx={{ color: isDark ? '#94a3b8' : '#64748b' }}>Occupants</Typography>
+                            <Typography variant="body2" sx={{ fontWeight: 600, color: isDark ? '#f1f5f9' : '#0f172a' }}>
                               {app.numberOfOccupants} Person(s)
                             </Typography>
                           </Grid>
                           <Grid item xs={12} sm={3}>
-                            <Typography variant="caption" sx={{ color: isDark ? '#8892b0' : '#64748b' }}>Preferred Move-In</Typography>
-                            <Typography variant="body2" sx={{ fontWeight: 600, color: isDark ? '#ccd6f6' : '#0f172a' }}>
+                            <Typography variant="caption" sx={{ color: isDark ? '#94a3b8' : '#64748b' }}>Preferred Move-In</Typography>
+                            <Typography variant="body2" sx={{ fontWeight: 600, color: isDark ? '#f1f5f9' : '#0f172a' }}>
                               {new Date(app.preferredMoveInDate).toLocaleDateString()}
                             </Typography>
                           </Grid>
                           <Grid item xs={12} sm={3}>
-                            <Typography variant="caption" sx={{ color: isDark ? '#8892b0' : '#64748b' }}>Submitted On</Typography>
-                            <Typography variant="body2" sx={{ fontWeight: 600, color: isDark ? '#ccd6f6' : '#0f172a' }}>
+                            <Typography variant="caption" sx={{ color: isDark ? '#94a3b8' : '#64748b' }}>Submitted On</Typography>
+                            <Typography variant="body2" sx={{ fontWeight: 600, color: isDark ? '#f1f5f9' : '#0f172a' }}>
                               {new Date(app.created_at).toLocaleDateString()}
                             </Typography>
                           </Grid>
@@ -708,8 +722,8 @@ export default function AdminWorkflowManagementPage() {
               {leases.length === 0 ? (
                 <Paper elevation={0} sx={{ p: 6, textAlign: 'center', borderRadius: 3, border: '1px dashed', borderColor: isDark ? 'rgba(0, 255, 255, 0.2)' : '#cbd5e1', bgcolor: isDark ? '#0f172a40' : '#f8fafc' }}>
                   <Article sx={{ fontSize: 48, color: '#10b981', mb: 1, opacity: 0.8 }} />
-                  <Typography variant="h6" sx={{ fontWeight: 700, color: isDark ? '#ccd6f6' : '#0f172a' }}>No active lease agreements</Typography>
-                  <Typography variant="body2" sx={{ color: isDark ? '#8892b0' : '#64748b', mb: 2 }}>Create contracts for verified tenants to manage rent schedules and payment receipts.</Typography>
+                  <Typography variant="h6" sx={{ fontWeight: 700, color: isDark ? '#f1f5f9' : '#0f172a' }}>No active lease agreements</Typography>
+                  <Typography variant="body2" sx={{ color: isDark ? '#94a3b8' : '#64748b', mb: 2 }}>Create contracts for verified tenants to manage rent schedules and payment receipts.</Typography>
                   <Button variant="contained" startIcon={<Add />} onClick={() => setCreateLeaseModalOpen(true)} sx={{ bgcolor: isDark ? '#00ffff' : '#0284c7', color: isDark ? '#0a192f' : '#ffffff', borderRadius: 2 }}>
                     Generate First Lease
                   </Button>
@@ -717,12 +731,12 @@ export default function AdminWorkflowManagementPage() {
               ) : (
                 <Stack spacing={3}>
                   {leases.map((lease) => (
-                    <Card key={lease._id} sx={{ borderRadius: 3, bgcolor: isDark ? '#0f172a80' : '#ffffff', border: isDark ? '1px solid rgba(0, 255, 255, 0.15)' : '1px solid #e2e8f0', p: 1 }}>
+                    <Card key={lease._id} sx={{ borderRadius: 3, bgcolor: isDark ? '#112240' : '#ffffff', border: `1px solid ${isDark ? '#233554' : '#e2e8f0'}`, p: 1 }}>
                       <CardContent>
                         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 2, mb: 2 }}>
                           <Box>
                             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
-                              <Typography variant="h6" sx={{ fontWeight: 800, color: isDark ? '#ccd6f6' : '#0f172a' }}>
+                              <Typography variant="h6" sx={{ fontWeight: 800, color: isDark ? '#f1f5f9' : '#0f172a' }}>
                                 Contract #{lease.agreementNumber}
                               </Typography>
                               <Chip
@@ -732,16 +746,16 @@ export default function AdminWorkflowManagementPage() {
                                 sx={{ fontWeight: 700 }}
                               />
                             </Box>
-                            <Typography variant="body2" sx={{ color: isDark ? '#8892b0' : '#64748b' }}>
+                            <Typography variant="body2" sx={{ color: isDark ? '#94a3b8' : '#64748b' }}>
                               Property: {typeof lease.houseId === 'object' ? lease.houseId.title : 'Rental Apartment'}
                             </Typography>
-                            <Typography variant="body2" sx={{ color: isDark ? '#ccd6f6' : '#0f172a', fontWeight: 600 }}>
+                            <Typography variant="body2" sx={{ color: isDark ? '#f1f5f9' : '#0f172a', fontWeight: 600 }}>
                               Tenant: {lease.tenantName} ({lease.tenantPhone})
                             </Typography>
                           </Box>
 
                           <Box sx={{ textAlign: { xs: 'left', sm: 'right' } }}>
-                            <Typography variant="caption" sx={{ color: isDark ? '#8892b0' : '#64748b' }}>Monthly Rent</Typography>
+                            <Typography variant="caption" sx={{ color: isDark ? '#94a3b8' : '#64748b' }}>Monthly Rent</Typography>
                             <Typography variant="h5" sx={{ fontWeight: 800, color: '#10b981' }}>
                               ETB {lease.rentAmount?.toLocaleString()}
                             </Typography>
@@ -752,19 +766,19 @@ export default function AdminWorkflowManagementPage() {
 
                         <Grid container spacing={2} sx={{ mb: 2 }}>
                           <Grid item xs={12} sm={4}>
-                            <Typography variant="caption" sx={{ color: isDark ? '#8892b0' : '#64748b' }}>Lease Period</Typography>
-                            <Typography variant="body2" sx={{ fontWeight: 600, color: isDark ? '#ccd6f6' : '#0f172a' }}>
+                            <Typography variant="caption" sx={{ color: isDark ? '#94a3b8' : '#64748b' }}>Lease Period</Typography>
+                            <Typography variant="body2" sx={{ fontWeight: 600, color: isDark ? '#f1f5f9' : '#0f172a' }}>
                               {new Date(lease.startDate).toLocaleDateString()} - {new Date(lease.endDate).toLocaleDateString()}
                             </Typography>
                           </Grid>
                           <Grid item xs={12} sm={4}>
-                            <Typography variant="caption" sx={{ color: isDark ? '#8892b0' : '#64748b' }}>Security Deposit</Typography>
-                            <Typography variant="body2" sx={{ fontWeight: 600, color: isDark ? '#ccd6f6' : '#0f172a' }}>
+                            <Typography variant="caption" sx={{ color: isDark ? '#94a3b8' : '#64748b' }}>Security Deposit</Typography>
+                            <Typography variant="body2" sx={{ fontWeight: 600, color: isDark ? '#f1f5f9' : '#0f172a' }}>
                               ETB {lease.securityDeposit?.toLocaleString()}
                             </Typography>
                           </Grid>
                           <Grid item xs={12} sm={4}>
-                            <Typography variant="caption" sx={{ color: isDark ? '#8892b0' : '#64748b' }}>Signatures</Typography>
+                            <Typography variant="caption" sx={{ color: isDark ? '#94a3b8' : '#64748b' }}>Signatures</Typography>
                             <Typography variant="body2" sx={{ fontWeight: 600, color: lease.signedByTenant ? '#10b981' : '#f59e0b' }}>
                               Tenant: {lease.signedByTenant ? 'Signed ✓' : 'Awaiting'} • Landlord: {lease.signedByLandlord ? 'Signed ✓' : 'Pending'}
                             </Typography>
@@ -808,18 +822,18 @@ export default function AdminWorkflowManagementPage() {
               {offers.length === 0 ? (
                 <Paper elevation={0} sx={{ p: 6, textAlign: 'center', borderRadius: 3, border: '1px dashed', borderColor: isDark ? 'rgba(0, 255, 255, 0.2)' : '#cbd5e1', bgcolor: isDark ? '#0f172a40' : '#f8fafc' }}>
                   <LocalOffer sx={{ fontSize: 48, color: '#f59e0b', mb: 1, opacity: 0.8 }} />
-                  <Typography variant="h6" sx={{ fontWeight: 700, color: isDark ? '#ccd6f6' : '#0f172a' }}>No purchase offers received</Typography>
-                  <Typography variant="body2" sx={{ color: isDark ? '#8892b0' : '#64748b' }}>When buyers submit purchase offers or counter-proposals on sale properties, negotiations will be handled here.</Typography>
+                  <Typography variant="h6" sx={{ fontWeight: 700, color: isDark ? '#f1f5f9' : '#0f172a' }}>No purchase offers received</Typography>
+                  <Typography variant="body2" sx={{ color: isDark ? '#94a3b8' : '#64748b' }}>When buyers submit purchase offers or counter-proposals on sale properties, negotiations will be handled here.</Typography>
                 </Paper>
               ) : (
                 <Stack spacing={3}>
                   {offers.map((offer) => (
-                    <Card key={offer._id} sx={{ borderRadius: 3, bgcolor: isDark ? '#0f172a80' : '#ffffff', border: isDark ? '1px solid rgba(0, 255, 255, 0.15)' : '1px solid #e2e8f0', p: 1 }}>
+                    <Card key={offer._id} sx={{ borderRadius: 3, bgcolor: isDark ? '#112240' : '#ffffff', border: `1px solid ${isDark ? '#233554' : '#e2e8f0'}`, p: 1 }}>
                       <CardContent>
                         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 2, mb: 2 }}>
                           <Box>
                             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
-                              <Typography variant="h6" sx={{ fontWeight: 800, color: isDark ? '#ccd6f6' : '#0f172a' }}>
+                              <Typography variant="h6" sx={{ fontWeight: 800, color: isDark ? '#f1f5f9' : '#0f172a' }}>
                                 {typeof offer.houseId === 'object' ? offer.houseId.title : 'Purchase Negotiation'}
                               </Typography>
                               <Chip
@@ -829,17 +843,17 @@ export default function AdminWorkflowManagementPage() {
                                 sx={{ fontWeight: 700 }}
                               />
                             </Box>
-                            <Typography variant="body2" sx={{ color: isDark ? '#8892b0' : '#64748b' }}>
+                            <Typography variant="body2" sx={{ color: isDark ? '#94a3b8' : '#64748b' }}>
                               Buyer: {offer.buyerName} ({offer.buyerPhone || offer.buyerEmail}) • Financing: {offer.financingType}
                             </Typography>
                           </Box>
 
                           <Box sx={{ textAlign: { xs: 'left', sm: 'right' } }}>
-                            <Typography variant="caption" sx={{ color: isDark ? '#8892b0' : '#64748b' }}>Proposed Bid</Typography>
+                            <Typography variant="caption" sx={{ color: isDark ? '#94a3b8' : '#64748b' }}>Proposed Bid</Typography>
                             <Typography variant="h5" sx={{ fontWeight: 800, color: '#10b981' }}>
                               ETB {offer.currentOfferAmount?.toLocaleString()}
                             </Typography>
-                            <Typography variant="caption" sx={{ color: isDark ? '#8892b0' : '#64748b' }}>
+                            <Typography variant="caption" sx={{ color: isDark ? '#94a3b8' : '#64748b' }}>
                               Asking Price: ETB {offer.askingPriceAtOffer?.toLocaleString()}
                             </Typography>
                           </Box>
@@ -848,7 +862,7 @@ export default function AdminWorkflowManagementPage() {
                         <Divider sx={{ my: 1.5, borderColor: isDark ? 'rgba(255, 255, 255, 0.08)' : '#e2e8f0' }} />
 
                         {/* Negotiation Chat Timeline */}
-                        <Typography variant="subtitle2" sx={{ fontWeight: 700, color: isDark ? '#ccd6f6' : '#0f172a', mb: 1 }}>
+                        <Typography variant="subtitle2" sx={{ fontWeight: 700, color: isDark ? '#f1f5f9' : '#0f172a', mb: 1 }}>
                           Negotiation Trail
                         </Typography>
                         <Stack spacing={1} sx={{ mb: 2 }}>
@@ -864,10 +878,10 @@ export default function AdminWorkflowManagementPage() {
                               }}
                             >
                               <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                                <Typography variant="caption" sx={{ fontWeight: 700, textTransform: 'capitalize', color: isDark ? '#ccd6f6' : '#0f172a' }}>
+                                <Typography variant="caption" sx={{ fontWeight: 700, textTransform: 'capitalize', color: isDark ? '#f1f5f9' : '#0f172a' }}>
                                   {item.senderRole}: ETB {item.proposedAmount?.toLocaleString()}
                                 </Typography>
-                                <Typography variant="caption" sx={{ color: isDark ? '#8892b0' : '#64748b' }}>
+                                <Typography variant="caption" sx={{ color: isDark ? '#94a3b8' : '#64748b' }}>
                                   {new Date(item.timestamp).toLocaleDateString()}
                                 </Typography>
                               </Box>
@@ -937,13 +951,13 @@ export default function AdminWorkflowManagementPage() {
               {maintenanceTickets.length === 0 ? (
                 <Paper elevation={0} sx={{ p: 6, textAlign: 'center', borderRadius: 3, border: '1px dashed', borderColor: isDark ? 'rgba(0, 255, 255, 0.2)' : '#cbd5e1', bgcolor: isDark ? '#0f172a40' : '#f8fafc' }}>
                   <Build sx={{ fontSize: 48, color: '#ef4444', mb: 1, opacity: 0.8 }} />
-                  <Typography variant="h6" sx={{ fontWeight: 700, color: isDark ? '#ccd6f6' : '#0f172a' }}>No maintenance tickets reported</Typography>
-                  <Typography variant="body2" sx={{ color: isDark ? '#8892b0' : '#64748b' }}>When tenants report plumbing, electrical, or structural damage, dispatch tickets will appear here.</Typography>
+                  <Typography variant="h6" sx={{ fontWeight: 700, color: isDark ? '#f1f5f9' : '#0f172a' }}>No maintenance tickets reported</Typography>
+                  <Typography variant="body2" sx={{ color: isDark ? '#94a3b8' : '#64748b' }}>When tenants report plumbing, electrical, or structural damage, dispatch tickets will appear here.</Typography>
                 </Paper>
               ) : (
                 <Stack spacing={2.5}>
                   {maintenanceTickets.map((ticket) => (
-                    <Paper key={ticket._id} elevation={0} sx={{ p: 3, borderRadius: 3, bgcolor: isDark ? '#0f172a80' : '#ffffff', border: isDark ? '1px solid rgba(0, 255, 255, 0.15)' : '1px solid #e2e8f0' }}>
+                    <Paper key={ticket._id} elevation={0} sx={{ p: 3, borderRadius: 3, bgcolor: isDark ? '#112240' : '#ffffff', border: `1px solid ${isDark ? '#233554' : '#e2e8f0'}` }}>
                       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 1, mb: 1.5 }}>
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                           <Chip size="small" label={ticket.category} sx={{ fontWeight: 600 }} />
@@ -962,25 +976,25 @@ export default function AdminWorkflowManagementPage() {
                         />
                       </Box>
 
-                      <Typography variant="h6" sx={{ fontWeight: 800, color: isDark ? '#ccd6f6' : '#0f172a' }}>
+                      <Typography variant="h6" sx={{ fontWeight: 800, color: isDark ? '#f1f5f9' : '#0f172a' }}>
                         {ticket.title}
                       </Typography>
-                      <Typography variant="body2" sx={{ color: isDark ? '#8892b0' : '#64748b', mt: 0.5, mb: 1.5 }}>
+                      <Typography variant="body2" sx={{ color: isDark ? '#94a3b8' : '#64748b', mt: 0.5, mb: 1.5 }}>
                         {ticket.description}
                       </Typography>
 
-                      <Typography variant="caption" sx={{ color: isDark ? '#8892b0' : '#64748b' }}>
+                      <Typography variant="caption" sx={{ color: isDark ? '#94a3b8' : '#64748b' }}>
                         Property: {typeof ticket.houseId === 'object' ? ticket.houseId.title : 'Rental Unit'} • Tenant: {ticket.tenantName} ({ticket.tenantPhone})
                       </Typography>
 
                       {ticket.assignedTechnician && (
                         <Box sx={{ mt: 1.5, p: 1.5, bgcolor: isDark ? 'rgba(255, 255, 255, 0.04)' : '#f8fafc', borderRadius: 2 }}>
-                          <Typography variant="caption" sx={{ color: isDark ? '#8892b0' : '#64748b' }}>Assigned Technician:</Typography>
-                          <Typography variant="body2" sx={{ fontWeight: 600, color: isDark ? '#ccd6f6' : '#0f172a' }}>
+                          <Typography variant="caption" sx={{ color: isDark ? '#94a3b8' : '#64748b' }}>Assigned Technician:</Typography>
+                          <Typography variant="body2" sx={{ fontWeight: 600, color: isDark ? '#f1f5f9' : '#0f172a' }}>
                             {ticket.assignedTechnician} (Contact: {ticket.technicianContact || 'N/A'})
                           </Typography>
                           {ticket.resolutionNotes && (
-                            <Typography variant="caption" sx={{ display: 'block', color: isDark ? '#8892b0' : '#64748b', mt: 0.5 }}>
+                            <Typography variant="caption" sx={{ display: 'block', color: isDark ? '#94a3b8' : '#64748b', mt: 0.5 }}>
                               Resolution: {ticket.resolutionNotes}
                             </Typography>
                           )}
@@ -1021,27 +1035,27 @@ export default function AdminWorkflowManagementPage() {
               {reports.length === 0 ? (
                 <Paper elevation={0} sx={{ p: 6, textAlign: 'center', borderRadius: 3, border: '1px dashed', borderColor: isDark ? 'rgba(0, 255, 255, 0.2)' : '#cbd5e1', bgcolor: isDark ? '#0f172a40' : '#f8fafc' }}>
                   <ReportProblem sx={{ fontSize: 48, color: '#f59e0b', mb: 1, opacity: 0.8 }} />
-                  <Typography variant="h6" sx={{ fontWeight: 700, color: isDark ? '#ccd6f6' : '#0f172a' }}>No listing violation reports</Typography>
-                  <Typography variant="body2" sx={{ color: isDark ? '#8892b0' : '#64748b' }}>User reports regarding fraudulent, misleading, or incorrect house listings appear here.</Typography>
+                  <Typography variant="h6" sx={{ fontWeight: 700, color: isDark ? '#f1f5f9' : '#0f172a' }}>No listing violation reports</Typography>
+                  <Typography variant="body2" sx={{ color: isDark ? '#94a3b8' : '#64748b' }}>User reports regarding fraudulent, misleading, or incorrect house listings appear here.</Typography>
                 </Paper>
               ) : (
                 <Stack spacing={2.5}>
                   {reports.map((report) => (
-                    <Paper key={report._id} elevation={0} sx={{ p: 3, borderRadius: 3, bgcolor: isDark ? '#0f172a80' : '#ffffff', border: isDark ? '1px solid rgba(0, 255, 255, 0.15)' : '1px solid #e2e8f0' }}>
+                    <Paper key={report._id} elevation={0} sx={{ p: 3, borderRadius: 3, bgcolor: isDark ? '#112240' : '#ffffff', border: `1px solid ${isDark ? '#233554' : '#e2e8f0'}` }}>
                       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
                         <Chip size="small" label={report.reason} color="error" sx={{ fontWeight: 700 }} />
                         <Chip size="small" label={report.status} color={report.status === 'RESOLVED' ? 'success' : report.status === 'PENDING' ? 'warning' : 'default'} />
                       </Box>
 
-                      <Typography variant="h6" sx={{ fontWeight: 700, color: isDark ? '#ccd6f6' : '#0f172a', mt: 1 }}>
+                      <Typography variant="h6" sx={{ fontWeight: 700, color: isDark ? '#f1f5f9' : '#0f172a', mt: 1 }}>
                         Target: {typeof report.houseId === 'object' ? report.houseId.title : 'Reported House Listing'}
                       </Typography>
 
-                      <Typography variant="body2" sx={{ color: isDark ? '#8892b0' : '#64748b', my: 1 }}>
+                      <Typography variant="body2" sx={{ color: isDark ? '#94a3b8' : '#64748b', my: 1 }}>
                         {report.description}
                       </Typography>
 
-                      <Typography variant="caption" sx={{ color: isDark ? '#8892b0' : '#64748b' }}>
+                      <Typography variant="caption" sx={{ color: isDark ? '#94a3b8' : '#64748b' }}>
                         Reported By: {report.reporterEmail} • Date: {new Date(report.createdAt).toLocaleDateString()}
                       </Typography>
 
@@ -1422,10 +1436,10 @@ export default function AdminWorkflowManagementPage() {
               <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
                 Applicant: {selectedApp.fullName}
               </Typography>
-              <Typography variant="body2" sx={{ color: isDark ? '#8892b0' : '#64748b' }}>
+              <Typography variant="body2" sx={{ color: isDark ? '#94a3b8' : '#64748b' }}>
                 Property: {typeof selectedApp.houseId === 'object' ? selectedApp.houseId.title : 'Property'}
               </Typography>
-              <Typography variant="body2" sx={{ color: isDark ? '#8892b0' : '#64748b' }}>
+              <Typography variant="body2" sx={{ color: isDark ? '#94a3b8' : '#64748b' }}>
                 Income: ETB {selectedApp.monthlyIncome?.toLocaleString()} • Move-in: {new Date(selectedApp.preferredMoveInDate).toLocaleDateString()}
               </Typography>
             </Box>

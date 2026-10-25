@@ -155,13 +155,10 @@ export default function MapViewPage() {
     }
   };
 
-  const formatPrice = (price: number) =>
-    new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(price);
+  const formatPrice = (price: number) => {
+    if (!price && price !== 0) return '0 ETB';
+    return `${Number(price).toLocaleString()} ETB`;
+  };
 
   const handleMapMove = (center: [number, number], zoom: number) => {
     setMapCenter(center);
@@ -180,7 +177,7 @@ export default function MapViewPage() {
         }}
       >
         <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
-          Filters
+          {isAmharic ? 'ማጣሪያዎች' : 'Filters'}
         </Typography>
         <IconButton onClick={() => setFilterDrawerOpen(false)}>
           <Close />
@@ -191,31 +188,31 @@ export default function MapViewPage() {
       <TextField
         fullWidth
         size="small"
-        label="Search by title or location"
+        label={isAmharic ? 'በርዕስ ወይም በአድራሻ ፈልግ' : 'Search by title or location'}
         value={filters.search}
         onChange={(e) => handleFilterChange('search', e.target.value)}
-        placeholder="e.g., Villa, Addis Ababa..."
+        placeholder={isAmharic ? 'ምሳሌ፡ ቪላ፣ አዲስ አበባ...' : 'e.g., Villa, Addis Ababa...'}
         sx={{ mb: 2 }}
       />
 
       <FormControl fullWidth size="small" sx={{ mb: 2 }}>
-        <InputLabel>Property Type</InputLabel>
+        <InputLabel>{isAmharic ? 'የንብረት ዓይነት' : 'Property Type'}</InputLabel>
         <Select
           value={filters.propertyType}
-          label="Property Type"
+          label={isAmharic ? 'የንብረት ዓይነት' : 'Property Type'}
           onChange={(e) => handleFilterChange('propertyType', e.target.value)}
         >
-          <MenuItem value="">All Types</MenuItem>
-          {Object.entries(propertyTypeLabels).map(([value, label]) => (
-            <MenuItem key={value} value={value}>
-              {label}
-            </MenuItem>
-          ))}
+          <MenuItem value="">{isAmharic ? 'ሁሉም ዓይነቶች' : 'All Types'}</MenuItem>
+          <MenuItem value="0">{isAmharic ? 'አፓርታማ' : 'Apartment'}</MenuItem>
+          <MenuItem value="1">{isAmharic ? 'ቪላ' : 'Villa'}</MenuItem>
+          <MenuItem value="2">{isAmharic ? 'ኮንዶሚኒየም' : 'Condo'}</MenuItem>
+          <MenuItem value="3">{isAmharic ? 'ቤት' : 'House'}</MenuItem>
+          <MenuItem value="4">{isAmharic ? 'መሬት' : 'Land'}</MenuItem>
         </Select>
       </FormControl>
 
       <Typography variant="body2" sx={{ mb: 1 }}>
-        Price Range
+        {isAmharic ? 'የዋጋ ክልል' : 'Price Range'}
       </Typography>
       <Slider
         value={[filters.minPrice, filters.maxPrice]}
@@ -238,15 +235,15 @@ export default function MapViewPage() {
 
       <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
         <FormControl fullWidth size="small">
-          <InputLabel>Min Bedrooms</InputLabel>
+          <InputLabel>{isAmharic ? 'መኝታ ክፍሎች' : 'Min Bedrooms'}</InputLabel>
           <Select
             value={filters.minBedrooms}
-            label="Min Bedrooms"
+            label={isAmharic ? 'መኝታ ክፍሎች' : 'Min Bedrooms'}
             onChange={(e) =>
               handleFilterChange('minBedrooms', e.target.value as number)
             }
           >
-            <MenuItem value={0}>Any</MenuItem>
+            <MenuItem value={0}>{isAmharic ? 'ማንኛውም' : 'Any'}</MenuItem>
             <MenuItem value={1}>1+</MenuItem>
             <MenuItem value={2}>2+</MenuItem>
             <MenuItem value={3}>3+</MenuItem>
@@ -256,15 +253,15 @@ export default function MapViewPage() {
         </FormControl>
 
         <FormControl fullWidth size="small">
-          <InputLabel>Min Bathrooms</InputLabel>
+          <InputLabel>{isAmharic ? 'መታጠቢያ ክፍሎች' : 'Min Bathrooms'}</InputLabel>
           <Select
             value={filters.minBathrooms}
-            label="Min Bathrooms"
+            label={isAmharic ? 'መታጠቢያ ክፍሎች' : 'Min Bathrooms'}
             onChange={(e) =>
               handleFilterChange('minBathrooms', e.target.value as number)
             }
           >
-            <MenuItem value={0}>Any</MenuItem>
+            <MenuItem value={0}>{isAmharic ? 'ማንኛውም' : 'Any'}</MenuItem>
             <MenuItem value={1}>1+</MenuItem>
             <MenuItem value={2}>2+</MenuItem>
             <MenuItem value={3}>3+</MenuItem>
@@ -273,16 +270,16 @@ export default function MapViewPage() {
       </Box>
 
       <FormControl fullWidth size="small" sx={{ mb: 2 }}>
-        <InputLabel>Sort By</InputLabel>
+        <InputLabel>{isAmharic ? 'አደራድር በ' : 'Sort By'}</InputLabel>
         <Select
           value={filters.sortBy}
-          label="Sort By"
+          label={isAmharic ? 'አደራድር በ' : 'Sort By'}
           onChange={(e) => handleFilterChange('sortBy', e.target.value)}
         >
-          <MenuItem value="created_at">Newest First</MenuItem>
-          <MenuItem value="pricing.price">Price: Low to High</MenuItem>
-          <MenuItem value="-pricing.price">Price: High to Low</MenuItem>
-          <MenuItem value="details.area">Size: Small to Large</MenuItem>
+          <MenuItem value="created_at">{isAmharic ? 'አዲሶቹ አስቀድመው' : 'Newest First'}</MenuItem>
+          <MenuItem value="pricing.price">{isAmharic ? 'ዋጋ፡ ከዝቅተኛ ወደ ከፍተኛ' : 'Price: Low to High'}</MenuItem>
+          <MenuItem value="-pricing.price">{isAmharic ? 'ዋጋ፡ ከከፍተኛ ወደ ዝቅተኛ' : 'Price: High to Low'}</MenuItem>
+          <MenuItem value="details.area">{isAmharic ? 'ስፋት፡ ከትንሽ ወደ ትልቅ' : 'Size: Small to Large'}</MenuItem>
         </Select>
       </FormControl>
 

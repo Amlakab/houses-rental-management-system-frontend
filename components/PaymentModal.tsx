@@ -33,6 +33,7 @@ import {
   ShoppingCart
 } from '@mui/icons-material';
 import { useTheme } from '@/lib/theme-context';
+import { useLanguage } from '@/lib/language-context';
 import api from '@/app/utils/api';
 
 interface PaymentConfig {
@@ -85,6 +86,8 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
   amount
 }) => {
   const { theme } = useTheme();
+  const { t, language } = useLanguage();
+  const isDark = theme === 'dark';
   const isMobile = useMediaQuery('(max-width: 768px)');
   const [activeStep, setActiveStep] = useState(0);
   const [submitting, setSubmitting] = useState(false);
@@ -103,7 +106,24 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
   const [transaction, setTransaction] = useState<Transaction | null>(null);
   const [amountInWords, setAmountInWords] = useState('');
 
-  const steps = ['Payment Method', 'Payment Details', 'Confirmation'];
+  const steps = [
+    language === 'am' ? 'የክፍያ ዘዴ' : 'Payment Method',
+    language === 'am' ? 'የክፍያ ዝርዝር' : 'Payment Details',
+    language === 'am' ? 'ማረጋገጫ' : 'Confirmation'
+  ];
+
+  const textFieldStyle = {
+    '& .MuiOutlinedInput-root': {
+      backgroundColor: isDark ? '#0a192f' : '#ffffff',
+      color: isDark ? '#f1f5f9' : '#0f172a',
+      borderRadius: '10px',
+      '& fieldset': { borderColor: isDark ? '#233554' : '#cbd5e1' },
+      '&:hover fieldset': { borderColor: isDark ? '#38bdf8' : '#2563eb' },
+      '&.Mui-focused fieldset': { borderColor: isDark ? '#38bdf8' : '#2563eb' }
+    },
+    '& .MuiInputLabel-root': { color: isDark ? '#94a3b8' : '#64748b' },
+    '& .MuiFormHelperText-root': { color: isDark ? '#94a3b8' : '#64748b' }
+  };
 
   useEffect(() => {
     if (open && amount > 0) {
@@ -325,15 +345,17 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
 
   const renderStep0 = () => (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-      <Typography variant="body1" sx={{ mb: 2 }}>
-        Select your preferred payment method for <strong>{formatCurrency(amount)}</strong>
+      <Typography variant="body1" sx={{ color: isDark ? '#f1f5f9' : '#0f172a' }}>
+        {language === 'am' ? 'እባክዎ ለ' : 'Select your preferred payment method for'}{' '}
+        <strong style={{ color: isDark ? '#38bdf8' : '#2563eb' }}>{formatCurrency(amount)}</strong>{' '}
+        {language === 'am' ? 'የሚመርጡትን የክፍያ ዘዴ ይምረጡ' : ''}
       </Typography>
       
       <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, gap: 2 }}>
         {[
-          { value: 'telebirr' as const, label: 'TeleBirr', icon: <Phone />, color: '#10b981' },
-          { value: 'cbe' as const, label: 'CBE Birr', icon: <AccountBalance />, color: '#3b82f6' },
-          { value: 'cash' as const, label: 'Cash', icon: <AttachMoney />, color: '#f59e0b' }
+          { value: 'telebirr' as const, label: 'TeleBirr (ቴሌብር)', icon: <Phone />, color: '#10b981' },
+          { value: 'cbe' as const, label: 'CBE Birr (ንግድ ባንክ)', icon: <AccountBalance />, color: '#38bdf8' },
+          { value: 'cash' as const, label: language === 'am' ? 'ጥሬ ገንዘብ' : 'Cash', icon: <AttachMoney />, color: '#f59e0b' }
         ].map((option) => (
           <Box
             key={option.value}
@@ -341,11 +363,11 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
             sx={{
               flex: 1,
               p: 3,
-              borderRadius: 2,
-              border: `2px solid ${formData.method === option.value ? option.color : theme === 'dark' ? '#334155' : '#e5e7eb'}`,
+              borderRadius: 3,
+              border: `2px solid ${formData.method === option.value ? option.color : isDark ? '#233554' : '#e2e8f0'}`,
               backgroundColor: formData.method === option.value 
-                ? `${option.color}20` 
-                : (theme === 'dark' ? '#1e293b' : '#f9fafb'),
+                ? `${option.color}15` 
+                : (isDark ? '#0a192f' : '#f8fafc'),
               cursor: 'pointer',
               textAlign: 'center',
               transition: 'all 0.2s',
@@ -358,7 +380,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
             <Box sx={{ color: option.color, fontSize: 32, mb: 1 }}>
               {option.icon}
             </Box>
-            <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
+            <Typography variant="h6" sx={{ fontWeight: 'bold', color: isDark ? '#f1f5f9' : '#0f172a', fontSize: '1rem' }}>
               {option.label}
             </Typography>
           </Box>
@@ -369,48 +391,64 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
 
   const renderStep1 = () => (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-      <Box sx={{ p: 2, bgcolor: theme === 'dark' ? '#1e293b' : '#f8fafc', borderRadius: 2 }}>
-        <Typography variant="subtitle2" sx={{ mb: 1, color: theme === 'dark' ? '#00ffff' : '#007bff' }}>
-          Payment Details
+      <Box sx={{ p: 2.5, bgcolor: isDark ? '#0a192f' : '#f8fafc', border: `1px solid ${isDark ? '#233554' : '#e2e8f0'}`, borderRadius: 2.5 }}>
+        <Typography variant="subtitle2" sx={{ mb: 1.5, color: isDark ? '#38bdf8' : '#2563eb', fontWeight: 700 }}>
+          {language === 'am' ? 'የክፍያ ዝርዝር መረጃ' : 'Payment Details'}
         </Typography>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-          <Typography variant="body2">Amount:</Typography>
-          <Typography variant="body2" sx={{ fontWeight: 'bold' }}>{formatCurrency(amount)}</Typography>
+          <Typography variant="body2" sx={{ color: isDark ? '#94a3b8' : '#64748b' }}>
+            {language === 'am' ? 'የክፍያ መጠን፡' : 'Amount:'}
+          </Typography>
+          <Typography variant="body2" sx={{ fontWeight: 'bold', color: isDark ? '#f1f5f9' : '#0f172a' }}>
+            {formatCurrency(amount)}
+          </Typography>
         </Box>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-          <Typography variant="body2">Amount in Words:</Typography>
-          <Typography variant="caption" sx={{ textAlign: 'right' }}>{amountInWords}</Typography>
-        </Box>
+        {amountInWords && (
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+            <Typography variant="body2" sx={{ color: isDark ? '#94a3b8' : '#64748b' }}>
+              {language === 'am' ? 'በፊደል፡' : 'Amount in Words:'}
+            </Typography>
+            <Typography variant="caption" sx={{ textAlign: 'right', color: isDark ? '#f1f5f9' : '#0f172a', fontWeight: 500 }}>
+              {amountInWords}
+            </Typography>
+          </Box>
+        )}
         <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 1 }}>
-          <Typography variant="body2">Property:</Typography>
-          <Typography variant="body2" sx={{ fontWeight: 'bold' }}>{houseTitle}</Typography>
+          <Typography variant="body2" sx={{ color: isDark ? '#94a3b8' : '#64748b' }}>
+            {language === 'am' ? 'ንብረት፡' : 'Property:'}
+          </Typography>
+          <Typography variant="body2" sx={{ fontWeight: 'bold', color: isDark ? '#f1f5f9' : '#0f172a' }}>
+            {houseTitle}
+          </Typography>
         </Box>
       </Box>
       
       {(formData.method === 'telebirr' || formData.method === 'cbe') && (
         <>
-          <Box sx={{ p: 2, bgcolor: theme === 'dark' ? '#1e293b' : '#f8fafc', borderRadius: 2 }}>
-            <Typography variant="subtitle2" sx={{ mb: 1, color: theme === 'dark' ? '#00ffff' : '#007bff' }}>
-              Send payment to:
+          <Box sx={{ p: 2.5, bgcolor: isDark ? '#0a192f' : '#f8fafc', border: `1px solid ${isDark ? '#233554' : '#e2e8f0'}`, borderRadius: 2.5 }}>
+            <Typography variant="subtitle2" sx={{ mb: 1.5, color: isDark ? '#38bdf8' : '#2563eb', fontWeight: 700 }}>
+              {language === 'am' ? 'ክፍያውን ወደዚህ አካውንት ያስገቡ፡' : 'Send payment to:'}
             </Typography>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
-              <Typography variant="body2">
-                {formData.method === 'telebirr' ? 'Phone Number:' : 'Account Number:'}
+              <Typography variant="body2" sx={{ color: isDark ? '#94a3b8' : '#64748b' }}>
+                {formData.method === 'telebirr' ? (language === 'am' ? 'የስልክ ቁጥር፡' : 'Phone Number:') : (language === 'am' ? 'የሂሳብ ቁጥር፡' : 'Account Number:')}
               </Typography>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <Typography variant="body2" sx={{ fontWeight: 'bold' }}>
+                <Typography variant="body2" sx={{ fontWeight: 'bold', fontFamily: 'monospace', color: isDark ? '#f1f5f9' : '#0f172a' }}>
                   {formData.method === 'telebirr' ? paymentConfig.telebirr.phone : paymentConfig.cbe.account}
                 </Typography>
-                <Tooltip title="Copy">
-                  <IconButton size="small" onClick={() => copyToClipboard(formData.method === 'telebirr' ? paymentConfig.telebirr.phone : paymentConfig.cbe.account)}>
+                <Tooltip title={language === 'am' ? 'ቅዳ' : 'Copy'}>
+                  <IconButton size="small" onClick={() => copyToClipboard(formData.method === 'telebirr' ? paymentConfig.telebirr.phone : paymentConfig.cbe.account)} sx={{ color: isDark ? '#38bdf8' : '#2563eb' }}>
                     <ContentCopy sx={{ fontSize: 16 }} />
                   </IconButton>
                 </Tooltip>
               </Box>
             </Box>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <Typography variant="body2">Account Name:</Typography>
-              <Typography variant="body2" sx={{ fontWeight: 'bold' }}>
+              <Typography variant="body2" sx={{ color: isDark ? '#94a3b8' : '#64748b' }}>
+                {language === 'am' ? 'የአካውንቱ ስም፡' : 'Account Name:'}
+              </Typography>
+              <Typography variant="body2" sx={{ fontWeight: 'bold', color: isDark ? '#f1f5f9' : '#0f172a' }}>
                 {formData.method === 'telebirr' ? paymentConfig.telebirr.name : paymentConfig.cbe.name}
               </Typography>
             </Box>
@@ -418,34 +456,37 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
           
           <TextField
             fullWidth
-            label={`Your ${formData.method === 'telebirr' ? 'Phone Number' : 'Account Number'}`}
+            label={formData.method === 'telebirr' ? (language === 'am' ? 'የእርስዎ ስልክ ቁጥር' : 'Your Phone Number') : (language === 'am' ? 'የእርስዎ ሂሳብ ቁጥር' : 'Your Account Number')}
             value={formData.senderPhone}
             onChange={(e) => handleChange('senderPhone', e.target.value)}
             required
-            placeholder={formData.method === 'telebirr' ? '09xxxxxxxx' : 'Enter account number'}
-            InputProps={{ startAdornment: <Phone sx={{ mr: 1, fontSize: 20 }} /> }}
+            placeholder={formData.method === 'telebirr' ? '09xxxxxxxx' : '1000...'}
+            InputProps={{ startAdornment: <Phone sx={{ mr: 1, fontSize: 20, color: isDark ? '#94a3b8' : '#64748b' }} /> }}
+            sx={textFieldStyle}
           />
           
           <TextField
             fullWidth
-            label="Transaction ID / Reference"
+            label={language === 'am' ? 'የዝውውር ማረጋገጫ ቁጥር (Transaction ID / Ref)' : 'Transaction ID / Reference'}
             value={formData.transactionId}
             onChange={(e) => handleChange('transactionId', e.target.value)}
             required
-            placeholder="Enter the transaction ID from your payment"
-            helperText="You can find this in your payment confirmation"
+            placeholder={language === 'am' ? 'የክፍያውን ማረጋገጫ ቁጥር እዚህ ያስገቡ' : 'Enter the transaction ID from your payment'}
+            helperText={language === 'am' ? 'ይህንን ቁጥር በክፍያ መልእክትዎ ላይ ማግኘት ይችላሉ' : 'You can find this in your payment confirmation'}
+            sx={textFieldStyle}
           />
         </>
       )}
       
       <TextField
         fullWidth
-        label="Description (Optional)"
+        label={language === 'am' ? 'ተጨማሪ ማስታወሻ (አስፈላጊ ከሆነ)' : 'Description (Optional)'}
         value={formData.description}
         onChange={(e) => handleChange('description', e.target.value)}
         multiline
         rows={2}
-        placeholder="Any additional notes for the agent..."
+        placeholder={language === 'am' ? 'ለክፍያው ተጨማሪ ማስታወሻ ካለ...' : 'Any additional notes for the agent...'}
+        sx={textFieldStyle}
       />
     </Box>
   );
@@ -453,47 +494,63 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
   const renderStep2 = () => (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
       {successMessage && (
-        <Alert severity="success" sx={{ mb: 2 }}>
+        <Alert severity="success" sx={{ mb: 2, borderRadius: 2 }}>
           {successMessage}
         </Alert>
       )}
       
       <Box sx={{ textAlign: 'center', p: 3 }}>
-        <Box sx={{ width: 80, height: 80, borderRadius: '50%', bgcolor: '#10b98120', display: 'flex', alignItems: 'center', justifyContent: 'center', mx: 'auto', mb: 2 }}>
+        <Box sx={{ width: 80, height: 80, borderRadius: '50%', bgcolor: 'rgba(16,185,129,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', mx: 'auto', mb: 2 }}>
           <Receipt sx={{ fontSize: 40, color: '#10b981' }} />
         </Box>
-        <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 1 }}>
-          Payment Request Submitted!
+        <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 1, color: isDark ? '#f1f5f9' : '#0f172a' }}>
+          {language === 'am' ? 'የክፍያ ጥያቄው በተሳካ ሁኔታ ገብቷል!' : 'Payment Request Submitted!'}
         </Typography>
-        <Typography variant="body2" color="text.secondary">
-          Your payment request has been submitted successfully. Our team will verify your payment and update the status shortly.
+        <Typography variant="body2" sx={{ color: isDark ? '#94a3b8' : '#64748b' }}>
+          {language === 'am' 
+            ? 'የክፍያ ጥያቄዎ በተሳካ ሁኔታ ተልኳል። ቡድናችን ክፍያውን አረጋግጦ ሁኔታውን በቅርቡ ያሳውቃል።'
+            : 'Your payment request has been submitted successfully. Our team will verify your payment and update the status shortly.'}
         </Typography>
       </Box>
       
       {transaction && (
-        <Paper sx={{ p: 2, bgcolor: theme === 'dark' ? '#1e293b' : '#f8fafc' }}>
-          <Typography variant="subtitle2" sx={{ mb: 1, color: theme === 'dark' ? '#00ffff' : '#007bff' }}>
-            Transaction Summary
+        <Paper sx={{ p: 2.5, bgcolor: isDark ? '#0a192f' : '#f8fafc', border: `1px solid ${isDark ? '#233554' : '#e2e8f0'}`, borderRadius: 2.5 }}>
+          <Typography variant="subtitle2" sx={{ mb: 1.5, color: isDark ? '#38bdf8' : '#2563eb', fontWeight: 700 }}>
+            {language === 'am' ? 'የዝውውር ማጠቃለያ' : 'Transaction Summary'}
           </Typography>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-            <Typography variant="body2">Reference:</Typography>
-            <Typography variant="body2" sx={{ fontFamily: 'monospace' }}>{transaction.reference}</Typography>
+            <Typography variant="body2" sx={{ color: isDark ? '#94a3b8' : '#64748b' }}>
+              {language === 'am' ? 'ማጣቀሻ ቁጥር፡' : 'Reference:'}
+            </Typography>
+            <Typography variant="body2" sx={{ fontFamily: 'monospace', fontWeight: 600, color: isDark ? '#f1f5f9' : '#0f172a' }}>
+              {transaction.reference}
+            </Typography>
           </Box>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-            <Typography variant="body2">Amount:</Typography>
-            <Typography variant="body2" sx={{ fontWeight: 'bold' }}>{formatCurrency(transaction.amount)}</Typography>
+            <Typography variant="body2" sx={{ color: isDark ? '#94a3b8' : '#64748b' }}>
+              {language === 'am' ? 'መጠን፡' : 'Amount:'}
+            </Typography>
+            <Typography variant="body2" sx={{ fontWeight: 'bold', color: isDark ? '#f1f5f9' : '#0f172a' }}>
+              {formatCurrency(transaction.amount)}
+            </Typography>
           </Box>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-            <Typography variant="body2">Property:</Typography>
-            <Typography variant="body2">{houseTitle}</Typography>
+            <Typography variant="body2" sx={{ color: isDark ? '#94a3b8' : '#64748b' }}>
+              {language === 'am' ? 'ንብረት፡' : 'Property:'}
+            </Typography>
+            <Typography variant="body2" sx={{ color: isDark ? '#f1f5f9' : '#0f172a' }}>
+              {houseTitle}
+            </Typography>
           </Box>
           <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-            <Typography variant="body2">Status:</Typography>
+            <Typography variant="body2" sx={{ color: isDark ? '#94a3b8' : '#64748b' }}>
+              {language === 'am' ? 'ሁኔታ፡' : 'Status:'}
+            </Typography>
             <Chip 
               label={transaction.status} 
               size="small" 
               color={transaction.status === 'pending' ? 'warning' : 'success'}
-              sx={{ height: 20 }}
+              sx={{ height: 22, fontWeight: 600 }}
             />
           </Box>
         </Paper>
@@ -515,36 +572,45 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
       fullScreen={isMobile}
       PaperProps={{
         sx: {
-          borderRadius: 3,
-          backgroundColor: theme === 'dark' ? '#0f172a' : 'white',
-          color: theme === 'dark' ? '#ccd6f6' : '#333333'
+          borderRadius: isMobile ? 0 : 3,
+          backgroundColor: isDark ? '#112240' : '#ffffff',
+          border: isDark ? '1px solid #233554' : '1px solid #e2e8f0',
+          color: isDark ? '#f1f5f9' : '#0f172a'
         }
       }}
     >
       <DialogTitle sx={{ 
-        borderBottom: 1, 
-        borderColor: 'divider',
+        borderBottom: `1px solid ${isDark ? '#233554' : '#e2e8f0'}`,
         display: 'flex',
         justifyContent: 'space-between',
         alignItems: 'center',
         py: 2
       }}>
         <Box>
-          <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
-            Payment for {houseTitle}
+          <Typography variant="h6" sx={{ fontWeight: 'bold', color: isDark ? '#f1f5f9' : '#0f172a' }}>
+            {language === 'am' ? 'ለቤት ክፍያ ፈጽም' : `Payment for ${houseTitle}`}
           </Typography>
-          <Typography variant="body2" color="text.secondary">
-            Amount: {formatCurrency(amount)}
+          <Typography variant="body2" sx={{ color: isDark ? '#94a3b8' : '#64748b' }}>
+            {language === 'am' ? 'የክፍያ መጠን፡' : 'Amount:'} <strong style={{ color: isDark ? '#38bdf8' : '#2563eb' }}>{formatCurrency(amount)}</strong>
           </Typography>
         </Box>
-        <IconButton onClick={handleClose}>
+        <IconButton onClick={handleClose} sx={{ color: isDark ? '#94a3b8' : '#64748b' }}>
           <Close />
         </IconButton>
       </DialogTitle>
       
       {/* Only show stepper if not on confirmation step */}
       {!isConfirmationStep && (
-        <Stepper activeStep={activeStep} sx={{ px: 3, pt: 3 }}>
+        <Stepper
+          activeStep={activeStep}
+          sx={{
+            px: 3,
+            pt: 3,
+            '& .MuiStepLabel-label': { color: isDark ? '#94a3b8' : '#64748b' },
+            '& .MuiStepLabel-label.Mui-active': { color: isDark ? '#38bdf8' : '#2563eb', fontWeight: 700 },
+            '& .MuiStepLabel-label.Mui-completed': { color: '#10b981' }
+          }}
+        >
           {steps.map((label) => (
             <Step key={label}>
               <StepLabel>{label}</StepLabel>
@@ -553,9 +619,9 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
         </Stepper>
       )}
       
-      <DialogContent sx={{ p: 3, minHeight: 400 }}>
+      <DialogContent sx={{ p: 3, minHeight: 350 }}>
         {errorMessage && (
-          <Alert severity="error" sx={{ mb: 2 }}>
+          <Alert severity="error" sx={{ mb: 2, borderRadius: 2 }}>
             {errorMessage}
           </Alert>
         )}
@@ -565,27 +631,36 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
         {activeStep === 2 && renderStep2()}
       </DialogContent>
       
-      <DialogActions sx={{ p: 3, borderTop: 1, borderColor: 'divider' }}>
+      <DialogActions sx={{ p: 2.5, borderTop: `1px solid ${isDark ? '#233554' : '#e2e8f0'}` }}>
         {isConfirmationStep ? (
           <Button
             variant="contained"
             onClick={handleClose}
             sx={{
-              background: theme === 'dark' ? 'linear-gradient(135deg, #00ffff, #00b3b3)' : 'linear-gradient(135deg, #007bff, #0056b3)'
+              bgcolor: isDark ? '#38bdf8' : '#2563eb',
+              borderRadius: '8px',
+              textTransform: 'none',
+              px: 3
             }}
           >
-            Close
+            {t('action.close', 'Close')}
           </Button>
         ) : (
-          <Box sx={{ display: 'flex', gap: 2, width: '100%' }}>
+          <Box sx={{ display: 'flex', gap: 2, width: '100%', flexDirection: { xs: 'column-reverse', sm: 'row' } }}>
             {activeStep > 0 && (
               <Button
                 variant="outlined"
                 onClick={handleBack}
                 disabled={submitting}
-                sx={{ flex: 1 }}
+                sx={{
+                  flex: 1,
+                  borderRadius: '10px',
+                  borderColor: isDark ? '#233554' : '#cbd5e1',
+                  color: isDark ? '#f1f5f9' : '#0f172a',
+                  textTransform: 'none'
+                }}
               >
-                Back
+                {t('action.previous', 'Back')}
               </Button>
             )}
             {activeStep === 1 ? (
@@ -593,16 +668,17 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
                 variant="contained"
                 onClick={handleSubmit}
                 disabled={submitting}
-                startIcon={submitting ? <CircularProgress size={20} /> : <ShoppingCart />}
+                startIcon={submitting ? <CircularProgress size={20} color="inherit" /> : <ShoppingCart />}
                 sx={{
                   flex: 1,
-                  background: theme === 'dark' ? 'linear-gradient(135deg, #00ff00, #00b300)' : 'linear-gradient(135deg, #28a745, #218838)',
-                  '&:hover': {
-                    background: theme === 'dark' ? 'linear-gradient(135deg, #00b300, #008000)' : 'linear-gradient(135deg, #218838, #1e7e34)'
-                  }
+                  background: 'linear-gradient(135deg, #10b981, #059669)',
+                  borderRadius: '10px',
+                  py: 1,
+                  fontWeight: 600,
+                  textTransform: 'none'
                 }}
               >
-                {submitting ? 'Processing...' : 'Submit Payment'}
+                {submitting ? (language === 'am' ? 'በማስገባት ላይ...' : 'Processing...') : (language === 'am' ? 'ክፍያውን አስገባ' : 'Submit Payment')}
               </Button>
             ) : (
               <Button
@@ -612,13 +688,14 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
                 startIcon={<ArrowForward />}
                 sx={{
                   flex: 1,
-                  background: theme === 'dark' ? 'linear-gradient(135deg, #00ffff, #00b3b3)' : 'linear-gradient(135deg, #007bff, #0056b3)',
-                  '&:hover': {
-                    background: theme === 'dark' ? 'linear-gradient(135deg, #00b3b3, #008080)' : 'linear-gradient(135deg, #0056b3, #004080)'
-                  }
+                  bgcolor: isDark ? '#38bdf8' : '#2563eb',
+                  borderRadius: '10px',
+                  py: 1,
+                  fontWeight: 600,
+                  textTransform: 'none'
                 }}
               >
-                Next
+                {t('action.next', 'Next')}
               </Button>
             )}
           </Box>

@@ -15,6 +15,7 @@ import {
 } from '@mui/material';
 import { motion } from 'framer-motion';
 import { useTheme } from '@/lib/theme-context';
+import { useLanguage } from '@/lib/language-context';
 import {
   People, Block, CheckCircle,
   PersonAdd, Refresh, Delete, Lock,
@@ -70,6 +71,7 @@ const ROLE_OPTIONS: { value: Role; label: string; icon: React.ReactNode }[] = [
 
 const UsersPage = () => {
   const { theme } = useTheme();
+  const { t, isAmharic } = useLanguage();
   const isMobile = useMediaQuery('(max-width: 768px)');
 
   // ─── List state ────────────────────────────────────────────────
@@ -141,11 +143,11 @@ const UsersPage = () => {
       backgroundColor: theme === 'dark' ? '#1e293b' : 'white',
       color: theme === 'dark' ? '#ccd6f6' : '#333333',
       '& fieldset': { borderColor: theme === 'dark' ? '#334155' : '#e5e7eb' },
-      '&:hover fieldset': { borderColor: theme === 'dark' ? '#00ffff' : '#007bff' },
-      '&.Mui-focused fieldset': { borderColor: theme === 'dark' ? '#00ffff' : '#007bff' },
+      '&:hover fieldset': { borderColor: theme === 'dark' ? '#3b82f6' : '#2563eb' },
+      '&.Mui-focused fieldset': { borderColor: theme === 'dark' ? '#3b82f6' : '#2563eb' },
     },
     '& .MuiInputLabel-root': { color: theme === 'dark' ? '#a8b2d1' : '#666666' },
-    '& .MuiInputLabel-root.Mui-focused': { color: theme === 'dark' ? '#00ffff' : '#007bff' },
+    '& .MuiInputLabel-root.Mui-focused': { color: theme === 'dark' ? '#3b82f6' : '#2563eb' },
   };
 
   const selectStyle = {
@@ -156,16 +158,16 @@ const UsersPage = () => {
       borderColor: theme === 'dark' ? '#334155' : '#e5e7eb',
     },
     '&:hover .MuiOutlinedInput-notchedOutline': {
-      borderColor: theme === 'dark' ? '#00ffff' : '#007bff',
+      borderColor: theme === 'dark' ? '#3b82f6' : '#2563eb',
     },
     '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-      borderColor: theme === 'dark' ? '#00ffff' : '#007bff',
+      borderColor: theme === 'dark' ? '#3b82f6' : '#2563eb',
     },
   };
 
   const labelStyle = {
     color: theme === 'dark' ? '#a8b2d1' : '#666666',
-    '&.Mui-focused': { color: theme === 'dark' ? '#00ffff' : '#007bff' },
+    '&.Mui-focused': { color: theme === 'dark' ? '#3b82f6' : '#2563eb' },
   };
 
   // ─── Effects ──────────────────────────────────────────────────
@@ -471,7 +473,7 @@ const UsersPage = () => {
       <Typography
         variant="h6"
         sx={{
-          color: theme === 'dark' ? '#00ffff' : '#007bff',
+          color: theme === 'dark' ? '#3b82f6' : '#2563eb',
           mb: 2,
           display: 'flex',
           alignItems: 'center',
@@ -510,13 +512,13 @@ const UsersPage = () => {
                 mb: 1,
               }}
             >
-              Agent Management
+              {t('agents.title')}
             </Typography>
             <Typography
               variant={isMobile ? 'body2' : 'body1'}
               color={theme === 'dark' ? '#a8b2d1' : '#666666'}
             >
-              Manage system agents, roles, and permissions
+              {t('agents.subtitle')}
             </Typography>
           </Box>
         </motion.div>
@@ -537,28 +539,28 @@ const UsersPage = () => {
           >
             {[
               {
-                title: 'Total Users',
+                title: isAmharic ? 'ጠቅላላ ተጠቃሚዎች' : 'Total Users',
                 value: stats?.totalUsers || 0,
                 icon: <People sx={{ fontSize: 28 }} />,
-                color: theme === 'dark' ? '#00ffff' : '#007bff',
+                color: theme === 'dark' ? '#3b82f6' : '#2563eb',
               },
               {
-                title: 'Active Users',
+                title: isAmharic ? 'ንቁ ተጠቃሚዎች' : 'Active Users',
                 value: stats?.activeUsers || 0,
                 icon: <CheckCircle sx={{ fontSize: 28 }} />,
-                color: theme === 'dark' ? '#00ff00' : '#28a745',
+                color: '#10b981',
               },
               {
-                title: 'Blocked Users',
+                title: isAmharic ? 'የታገዱ ተጠቃሚዎች' : 'Blocked Users',
                 value: stats?.blockedUsers || 0,
                 icon: <Block sx={{ fontSize: 28 }} />,
-                color: theme === 'dark' ? '#ff0000' : '#dc3545',
+                color: '#ef4444',
               },
               {
-                title: 'Role Types',
+                title: isAmharic ? 'የሚና ዓይነቶች' : 'Role Types',
                 value: stats?.roles?.length || 0,
                 icon: <Category sx={{ fontSize: 28 }} />,
-                color: theme === 'dark' ? '#ff00ff' : '#9333ea',
+                color: '#8b5cf6',
               },
             ].map((stat, index) => (
               <Card
@@ -673,8 +675,8 @@ const UsersPage = () => {
                     onClick={resetFilters}
                     sx={{
                       borderRadius: 1,
-                      borderColor: theme === 'dark' ? '#00ffff' : '#007bff',
-                      color: theme === 'dark' ? '#00ffff' : '#007bff',
+                      borderColor: theme === 'dark' ? '#3b82f6' : '#2563eb',
+                      color: theme === 'dark' ? '#3b82f6' : '#2563eb',
                       '&:hover': {
                         borderColor: theme === 'dark' ? '#00b3b3' : '#0056b3',
                         backgroundColor: theme === 'dark' ? '#00ffff20' : '#007bff10',
@@ -756,7 +758,7 @@ const UsersPage = () => {
                     {ROLE_OPTIONS.map((role) => (
                       <MenuItem key={role.value} value={role.value}>
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                          <Box sx={{ color: theme === 'dark' ? '#00ffff' : '#007bff' }}>
+                          <Box sx={{ color: theme === 'dark' ? '#3b82f6' : '#2563eb' }}>
                             {role.icon}
                           </Box>
                           <Typography
@@ -816,7 +818,7 @@ const UsersPage = () => {
           >
             <CircularProgress
               size={60}
-              sx={{ color: theme === 'dark' ? '#00ffff' : '#007bff' }}
+              sx={{ color: theme === 'dark' ? '#3b82f6' : '#2563eb' }}
             />
           </Box>
         ) : (
@@ -989,8 +991,8 @@ const UsersPage = () => {
                                 size="small"
                                 sx={{
                                   borderRadius: 1,
-                                  borderColor: theme === 'dark' ? '#00ffff' : '#007bff',
-                                  color: theme === 'dark' ? '#00ffff' : '#007bff',
+                                  borderColor: theme === 'dark' ? '#3b82f6' : '#2563eb',
+                                  color: theme === 'dark' ? '#3b82f6' : '#2563eb',
                                   '&:hover': {
                                     backgroundColor:
                                       theme === 'dark' ? '#00ffff20' : '#007bff10',
@@ -1006,8 +1008,8 @@ const UsersPage = () => {
                                 size="small"
                                 sx={{
                                   borderRadius: 1,
-                                  borderColor: theme === 'dark' ? '#00ffff' : '#007bff',
-                                  color: theme === 'dark' ? '#00ffff' : '#007bff',
+                                  borderColor: theme === 'dark' ? '#3b82f6' : '#2563eb',
+                                  color: theme === 'dark' ? '#3b82f6' : '#2563eb',
                                   '&:hover': {
                                     backgroundColor:
                                       theme === 'dark' ? '#00ffff20' : '#007bff10',
@@ -1023,8 +1025,8 @@ const UsersPage = () => {
                                 size="small"
                                 sx={{
                                   borderRadius: 1,
-                                  borderColor: theme === 'dark' ? '#00ffff' : '#007bff',
-                                  color: theme === 'dark' ? '#00ffff' : '#007bff',
+                                  borderColor: theme === 'dark' ? '#3b82f6' : '#2563eb',
+                                  color: theme === 'dark' ? '#3b82f6' : '#2563eb',
                                   '&:hover': {
                                     backgroundColor:
                                       theme === 'dark' ? '#00ffff20' : '#007bff10',
@@ -1042,8 +1044,8 @@ const UsersPage = () => {
                                 sx={{
                                   borderRadius: 1,
                                   borderColor:
-                                    theme === 'dark' ? '#00ffff' : '#007bff',
-                                  color: theme === 'dark' ? '#00ffff' : '#007bff',
+                                    theme === 'dark' ? '#3b82f6' : '#2563eb',
+                                  color: theme === 'dark' ? '#3b82f6' : '#2563eb',
                                   '&:hover': {
                                     backgroundColor:
                                       theme === 'dark' ? '#00ffff20' : '#007bff10',
@@ -1217,7 +1219,7 @@ const UsersPage = () => {
                                 size="small"
                                 onClick={() => handleOpenViewDialog(user)}
                                 sx={{
-                                  color: theme === 'dark' ? '#00ffff' : '#007bff',
+                                  color: theme === 'dark' ? '#3b82f6' : '#2563eb',
                                   '&:hover': {
                                     backgroundColor:
                                       theme === 'dark' ? '#00ffff20' : '#007bff10',
@@ -1230,7 +1232,7 @@ const UsersPage = () => {
                                 size="small"
                                 onClick={() => handleOpenEditDialog(user)}
                                 sx={{
-                                  color: theme === 'dark' ? '#00ffff' : '#007bff',
+                                  color: theme === 'dark' ? '#3b82f6' : '#2563eb',
                                   '&:hover': {
                                     backgroundColor:
                                       theme === 'dark' ? '#00ffff20' : '#007bff10',
@@ -1243,7 +1245,7 @@ const UsersPage = () => {
                                 size="small"
                                 onClick={() => handleOpenPasswordDialog(user)}
                                 sx={{
-                                  color: theme === 'dark' ? '#00ffff' : '#007bff',
+                                  color: theme === 'dark' ? '#3b82f6' : '#2563eb',
                                   '&:hover': {
                                     backgroundColor:
                                       theme === 'dark' ? '#00ffff20' : '#007bff10',
@@ -1265,7 +1267,7 @@ const UsersPage = () => {
                                     disabled={user.role === 'admin'}
                                     onClick={() => handleOpenPermissionsDialog(user)}
                                     sx={{
-                                      color: theme === 'dark' ? '#00ffff' : '#007bff',
+                                      color: theme === 'dark' ? '#3b82f6' : '#2563eb',
                                       '&:hover': {
                                         backgroundColor:
                                           theme === 'dark' ? '#00ffff20' : '#007bff10',
@@ -1385,7 +1387,7 @@ const UsersPage = () => {
                       color: theme === 'dark' ? '#ccd6f6' : '#333333',
                       '&.Mui-selected': {
                         backgroundColor:
-                          theme === 'dark' ? '#00ffff' : '#007bff',
+                          theme === 'dark' ? '#3b82f6' : '#2563eb',
                         color: theme === 'dark' ? '#0a192f' : 'white',
                       },
                       '&:hover': {
@@ -1537,7 +1539,7 @@ const UsersPage = () => {
                     {ROLE_OPTIONS.map((role) => (
                       <MenuItem key={role.value} value={role.value}>
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                          <Box sx={{ color: theme === 'dark' ? '#00ffff' : '#007bff' }}>
+                          <Box sx={{ color: theme === 'dark' ? '#3b82f6' : '#2563eb' }}>
                             {role.icon}
                           </Box>
                           <Typography
@@ -1564,7 +1566,7 @@ const UsersPage = () => {
             <Button
               onClick={() => setOpenAddDialog(false)}
               sx={{
-                color: theme === 'dark' ? '#00ffff' : '#007bff',
+                color: theme === 'dark' ? '#3b82f6' : '#2563eb',
                 '&:hover': {
                   backgroundColor: theme === 'dark' ? '#00ffff20' : '#007bff10',
                 },
@@ -1713,7 +1715,7 @@ const UsersPage = () => {
                     {ROLE_OPTIONS.map((role) => (
                       <MenuItem key={role.value} value={role.value}>
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                          <Box sx={{ color: theme === 'dark' ? '#00ffff' : '#007bff' }}>
+                          <Box sx={{ color: theme === 'dark' ? '#3b82f6' : '#2563eb' }}>
                             {role.icon}
                           </Box>
                           <Typography
@@ -1740,7 +1742,7 @@ const UsersPage = () => {
             <Button
               onClick={() => setOpenEditDialog(false)}
               sx={{
-                color: theme === 'dark' ? '#00ffff' : '#007bff',
+                color: theme === 'dark' ? '#3b82f6' : '#2563eb',
                 '&:hover': {
                   backgroundColor: theme === 'dark' ? '#00ffff20' : '#007bff10',
                 },
@@ -1827,7 +1829,7 @@ const UsersPage = () => {
             <Button
               onClick={() => setOpenPasswordDialog(false)}
               sx={{
-                color: theme === 'dark' ? '#00ffff' : '#007bff',
+                color: theme === 'dark' ? '#3b82f6' : '#2563eb',
                 '&:hover': {
                   backgroundColor: theme === 'dark' ? '#00ffff20' : '#007bff10',
                 },
@@ -1895,7 +1897,7 @@ const UsersPage = () => {
             {permissionsLoading ? (
               <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}>
                 <CircularProgress
-                  sx={{ color: theme === 'dark' ? '#00ffff' : '#007bff' }}
+                  sx={{ color: theme === 'dark' ? '#3b82f6' : '#2563eb' }}
                 />
               </Box>
             ) : (
@@ -2437,7 +2439,7 @@ const UsersPage = () => {
                 <Button
                   onClick={() => setOpenViewDialog(false)}
                   sx={{
-                    color: theme === 'dark' ? '#00ffff' : '#007bff',
+                    color: theme === 'dark' ? '#3b82f6' : '#2563eb',
                     '&:hover': {
                       backgroundColor:
                         theme === 'dark' ? '#00ffff20' : '#007bff10',
@@ -2455,8 +2457,8 @@ const UsersPage = () => {
                     variant="outlined"
                     startIcon={<SecurityIcon />}
                     sx={{
-                      borderColor: theme === 'dark' ? '#00ffff' : '#007bff',
-                      color: theme === 'dark' ? '#00ffff' : '#007bff',
+                      borderColor: theme === 'dark' ? '#3b82f6' : '#2563eb',
+                      color: theme === 'dark' ? '#3b82f6' : '#2563eb',
                     }}
                   >
                     Permissions
@@ -2533,7 +2535,7 @@ const UsersPage = () => {
             <Button
               onClick={() => setOpenDeleteDialog(false)}
               sx={{
-                color: theme === 'dark' ? '#00ffff' : '#007bff',
+                color: theme === 'dark' ? '#3b82f6' : '#2563eb',
                 '&:hover': {
                   backgroundColor: theme === 'dark' ? '#00ffff20' : '#007bff10',
                 },

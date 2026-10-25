@@ -12,6 +12,7 @@ import {
 } from '@mui/material';
 import { motion } from 'framer-motion';
 import { useTheme } from '@/lib/theme-context';
+import { useLanguage } from '@/lib/language-context';
 import {
   Home, LocationOn, AttachMoney, Bed, Bathtub,
   SquareFoot, ThreeDRotation,
@@ -22,14 +23,6 @@ import {
 } from '@mui/icons-material';
 import api from '@/app/utils/api';
 import { PropertyType } from '@/types/houses';
-
-const propertyTypes = [
-  { value: PropertyType.APARTMENT, label: 'Apartment' },
-  { value: PropertyType.VILLA, label: 'Villa' },
-  { value: PropertyType.CONDO, label: 'Condo' },
-  { value: PropertyType.HOUSE, label: 'House' },
-  { value: PropertyType.LAND, label: 'Land' }
-];
 
 const amenitiesOptions = [
   { value: 'pool', label: 'Swimming Pool', icon: <Pool /> },
@@ -52,14 +45,28 @@ const featuresOptions = [
   'Private Yard', 'Covered Patio', 'Laundry Room', 'Storage Space'
 ];
 
-const steps = ['Basic Information', 'Location & Details', 'Pricing & Media'];
-
 const EditHousePage = () => {
   const { theme } = useTheme();
+  const { t, isAmharic } = useLanguage();
+  const isDark = theme === 'dark';
   const isMobile = useMediaQuery('(max-width: 768px)');
   const router = useRouter();
   const params = useParams();
   const houseId = params.id as string;
+
+  const propertyTypes = [
+    { value: PropertyType.APARTMENT, label: t('property.apartment', 'Apartment') },
+    { value: PropertyType.VILLA, label: t('property.villa', 'Villa') },
+    { value: PropertyType.CONDO, label: t('property.condo', 'Condo') },
+    { value: PropertyType.HOUSE, label: t('property.house', 'House') },
+    { value: PropertyType.LAND, label: t('property.land', 'Land') }
+  ];
+
+  const steps = [
+    t('house_form.step_basic', 'Basic Information'),
+    t('house_form.step_location', 'Location & Details'),
+    t('house_form.step_pricing', 'Pricing & Media')
+  ];
   
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -330,21 +337,23 @@ const EditHousePage = () => {
 
   const textFieldStyle = {
     '& .MuiOutlinedInput-root': {
-      backgroundColor: theme === 'dark' ? '#1e293b' : 'white',
-      color: theme === 'dark' ? '#ccd6f6' : '#333333',
-      '& fieldset': { borderColor: theme === 'dark' ? '#334155' : '#e5e7eb' },
-      '&:hover fieldset': { borderColor: theme === 'dark' ? '#00ffff' : '#007bff' },
-      '&.Mui-focused fieldset': { borderColor: theme === 'dark' ? '#00ffff' : '#007bff' }
+      backgroundColor: isDark ? '#1e293b' : 'white',
+      color: isDark ? '#f1f5f9' : '#0f172a',
+      borderRadius: '10px',
+      '& fieldset': { borderColor: isDark ? '#334155' : '#cbd5e1' },
+      '&:hover fieldset': { borderColor: isDark ? '#38bdf8' : '#2563eb' },
+      '&.Mui-focused fieldset': { borderColor: isDark ? '#38bdf8' : '#2563eb' }
     },
-    '& .MuiInputLabel-root': { color: theme === 'dark' ? '#a8b2d1' : '#666666' },
-    '& .MuiInputLabel-root.Mui-focused': { color: theme === 'dark' ? '#00ffff' : '#007bff' }
+    '& .MuiInputLabel-root': { color: isDark ? '#94a3b8' : '#64748b' },
+    '& .MuiInputLabel-root.Mui-focused': { color: isDark ? '#38bdf8' : '#2563eb' },
+    '& .MuiFormHelperText-root': { color: isDark ? '#94a3b8' : '#64748b' }
   };
 
   if (loading) {
     return (
-      <div className={`min-h-screen ${theme === 'dark' ? 'bg-gradient-to-br from-[#0a192f] to-[#112240]' : 'bg-gradient-to-br from-[#f0f0f0] to-[#ffffff]'}`}>
+      <div className={`min-h-screen ${isDark ? 'bg-[#0a192f] text-slate-100' : 'bg-slate-50 text-slate-800'}`}>
         <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh' }}>
-          <CircularProgress size={60} sx={{ color: theme === 'dark' ? '#00ffff' : '#007bff' }} />
+          <CircularProgress size={60} sx={{ color: isDark ? '#38bdf8' : '#2563eb' }} />
         </Box>
       </div>
     );
@@ -354,38 +363,39 @@ const EditHousePage = () => {
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
       <TextField
         fullWidth
-        label="Property Title"
+        label={t('house_form.prop_title', 'Property Title')}
         value={formData.title}
         onChange={(e) => handleInputChange('title', e.target.value)}
         required
-        placeholder="e.g., Luxury Villa with Ocean View"
-        helperText="A descriptive title for your property"
+        placeholder={t('house_form.prop_title_ph', 'e.g. Modern Villa in Bole')}
+        helperText={isAmharic ? 'የቤቱን መጠሪያ ወይም አጭር ማብራሪያ ያስገቡ' : 'A descriptive title for your property'}
         sx={textFieldStyle}
       />
       
       <TextField
         fullWidth
-        label="Description"
+        label={t('house_form.desc', 'Description')}
         value={formData.description}
         onChange={(e) => handleInputChange('description', e.target.value)}
         required
         multiline
         rows={4}
-        placeholder="Describe the property in detail..."
-        helperText="Include key features, condition, and selling points"
+        placeholder={t('house_form.desc_ph', 'Describe the property in detail...')}
+        helperText={isAmharic ? 'ዋና ዋና ገጽታዎችን እና መረጃዎችን ያካትቱ' : 'Include key features, condition, and selling points'}
         sx={textFieldStyle}
       />
       
       <FormControl fullWidth>
-        <InputLabel sx={{ color: theme === 'dark' ? '#a8b2d1' : '#666666' }}>Property Type</InputLabel>
+        <InputLabel sx={{ color: isDark ? '#94a3b8' : '#64748b' }}>{t('house_form.category', 'Property Category')}</InputLabel>
         <Select
           value={formData.propertyType}
-          label="Property Type"
+          label={t('house_form.category', 'Property Category')}
           onChange={(e) => handleInputChange('propertyType', e.target.value)}
           required
           sx={{
-            backgroundColor: theme === 'dark' ? '#1e293b' : 'white',
-            color: theme === 'dark' ? '#ccd6f6' : '#333333'
+            backgroundColor: isDark ? '#1e293b' : 'white',
+            color: isDark ? '#f1f5f9' : '#0f172a',
+            borderRadius: '10px'
           }}
         >
           {propertyTypes.map(type => (
@@ -400,11 +410,11 @@ const EditHousePage = () => {
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
       <TextField
         fullWidth
-        label="Street Address"
+        label={t('house_form.address', 'Street Address')}
         value={formData.location.address}
         onChange={(e) => handleNestedChange('location', 'address', e.target.value)}
         required
-        placeholder="123 Main Street"
+        placeholder={isAmharic ? 'ለምሳሌ፡ ቦሌ መንገድ፣ የቤት ቁጥር 123' : '123 Main Street'}
         sx={textFieldStyle}
       />
       
@@ -412,7 +422,7 @@ const EditHousePage = () => {
         <Box sx={{ flex: 1, minWidth: '150px' }}>
           <TextField
             fullWidth
-            label="City"
+            label={t('house_form.city', 'City')}
             value={formData.location.city}
             onChange={(e) => handleNestedChange('location', 'city', e.target.value)}
             required
@@ -422,7 +432,7 @@ const EditHousePage = () => {
         <Box sx={{ flex: 1, minWidth: '150px' }}>
           <TextField
             fullWidth
-            label="State/Province"
+            label={t('house_form.state', 'State / Subcity')}
             value={formData.location.state}
             onChange={(e) => handleNestedChange('location', 'state', e.target.value)}
             required
@@ -432,7 +442,7 @@ const EditHousePage = () => {
         <Box sx={{ flex: 1, minWidth: '150px' }}>
           <TextField
             fullWidth
-            label="ZIP Code"
+            label={t('house_form.zip', 'Postal Code / ZIP')}
             value={formData.location.zipCode}
             onChange={(e) => handleNestedChange('location', 'zipCode', e.target.value)}
             sx={textFieldStyle}
@@ -440,17 +450,17 @@ const EditHousePage = () => {
         </Box>
       </Box>
       
-      <Divider sx={{ my: 2 }} />
+      <Divider sx={{ my: 2, borderColor: isDark ? '#233554' : '#e2e8f0' }} />
       
-      <Typography variant="h6" sx={{ color: theme === 'dark' ? '#00ffff' : '#007bff', mb: 2 }}>
-        Map Location
+      <Typography variant="h6" sx={{ color: isDark ? '#38bdf8' : '#2563eb', fontWeight: 700, mb: 2 }}>
+        {t('house_form.coordinates', 'Map Location')}
       </Typography>
       
       <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
         <Box sx={{ flex: 1, minWidth: '150px' }}>
           <TextField
             fullWidth
-            label="Latitude"
+            label={t('house_form.lat', 'Latitude')}
             type="number"
             value={formData.location.coordinates.lat}
             onChange={(e) =>
@@ -458,7 +468,7 @@ const EditHousePage = () => {
             }
             required
             InputProps={{
-              startAdornment: <Map sx={{ mr: 1, fontSize: 16 }} />
+              startAdornment: <Map sx={{ mr: 1, fontSize: 16, color: isDark ? '#38bdf8' : '#2563eb' }} />
             }}
             inputProps={{
               step: 0.000001
@@ -471,7 +481,7 @@ const EditHousePage = () => {
         <Box sx={{ flex: 1, minWidth: '150px' }}>
           <TextField
             fullWidth
-            label="Longitude"
+            label={t('house_form.lng', 'Longitude')}
             type="number"
             value={formData.location.coordinates.lng}
             onChange={(e) =>
@@ -479,7 +489,7 @@ const EditHousePage = () => {
             }
             required
             InputProps={{
-              startAdornment: <Map sx={{ mr: 1, fontSize: 16 }} />
+              startAdornment: <Map sx={{ mr: 1, fontSize: 16, color: isDark ? '#38bdf8' : '#2563eb' }} />
             }}
             inputProps={{
               step: 0.000001
@@ -490,43 +500,43 @@ const EditHousePage = () => {
         </Box>
       </Box>
       
-      <Divider sx={{ my: 2 }} />
+      <Divider sx={{ my: 2, borderColor: isDark ? '#233554' : '#e2e8f0' }} />
       
-      <Typography variant="h6" sx={{ color: theme === 'dark' ? '#00ffff' : '#007bff', mb: 2 }}>
-        Property Details
+      <Typography variant="h6" sx={{ color: isDark ? '#38bdf8' : '#2563eb', fontWeight: 700, mb: 2 }}>
+        {isAmharic ? 'የቤቱ ዝርዝር መረጃዎች' : 'Property Details'}
       </Typography>
       
       <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
         <Box sx={{ flex: 1, minWidth: '120px' }}>
           <TextField
             fullWidth
-            label="Bedrooms"
+            label={t('house_form.bedrooms', 'Bedrooms')}
             type="number"
             value={formData.details.bedrooms}
-            onChange={(e) => handleNestedChange('details', 'bedrooms', parseInt(e.target.value))}
-            InputProps={{ startAdornment: <Bed sx={{ mr: 1 }} /> }}
+            onChange={(e) => handleNestedChange('details', 'bedrooms', parseInt(e.target.value) || 0)}
+            InputProps={{ startAdornment: <Bed sx={{ mr: 1, color: isDark ? '#94a3b8' : '#64748b' }} /> }}
             sx={textFieldStyle}
           />
         </Box>
         <Box sx={{ flex: 1, minWidth: '120px' }}>
           <TextField
             fullWidth
-            label="Bathrooms"
+            label={t('house_form.bathrooms', 'Bathrooms')}
             type="number"
             value={formData.details.bathrooms}
-            onChange={(e) => handleNestedChange('details', 'bathrooms', parseInt(e.target.value))}
-            InputProps={{ startAdornment: <Bathtub sx={{ mr: 1 }} /> }}
+            onChange={(e) => handleNestedChange('details', 'bathrooms', parseInt(e.target.value) || 0)}
+            InputProps={{ startAdornment: <Bathtub sx={{ mr: 1, color: isDark ? '#94a3b8' : '#64748b' }} /> }}
             sx={textFieldStyle}
           />
         </Box>
         <Box sx={{ flex: 1, minWidth: '120px' }}>
           <TextField
             fullWidth
-            label="Area (sq ft)"
+            label={t('house_form.area', 'Area (sq ft / sqm)')}
             type="number"
             value={formData.details.area}
-            onChange={(e) => handleNestedChange('details', 'area', parseInt(e.target.value))}
-            InputProps={{ startAdornment: <SquareFoot sx={{ mr: 1 }} /> }}
+            onChange={(e) => handleNestedChange('details', 'area', parseInt(e.target.value) || 0)}
+            InputProps={{ startAdornment: <SquareFoot sx={{ mr: 1, color: isDark ? '#94a3b8' : '#64748b' }} /> }}
             sx={textFieldStyle}
           />
         </Box>
@@ -536,30 +546,30 @@ const EditHousePage = () => {
         <Box sx={{ flex: 1, minWidth: '120px' }}>
           <TextField
             fullWidth
-            label="Year Built"
+            label={t('house_form.year_built', 'Year Built')}
             type="number"
             value={formData.details.yearBuilt}
-            onChange={(e) => handleNestedChange('details', 'yearBuilt', parseInt(e.target.value))}
+            onChange={(e) => handleNestedChange('details', 'yearBuilt', parseInt(e.target.value) || 0)}
             sx={textFieldStyle}
           />
         </Box>
         <Box sx={{ flex: 1, minWidth: '120px' }}>
           <TextField
             fullWidth
-            label="Floors"
+            label={isAmharic ? 'ፎቆች / ወለል' : 'Floors'}
             type="number"
             value={formData.details.floors}
-            onChange={(e) => handleNestedChange('details', 'floors', parseInt(e.target.value))}
+            onChange={(e) => handleNestedChange('details', 'floors', parseInt(e.target.value) || 1)}
             sx={textFieldStyle}
           />
         </Box>
         <Box sx={{ flex: 1, minWidth: '120px' }}>
           <TextField
             fullWidth
-            label="Parking Spaces"
+            label={t('house_form.parking', 'Parking Spaces')}
             type="number"
             value={formData.details.parkingSpaces}
-            onChange={(e) => handleNestedChange('details', 'parkingSpaces', parseInt(e.target.value))}
+            onChange={(e) => handleNestedChange('details', 'parkingSpaces', parseInt(e.target.value) || 0)}
             sx={textFieldStyle}
           />
         </Box>
@@ -570,49 +580,59 @@ const EditHousePage = () => {
           <Switch
             checked={formData.details.furnished}
             onChange={(e) => handleNestedChange('details', 'furnished', e.target.checked)}
-            sx={{ color: theme === 'dark' ? '#00ffff' : '#007bff' }}
+            color="primary"
           />
         }
-        label="Fully Furnished"
-        sx={{ color: theme === 'dark' ? '#ccd6f6' : '#333333' }}
+        label={t('house_form.furnished', 'Fully Furnished')}
+        sx={{ color: isDark ? '#f1f5f9' : '#0f172a' }}
       />
       
-      <Divider sx={{ my: 2 }} />
+      <Divider sx={{ my: 2, borderColor: isDark ? '#233554' : '#e2e8f0' }} />
       
-      <Typography variant="h6" sx={{ color: theme === 'dark' ? '#00ffff' : '#007bff', mb: 2 }}>
-        Amenities
+      <Typography variant="h6" sx={{ color: isDark ? '#38bdf8' : '#2563eb', fontWeight: 700, mb: 2 }}>
+        {t('house_form.amenities', 'Amenities')}
       </Typography>
       
       <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-        {amenitiesOptions.map(amenity => (
-          <Chip
-            key={amenity.value}
-            icon={amenity.icon}
-            label={amenity.label}
-            onClick={() => {
-              const current = formData.details.amenities;
-              const updated = current.includes(amenity.value)
-                ? current.filter(a => a !== amenity.value)
-                : [...current, amenity.value];
-              handleNestedChange('details', 'amenities', updated);
-            }}
-            color={formData.details.amenities.includes(amenity.value) ? 'primary' : 'default'}
-            sx={{
-              backgroundColor: formData.details.amenities.includes(amenity.value)
-                ? (theme === 'dark' ? '#00ffff20' : '#007bff10')
-                : (theme === 'dark' ? '#334155' : '#e5e7eb'),
-              color: formData.details.amenities.includes(amenity.value)
-                ? (theme === 'dark' ? '#00ffff' : '#007bff')
-                : (theme === 'dark' ? '#a8b2d1' : '#666666')
-            }}
-          />
-        ))}
+        {amenitiesOptions.map(amenity => {
+          const isSelected = formData.details.amenities.includes(amenity.value);
+          return (
+            <Chip
+              key={amenity.value}
+              icon={amenity.icon}
+              label={amenity.label}
+              onClick={() => {
+                const current = formData.details.amenities;
+                const updated = current.includes(amenity.value)
+                  ? current.filter(a => a !== amenity.value)
+                  : [...current, amenity.value];
+                handleNestedChange('details', 'amenities', updated);
+              }}
+              sx={{
+                borderRadius: '8px',
+                fontWeight: 600,
+                backgroundColor: isSelected
+                  ? (isDark ? 'rgba(56, 189, 248, 0.2)' : 'rgba(37, 99, 235, 0.15)')
+                  : (isDark ? '#1e293b' : '#f1f5f9'),
+                border: isSelected
+                  ? `1px solid ${isDark ? '#38bdf8' : '#2563eb'}`
+                  : `1px solid ${isDark ? '#334155' : '#cbd5e1'}`,
+                color: isSelected
+                  ? (isDark ? '#38bdf8' : '#2563eb')
+                  : (isDark ? '#94a3b8' : '#64748b'),
+                '& .MuiChip-icon': {
+                  color: isSelected ? (isDark ? '#38bdf8' : '#2563eb') : 'inherit'
+                }
+              }}
+            />
+          );
+        })}
       </Box>
       
-      <Divider sx={{ my: 2 }} />
+      <Divider sx={{ my: 2, borderColor: isDark ? '#233554' : '#e2e8f0' }} />
       
-      <Typography variant="h6" sx={{ color: theme === 'dark' ? '#00ffff' : '#007bff', mb: 2 }}>
-        Features
+      <Typography variant="h6" sx={{ color: isDark ? '#38bdf8' : '#2563eb', fontWeight: 700, mb: 2 }}>
+        {isAmharic ? 'ተጨማሪ ባህሪያት' : 'Features'}
       </Typography>
       
       <Autocomplete
@@ -623,8 +643,8 @@ const EditHousePage = () => {
         renderInput={(params) => (
           <TextField
             {...params}
-            label="Select Features"
-            placeholder="Add features..."
+            label={isAmharic ? 'ባህሪያትን ይምረጡ' : 'Select Features'}
+            placeholder={isAmharic ? 'ባህሪ ጨምር...' : 'Add features...'}
             sx={textFieldStyle}
           />
         )}
@@ -636,7 +656,11 @@ const EditHousePage = () => {
                 key={key}
                 label={option}
                 {...tagProps}
-                sx={{ backgroundColor: theme === 'dark' ? '#334155' : '#e5e7eb' }}
+                sx={{
+                  backgroundColor: isDark ? '#1e293b' : '#e2e8f0',
+                  color: isDark ? '#f1f5f9' : '#0f172a',
+                  borderRadius: '6px'
+                }}
               />
             );
           })
@@ -647,33 +671,33 @@ const EditHousePage = () => {
 
   const renderPricingMedia = () => (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-      <Typography variant="h6" sx={{ color: theme === 'dark' ? '#00ffff' : '#007bff', mb: 2 }}>
-        Pricing & Availability
+      <Typography variant="h6" sx={{ color: isDark ? '#38bdf8' : '#2563eb', fontWeight: 700, mb: 1 }}>
+        {isAmharic ? 'የዋጋ እና የክፍያ ሁኔታ' : 'Pricing & Availability'}
       </Typography>
       
       <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
         <Box sx={{ flex: 1, minWidth: '200px' }}>
           <TextField
             fullWidth
-            label="Price"
+            label={t('house_form.price', 'Price ($)')}
             type="number"
             value={formData.pricing.price}
-            onChange={(e) => handleNestedChange('pricing', 'price', parseFloat(e.target.value))}
+            onChange={(e) => handleNestedChange('pricing', 'price', parseFloat(e.target.value) || 0)}
             required
-            InputProps={{ startAdornment: <AttachMoney sx={{ mr: 1 }} /> }}
+            InputProps={{ startAdornment: <AttachMoney sx={{ mr: 1, color: isDark ? '#38bdf8' : '#2563eb' }} /> }}
             sx={textFieldStyle}
           />
         </Box>
         <Box sx={{ flex: 1, minWidth: '200px' }}>
           <TextField
             fullWidth
-            label="Quantity Available"
+            label={t('house_form.quantity', 'Quantity Available')}
             type="number"
             value={formData.quantity}
             onChange={(e) => handleInputChange('quantity', Math.max(1, parseInt(e.target.value) || 1))}
             required
             InputProps={{ inputProps: { min: 1 } }}
-            helperText="Number of units available"
+            helperText={isAmharic ? 'የሚገኙ ተመሳሳይ ቤቶች ብዛት' : 'Number of units available'}
             sx={textFieldStyle}
           />
         </Box>
@@ -683,38 +707,38 @@ const EditHousePage = () => {
         <Box sx={{ flex: 1, minWidth: '200px' }}>
           <TextField
             fullWidth
-            label="Maintenance Fee"
+            label={isAmharic ? 'የጥገና / አስተዳደር ክፍያ ($)' : 'Maintenance Fee ($)'}
             type="number"
             value={formData.pricing.maintenanceFee}
-            onChange={(e) => handleNestedChange('pricing', 'maintenanceFee', parseFloat(e.target.value))}
-            InputProps={{ startAdornment: <AttachMoney sx={{ mr: 1 }} /> }}
+            onChange={(e) => handleNestedChange('pricing', 'maintenanceFee', parseFloat(e.target.value) || 0)}
+            InputProps={{ startAdornment: <AttachMoney sx={{ mr: 1, color: isDark ? '#94a3b8' : '#64748b' }} /> }}
             sx={textFieldStyle}
           />
         </Box>
         <Box sx={{ flex: 1, minWidth: '200px' }}>
           <TextField
             fullWidth
-            label="Tax Amount"
+            label={isAmharic ? 'የግብር መጠን ($)' : 'Tax Amount ($)'}
             type="number"
             value={formData.pricing.taxAmount}
-            onChange={(e) => handleNestedChange('pricing', 'taxAmount', parseFloat(e.target.value))}
-            InputProps={{ startAdornment: <AttachMoney sx={{ mr: 1 }} /> }}
+            onChange={(e) => handleNestedChange('pricing', 'taxAmount', parseFloat(e.target.value) || 0)}
+            InputProps={{ startAdornment: <AttachMoney sx={{ mr: 1, color: isDark ? '#94a3b8' : '#64748b' }} /> }}
             sx={textFieldStyle}
           />
         </Box>
       </Box>
       
-      <Divider sx={{ my: 2 }} />
+      <Divider sx={{ my: 2, borderColor: isDark ? '#233554' : '#e2e8f0' }} />
       
-      <Typography variant="h6" sx={{ color: theme === 'dark' ? '#00ffff' : '#007bff', mb: 2 }}>
-        Property Images
+      <Typography variant="h6" sx={{ color: isDark ? '#38bdf8' : '#2563eb', fontWeight: 700, mb: 2 }}>
+        {t('house_form.upload_images', 'Property Images')}
       </Typography>
       
       {/* Existing Images - Like Approve Page */}
       {existingImageUrls.length > 0 && (
         <Box>
-          <Typography variant="subtitle2" sx={{ mb: 1, color: theme === 'dark' ? '#a8b2d1' : '#666666' }}>
-            Existing Images ({existingImageUrls.length})
+          <Typography variant="subtitle2" sx={{ mb: 1, color: isDark ? '#94a3b8' : '#64748b', fontWeight: 600 }}>
+            {isAmharic ? 'ነባር ፎቶዎች' : 'Existing Images'} ({existingImageUrls.length})
           </Typography>
           <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
             {existingImageUrls.map((url, index) => (
@@ -728,7 +752,7 @@ const EditHousePage = () => {
                 <IconButton
                   size="small"
                   onClick={() => handleDeleteExistingImage(index)}
-                  sx={{ position: 'absolute', top: -8, right: -8, backgroundColor: '#ff0000', color: 'white', '&:hover': { backgroundColor: '#cc0000' } }}
+                  sx={{ position: 'absolute', top: -8, right: -8, backgroundColor: '#ef4444', color: 'white', '&:hover': { backgroundColor: '#dc2626' } }}
                 >
                   <Delete fontSize="small" />
                 </IconButton>
@@ -741,8 +765,8 @@ const EditHousePage = () => {
       {/* New Images */}
       {newImagePreviews.length > 0 && (
         <Box>
-          <Typography variant="subtitle2" sx={{ mb: 1, color: theme === 'dark' ? '#a8b2d1' : '#666666' }}>
-            New Images ({newImagePreviews.length})
+          <Typography variant="subtitle2" sx={{ mb: 1, color: isDark ? '#94a3b8' : '#64748b', fontWeight: 600 }}>
+            {isAmharic ? 'አዳዲስ ፎቶዎች' : 'New Images'} ({newImagePreviews.length})
           </Typography>
           <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
             {newImagePreviews.map((preview, index) => (
@@ -751,7 +775,7 @@ const EditHousePage = () => {
                 <IconButton
                   size="small"
                   onClick={() => handleDeleteNewImage(index)}
-                  sx={{ position: 'absolute', top: -8, right: -8, backgroundColor: '#ff0000', color: 'white', '&:hover': { backgroundColor: '#cc0000' } }}
+                  sx={{ position: 'absolute', top: -8, right: -8, backgroundColor: '#ef4444', color: 'white', '&:hover': { backgroundColor: '#dc2626' } }}
                 >
                   <Delete fontSize="small" />
                 </IconButton>
@@ -766,39 +790,43 @@ const EditHousePage = () => {
         onClick={() => imageInputRef.current?.click()}
         sx={{
           width: 120, height: 120, borderRadius: 2,
-          border: `2px dashed ${theme === 'dark' ? '#334155' : '#e5e7eb'}`,
+          border: `2px dashed ${isDark ? '#334155' : '#cbd5e1'}`,
           display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-          cursor: 'pointer', '&:hover': { borderColor: theme === 'dark' ? '#00ffff' : '#007bff' }
+          cursor: 'pointer',
+          bgcolor: isDark ? 'rgba(30, 41, 59, 0.5)' : '#f8fafc',
+          '&:hover': { borderColor: isDark ? '#38bdf8' : '#2563eb', bgcolor: isDark ? 'rgba(56, 189, 248, 0.05)' : 'rgba(37, 99, 235, 0.05)' }
         }}
       >
-        <CloudUpload sx={{ fontSize: 32, color: theme === 'dark' ? '#a8b2d1' : '#666666' }} />
-        <Typography variant="caption" color={theme === 'dark' ? '#a8b2d1' : '#666666'}>Add Image</Typography>
+        <CloudUpload sx={{ fontSize: 32, color: isDark ? '#38bdf8' : '#2563eb' }} />
+        <Typography variant="caption" sx={{ color: isDark ? '#94a3b8' : '#64748b', mt: 0.5, fontWeight: 600 }}>
+          {isAmharic ? 'ፎቶ ጨምር' : 'Add Image'}
+        </Typography>
       </Box>
       <input ref={imageInputRef} type="file" accept="image/*" multiple hidden onChange={handleImageUpload} />
       
-      <Divider sx={{ my: 2 }} />
+      <Divider sx={{ my: 2, borderColor: isDark ? '#233554' : '#e2e8f0' }} />
       
-      <Typography variant="h6" sx={{ color: theme === 'dark' ? '#00ffff' : '#007bff', mb: 2 }}>
-        3D Models (Optional)
+      <Typography variant="h6" sx={{ color: isDark ? '#38bdf8' : '#2563eb', fontWeight: 700, mb: 2 }}>
+        {t('house_form.upload_3d', '3D Models (Optional)')}
       </Typography>
       
       {/* Existing 3D Models */}
       {existingModels.length > 0 && (
         <Box>
-          <Typography variant="subtitle2" sx={{ mb: 1, color: theme === 'dark' ? '#a8b2d1' : '#666666' }}>
-            Existing 3D Models ({existingModels.length})
+          <Typography variant="subtitle2" sx={{ mb: 1, color: isDark ? '#94a3b8' : '#64748b', fontWeight: 600 }}>
+            {isAmharic ? 'ነባር 3D ሞዴሎች' : 'Existing 3D Models'} ({existingModels.length})
           </Typography>
           <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
             {existingModels.map((model, index) => (
               <Box key={`existing-model-${index}`} sx={{ position: 'relative', width: 120, height: 120 }}>
-                <Box sx={{ width: '100%', height: '100%', backgroundColor: theme === 'dark' ? '#334155' : '#e5e7eb', borderRadius: 2, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <ThreeDRotation sx={{ fontSize: 48, color: theme === 'dark' ? '#a8b2d1' : '#666666' }} />
+                <Box sx={{ width: '100%', height: '100%', backgroundColor: isDark ? '#1e293b' : '#e2e8f0', borderRadius: 2, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <ThreeDRotation sx={{ fontSize: 48, color: isDark ? '#38bdf8' : '#2563eb' }} />
                 </Box>
-                <Typography variant="caption" sx={{ display: 'block', textAlign: 'center', mt: 0.5 }}>{model.fileName || '3D Model'}</Typography>
+                <Typography variant="caption" sx={{ display: 'block', textAlign: 'center', mt: 0.5, color: isDark ? '#94a3b8' : '#64748b' }}>{model.fileName || '3D Model'}</Typography>
                 <IconButton
                   size="small"
                   onClick={() => handleDeleteExistingModel(index)}
-                  sx={{ position: 'absolute', top: -8, right: -8, backgroundColor: '#ff0000', color: 'white' }}
+                  sx={{ position: 'absolute', top: -8, right: -8, backgroundColor: '#ef4444', color: 'white' }}
                 >
                   <Delete fontSize="small" />
                 </IconButton>
@@ -811,20 +839,20 @@ const EditHousePage = () => {
       {/* New 3D Models */}
       {modelPreviews.length > 0 && (
         <Box>
-          <Typography variant="subtitle2" sx={{ mb: 1, color: theme === 'dark' ? '#a8b2d1' : '#666666' }}>
-            New 3D Models ({modelPreviews.length})
+          <Typography variant="subtitle2" sx={{ mb: 1, color: isDark ? '#94a3b8' : '#64748b', fontWeight: 600 }}>
+            {isAmharic ? 'አዳዲስ 3D ሞዴሎች' : 'New 3D Models'} ({modelPreviews.length})
           </Typography>
           <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
             {modelPreviews.map((preview, index) => (
               <Box key={`new-model-${index}`} sx={{ position: 'relative', width: 120, height: 120 }}>
-                <Box sx={{ width: '100%', height: '100%', backgroundColor: theme === 'dark' ? '#334155' : '#e5e7eb', borderRadius: 2, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <ThreeDRotation sx={{ fontSize: 48, color: theme === 'dark' ? '#a8b2d1' : '#666666' }} />
+                <Box sx={{ width: '100%', height: '100%', backgroundColor: isDark ? '#1e293b' : '#e2e8f0', borderRadius: 2, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <ThreeDRotation sx={{ fontSize: 48, color: isDark ? '#38bdf8' : '#2563eb' }} />
                 </Box>
-                <Typography variant="caption" sx={{ display: 'block', textAlign: 'center', mt: 0.5 }}>New Model</Typography>
+                <Typography variant="caption" sx={{ display: 'block', textAlign: 'center', mt: 0.5, color: isDark ? '#94a3b8' : '#64748b' }}>New Model</Typography>
                 <IconButton
                   size="small"
                   onClick={() => handleDeleteNewModel(index)}
-                  sx={{ position: 'absolute', top: -8, right: -8, backgroundColor: '#ff0000', color: 'white' }}
+                  sx={{ position: 'absolute', top: -8, right: -8, backgroundColor: '#ef4444', color: 'white' }}
                 >
                   <Delete fontSize="small" />
                 </IconButton>
@@ -839,21 +867,25 @@ const EditHousePage = () => {
         onClick={() => modelInputRef.current?.click()}
         sx={{
           width: 120, height: 120, borderRadius: 2,
-          border: `2px dashed ${theme === 'dark' ? '#334155' : '#e5e7eb'}`,
+          border: `2px dashed ${isDark ? '#334155' : '#cbd5e1'}`,
           display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-          cursor: 'pointer', '&:hover': { borderColor: theme === 'dark' ? '#00ffff' : '#007bff' }
+          cursor: 'pointer',
+          bgcolor: isDark ? 'rgba(30, 41, 59, 0.5)' : '#f8fafc',
+          '&:hover': { borderColor: isDark ? '#38bdf8' : '#2563eb', bgcolor: isDark ? 'rgba(56, 189, 248, 0.05)' : 'rgba(37, 99, 235, 0.05)' }
         }}
       >
-        <ThreeDRotation sx={{ fontSize: 32, color: theme === 'dark' ? '#a8b2d1' : '#666666' }} />
-        <Typography variant="caption" color={theme === 'dark' ? '#a8b2d1' : '#666666'}>Add 3D Model</Typography>
-        <Typography variant="caption" color={theme === 'dark' ? '#94a3b8' : '#999999'} fontSize="10px">.glb, .gltf, .obj</Typography>
+        <ThreeDRotation sx={{ fontSize: 32, color: isDark ? '#38bdf8' : '#2563eb' }} />
+        <Typography variant="caption" sx={{ color: isDark ? '#94a3b8' : '#64748b', mt: 0.5, fontWeight: 600 }}>
+          {isAmharic ? '3D ሞዴል ጨምር' : 'Add 3D Model'}
+        </Typography>
+        <Typography variant="caption" color={isDark ? '#64748b' : '#94a3b8'} fontSize="10px">.glb, .gltf, .obj</Typography>
       </Box>
       <input ref={modelInputRef} type="file" accept=".glb,.gltf,.obj" multiple hidden onChange={handleModelUpload} />
       
-      <Divider sx={{ my: 2 }} />
+      <Divider sx={{ my: 2, borderColor: isDark ? '#233554' : '#e2e8f0' }} />
       
-      <Typography variant="h6" sx={{ color: theme === 'dark' ? '#00ffff' : '#007bff', mb: 2 }}>
-        Virtual Tour (Optional)
+      <Typography variant="h6" sx={{ color: isDark ? '#38bdf8' : '#2563eb', fontWeight: 700, mb: 2 }}>
+        {isAmharic ? 'ቨርቹዋል ጉብኝት' : 'Virtual Tour (Optional)'}
       </Typography>
       
       <FormControlLabel
@@ -861,9 +893,11 @@ const EditHousePage = () => {
           <Switch
             checked={formData.virtualTour.enabled}
             onChange={(e) => handleNestedChange('virtualTour', 'enabled', e.target.checked)}
+            color="primary"
           />
         }
-        label="Enable Virtual Tour"
+        label={isAmharic ? 'ቨርቹዋል ጉብኝት አንቃ' : 'Enable Virtual Tour'}
+        sx={{ color: isDark ? '#f1f5f9' : '#0f172a' }}
       />
       
       {formData.virtualTour.enabled && (
@@ -878,7 +912,7 @@ const EditHousePage = () => {
           />
           <TextField
             fullWidth
-            label="Embed Code"
+            label={isAmharic ? 'የመክተቻ ኮድ (Matterport / Kuula)' : 'Embed Code'}
             value={formData.virtualTour.embedCode}
             onChange={(e) => handleNestedChange('virtualTour', 'embedCode', e.target.value)}
             multiline
@@ -893,21 +927,62 @@ const EditHousePage = () => {
 
   return (
     <div className={`min-h-screen transition-colors duration-300 ${
-      theme === 'dark' 
-        ? 'bg-gradient-to-br from-[#0a192f] to-[#112240]' 
-        : 'bg-gradient-to-br from-[#f0f0f0] to-[#ffffff]'
+      isDark 
+        ? 'bg-[#0a192f] text-slate-100' 
+        : 'bg-slate-50 text-slate-800'
     }`}>
-      <Box sx={{ py: 3, px: { xs: 2, md: 4 } }}>
+      <Box sx={{ py: { xs: 2, sm: 3 }, px: { xs: 2, sm: 3, md: 4 } }}>
         <Box sx={{ mb: 4, display: 'flex', alignItems: 'center', gap: 2 }}>
-          <IconButton onClick={() => router.back()} sx={{ color: theme === 'dark' ? '#00ffff' : '#007bff' }}>
+          <IconButton 
+            onClick={() => router.back()} 
+            sx={{ 
+              color: isDark ? '#38bdf8' : '#2563eb',
+              bgcolor: isDark ? '#112240' : '#ffffff',
+              border: `1px solid ${isDark ? '#233554' : '#e2e8f0'}`,
+              '&:hover': { bgcolor: isDark ? '#1e293b' : '#f1f5f9' }
+            }}
+          >
             <ArrowBack />
           </IconButton>
-          <Typography variant={isMobile ? "h5" : "h4"} sx={{ fontWeight: 'bold', color: theme === 'dark' ? '#ccd6f6' : '#333333' }}>
-            Edit Property
-          </Typography>
+          <Box>
+            <Typography variant={isMobile ? "h6" : "h4"} sx={{ fontWeight: 800, color: isDark ? '#f1f5f9' : '#0f172a' }}>
+              {t('house_form.edit_title', 'Edit Property')}
+            </Typography>
+            <Typography variant="body2" sx={{ color: isDark ? '#94a3b8' : '#64748b', mt: 0.5 }}>
+              {t('house_form.edit_subtitle', 'Update property details, pricing, media, and location')}
+            </Typography>
+          </Box>
         </Box>
         
-        <Stepper activeStep={activeStep} sx={{ mb: 4 }}>
+        <Stepper 
+          activeStep={activeStep} 
+          sx={{ 
+            mb: 4,
+            overflowX: 'auto',
+            pb: 1,
+            '& .MuiStepLabel-label': {
+              color: isDark ? '#94a3b8' : '#64748b',
+              fontWeight: 500,
+              fontSize: { xs: '0.75rem', sm: '0.875rem' },
+              '&.Mui-active': {
+                color: isDark ? '#38bdf8' : '#2563eb',
+                fontWeight: 700
+              },
+              '&.Mui-completed': {
+                color: '#22c55e'
+              }
+            },
+            '& .MuiStepIcon-root': {
+              color: isDark ? '#233554' : '#cbd5e1',
+              '&.Mui-active': {
+                color: isDark ? '#38bdf8' : '#2563eb'
+              },
+              '&.Mui-completed': {
+                color: '#22c55e'
+              }
+            }
+          }}
+        >
           {steps.map((label) => (
             <Step key={label}>
               <StepLabel>{label}</StepLabel>
@@ -915,20 +990,39 @@ const EditHousePage = () => {
           ))}
         </Stepper>
         
-        <Card sx={{ borderRadius: 3, backgroundColor: theme === 'dark' ? '#0f172a80' : 'white', backdropFilter: theme === 'dark' ? 'blur(10px)' : 'none' }}>
-          <CardContent sx={{ p: { xs: 2, md: 4 } }}>
+        <Card 
+          sx={{ 
+            borderRadius: 3, 
+            backgroundColor: isDark ? '#112240' : '#ffffff',
+            border: `1px solid ${isDark ? '#233554' : '#e2e8f0'}`,
+            boxShadow: isDark ? '0 10px 30px rgba(0,0,0,0.4)' : '0 10px 30px rgba(0,0,0,0.05)',
+            backdropFilter: 'none'
+          }}
+        >
+          <CardContent sx={{ p: { xs: 2, sm: 3, md: 4 } }}>
             {activeStep === 0 && renderBasicInfo()}
             {activeStep === 1 && renderLocationDetails()}
             {activeStep === 2 && renderPricingMedia()}
             
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 4 }}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 4, pt: 3, borderTop: `1px solid ${isDark ? '#233554' : '#e2e8f0'}` }}>
               <Button
                 variant="outlined"
                 onClick={() => setActiveStep(prev => prev - 1)}
                 disabled={activeStep === 0}
-                sx={{ borderColor: theme === 'dark' ? '#00ffff' : '#007bff', color: theme === 'dark' ? '#00ffff' : '#007bff' }}
+                sx={{ 
+                  borderRadius: '10px',
+                  fontWeight: 600,
+                  textTransform: 'none',
+                  borderColor: isDark ? '#233554' : '#cbd5e1', 
+                  color: isDark ? '#94a3b8' : '#64748b',
+                  '&:hover': {
+                    borderColor: isDark ? '#38bdf8' : '#2563eb',
+                    color: isDark ? '#38bdf8' : '#2563eb',
+                    bgcolor: isDark ? 'rgba(56, 189, 248, 0.05)' : 'rgba(37, 99, 235, 0.05)'
+                  }
+                }}
               >
-                Back
+                {t('common.back', 'Back')}
               </Button>
               
               {activeStep === steps.length - 1 ? (
@@ -936,23 +1030,40 @@ const EditHousePage = () => {
                   variant="contained"
                   onClick={handleSubmit}
                   disabled={saving || !formData.title || !formData.description || !formData.propertyType || formData.pricing.price <= 0}
-                  startIcon={saving ? <CircularProgress size={20} /> : <Save />}
+                  startIcon={saving ? <CircularProgress size={20} color="inherit" /> : <Save />}
                   sx={{
-                    background: theme === 'dark' ? 'linear-gradient(135deg, #00ffff, #00b3b3)' : 'linear-gradient(135deg, #007bff, #0056b3)',
-                    '&:hover': { background: theme === 'dark' ? 'linear-gradient(135deg, #00b3b3, #008080)' : 'linear-gradient(135deg, #0056b3, #004080)' }
+                    borderRadius: '10px',
+                    fontWeight: 700,
+                    textTransform: 'none',
+                    px: 3,
+                    py: 1,
+                    backgroundColor: isDark ? '#38bdf8' : '#2563eb',
+                    color: isDark ? '#0f172a' : '#ffffff',
+                    '&:hover': { 
+                      backgroundColor: isDark ? '#0284c7' : '#1d4ed8' 
+                    }
                   }}
                 >
-                  {saving ? 'Saving...' : 'Save Changes'}
+                  {saving ? t('common.loading', 'Saving...') : t('house_form.update', 'Save Changes')}
                 </Button>
               ) : (
                 <Button
                   variant="contained"
                   onClick={() => setActiveStep(prev => prev + 1)}
                   sx={{
-                    background: theme === 'dark' ? 'linear-gradient(135deg, #00ffff, #00b3b3)' : 'linear-gradient(135deg, #007bff, #0056b3)'
+                    borderRadius: '10px',
+                    fontWeight: 700,
+                    textTransform: 'none',
+                    px: 3,
+                    py: 1,
+                    backgroundColor: isDark ? '#38bdf8' : '#2563eb',
+                    color: isDark ? '#0f172a' : '#ffffff',
+                    '&:hover': { 
+                      backgroundColor: isDark ? '#0284c7' : '#1d4ed8' 
+                    }
                   }}
                 >
-                  Next
+                  {t('common.next', 'Next')}
                 </Button>
               )}
             </Box>
