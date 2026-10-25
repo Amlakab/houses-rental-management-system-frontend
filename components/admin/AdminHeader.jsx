@@ -6,7 +6,7 @@ import { useTheme } from '@/lib/theme-context';
 import { useLanguage } from '@/lib/language-context';
 import Link from 'next/link';
 import { Bell, LogOut, User, Menu, Settings } from 'lucide-react';
-import { FaSun, FaMoon, FaChevronDown, FaCheck } from 'react-icons/fa';
+import { FaSun, FaMoon, FaChevronDown, FaCheck, FaGlobe } from 'react-icons/fa';
 import { useRouter } from 'next/navigation';
 import NotificationCenter from '@/components/NotificationCenter';
 
@@ -138,11 +138,7 @@ export default function AdminHeader({ onMenuClick, onSidebarToggle, isSidebarCol
             "
             title="Switch Language"
           >
-            <svg className="h-4 w-4 sm:h-5 sm:w-5 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
-                d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129" 
-              />
-            </svg>
+            <FaGlobe className="text-blue-600 dark:text-blue-400" size={14} />
             <span>{language.toUpperCase()}</span>
             <FaChevronDown 
               className={`transition-transform duration-200 text-gray-400 ${isLanguageOpen ? 'rotate-180' : ''}`} 
@@ -208,7 +204,7 @@ export default function AdminHeader({ onMenuClick, onSidebarToggle, isSidebarCol
         </Link>
 
         {/* User Profile */}
-        <div className="flex items-center">
+        {/* <div className="flex items-center">
           <div className="
             h-8 w-8 shrink-0 rounded-full flex items-center justify-center 
             bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800
@@ -229,7 +225,7 @@ export default function AdminHeader({ onMenuClick, onSidebarToggle, isSidebarCol
               {roleDisplay}
             </p>
           </div>
-        </div>
+        </div> */}
 
         {/* Logout Button */}
         <button
