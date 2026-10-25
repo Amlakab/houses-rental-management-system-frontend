@@ -37,6 +37,16 @@ import AppointmentModal from '@/components/AppointmentModal';
 import PurchaseOfferModal from '@/components/PurchaseOfferModal';
 import ReportListingModal from '@/components/ReportListingModal';
 import Link from 'next/link';
+import dynamic from 'next/dynamic';
+
+const MapView = dynamic(() => import('@/components/MapView'), {
+  ssr: false,
+  loading: () => (
+    <Box sx={{ height: 450, display: 'flex', alignItems: 'center', justifyContent: 'center', bgcolor: '#0f172a' }}>
+      <CircularProgress sx={{ color: '#00ffff' }} />
+    </Box>
+  ),
+});
 
 export default function PublicHouseDetailPage() {
   const { theme } = useTheme();
@@ -54,8 +64,8 @@ export default function PublicHouseDetailPage() {
   const [error, setError] = useState('');
   const [snackbarMessage, setSnackbarMessage] = useState('');
 
-  // Rich Media Tab: 'images' | 'video' | '360' | '3d' | 'floorplan'
-  const [activeMediaTab, setActiveMediaTab] = useState<'images' | 'video' | '360' | '3d' | 'floorplan'>('images');
+  // Rich Media Tab: 'images' | 'video' | '360' | '3d' | 'floorplan' | 'map'
+  const [activeMediaTab, setActiveMediaTab] = useState<'images' | 'video' | '360' | '3d' | 'floorplan' | 'map'>('images');
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [isLiked, setIsLiked] = useState(false);
   const [likesCount, setLikesCount] = useState(0);
@@ -273,10 +283,17 @@ export default function PublicHouseDetailPage() {
         </Box>
 
         {/* Title, Badges & Price Bar */}
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 2, mb: 3 }}>
-          <Box sx={{ flex: 1, minWidth: { xs: '100%', sm: 300 } }}>
+        <Box sx={{
+          display: 'flex',
+          flexDirection: { xs: 'column', md: 'row' },
+          justifyContent: 'space-between',
+          alignItems: { xs: 'flex-start', md: 'flex-start' },
+          gap: 2,
+          mb: 3
+        }}>
+          <Box sx={{ flex: 1, minWidth: 0, width: '100%' }}>
             {/* Badges Row */}
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1, flexWrap: 'wrap' }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8, mb: 1, flexWrap: 'wrap' }}>
               <Chip
                 label={isForSale ? (isAmharic ? 'የሚሸጥ' : 'For Sale') : isShortStay ? (isAmharic ? 'የአጭር ጊዜ' : 'Short Stay') : (isAmharic ? 'የሚከራይ' : 'For Rent')}
                 sx={{
@@ -292,8 +309,8 @@ export default function PublicHouseDetailPage() {
               />
               {house.isVerified && (
                 <Chip
-                  icon={<Verified sx={{ fontSize: '16px !important', color: 'white' }} />}
-                  label={isAmharic ? 'የተረጋገጠ ይፋዊ ማስታወቂያ' : 'Official Verified Listing'}
+                  icon={<Verified sx={{ fontSize: '15px !important', color: 'white' }} />}
+                  label={isAmharic ? 'የተረጋገጠ' : 'Official Verified Listing'}
                   sx={{ bgcolor: '#0284c7', color: 'white', fontWeight: 700, fontSize: 12 }}
                 />
               )}
@@ -305,24 +322,44 @@ export default function PublicHouseDetailPage() {
               )}
             </Box>
 
-            <Typography variant="h4" sx={{ fontWeight: 800, color: 'text.primary', mb: 0.5, lineHeight: 1.2, fontSize: { xs: '1.5rem', sm: '2rem' } }}>
+            <Typography variant="h4" sx={{
+              fontWeight: 800,
+              color: 'text.primary',
+              mb: 0.8,
+              lineHeight: 1.25,
+              fontSize: { xs: '1.35rem', sm: '1.8rem', md: '2.2rem' },
+              wordBreak: 'break-word'
+            }}>
               {house.title}
             </Typography>
 
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, color: 'text.secondary' }}>
-              <LocationOn sx={{ fontSize: 18, color: '#06b6d4' }} />
-              <Typography variant="body1">
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8, color: 'text.secondary', flexWrap: 'wrap' }}>
+              <LocationOn sx={{ fontSize: 18, color: '#06b6d4', flexShrink: 0 }} />
+              <Typography variant="body2" sx={{ fontSize: { xs: '0.85rem', sm: '0.95rem' } }}>
                 {house.location.address}, {house.location.neighborhood ? `${house.location.neighborhood}, ` : ''}{house.location.city}
               </Typography>
             </Box>
           </Box>
 
           {/* Pricing Box */}
-          <Box sx={{ textAlign: { xs: 'left', sm: 'right' }, width: { xs: '100%', sm: 'auto' } }}>
-            <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600 }}>
+          <Box sx={{
+            textAlign: { xs: 'left', md: 'right' },
+            width: { xs: '100%', md: 'auto' },
+            p: { xs: 1.5, md: 0 },
+            bgcolor: { xs: 'action.hover', md: 'transparent' },
+            borderRadius: { xs: 2.5, md: 0 },
+            flexShrink: 0
+          }}>
+            <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600, display: 'block' }}>
               {isForSale ? (isAmharic ? 'የመሸጫ ዋጋ' : 'Asking Purchase Price') : (isAmharic ? 'የወር ኪራይ ዋጋ' : 'Monthly Rental Rate')}
             </Typography>
-            <Typography variant="h3" sx={{ fontWeight: 900, color: '#06b6d4', lineHeight: 1, fontSize: { xs: '2rem', sm: '2.5rem' } }}>
+            <Typography variant="h3" sx={{
+              fontWeight: 900,
+              color: '#06b6d4',
+              lineHeight: 1.1,
+              fontSize: { xs: '1.75rem', sm: '2.2rem', md: '2.5rem' },
+              whiteSpace: 'nowrap'
+            }}>
               ETB {house.pricing.price.toLocaleString()}
             </Typography>
             {!isForSale && house.pricing.securityDeposit > 0 && (
@@ -367,11 +404,19 @@ export default function PublicHouseDetailPage() {
             mb: 5
           }}
         >
-          {/* Media Switcher Header Bar */}
+          {/* Media Switcher Header Bar with Map View Tab */}
           <Box sx={{
-            display: 'flex', alignItems: 'center', gap: 1, p: 1.5,
-            borderBottom: '1px solid', borderColor: 'divider',
-            overflowX: 'auto', bgcolor: 'action.hover'
+            display: 'flex',
+            alignItems: 'center',
+            gap: 1,
+            p: 1.5,
+            borderBottom: '1px solid',
+            borderColor: 'divider',
+            overflowX: 'auto',
+            bgcolor: 'action.hover',
+            WebkitOverflowScrolling: 'touch',
+            scrollbarWidth: 'none',
+            '&::-webkit-scrollbar': { display: 'none' }
           }}>
             <Button
               onClick={() => setActiveMediaTab('images')}
@@ -379,12 +424,42 @@ export default function PublicHouseDetailPage() {
               startIcon={<PhotoCamera />}
               size="small"
               sx={{
-                borderRadius: 2, textTransform: 'none', fontWeight: 700,
+                borderRadius: 2,
+                textTransform: 'none',
+                fontWeight: 700,
+                whiteSpace: 'nowrap',
+                flexShrink: 0,
+                fontSize: { xs: 12, sm: 13 },
+                px: { xs: 1.5, sm: 2 },
                 bgcolor: activeMediaTab === 'images' ? '#06b6d4' : 'transparent',
                 color: activeMediaTab === 'images' ? 'white' : 'text.primary'
               }}
             >
-              {isAmharic ? 'የፎቶ ማሳያ' : 'Photo Gallery'} ({house.images?.length || 1})
+              {isAmharic ? 'ፎቶዎች' : 'Photo Gallery'} ({house.images?.length || 1})
+            </Button>
+
+            {/* Map View Tab beside Photo Gallery and 360 tour */}
+            <Button
+              onClick={() => setActiveMediaTab('map')}
+              variant={activeMediaTab === 'map' ? 'contained' : 'text'}
+              startIcon={<LocationOn />}
+              size="small"
+              sx={{
+                borderRadius: 2,
+                textTransform: 'none',
+                fontWeight: 700,
+                whiteSpace: 'nowrap',
+                flexShrink: 0,
+                fontSize: { xs: 12, sm: 13 },
+                px: { xs: 1.5, sm: 2 },
+                bgcolor: activeMediaTab === 'map' ? '#3b82f6' : 'transparent',
+                color: activeMediaTab === 'map' ? 'white' : 'text.primary',
+                '&:hover': {
+                  bgcolor: activeMediaTab === 'map' ? '#2563eb' : 'action.hover'
+                }
+              }}
+            >
+              {isAmharic ? 'የካርታ እይታ' : 'Map View'}
             </Button>
 
             {house.panoramic360?.enabled && (
@@ -394,12 +469,18 @@ export default function PublicHouseDetailPage() {
                 startIcon={<ThreeDRotation />}
                 size="small"
                 sx={{
-                  borderRadius: 2, textTransform: 'none', fontWeight: 700,
+                  borderRadius: 2,
+                  textTransform: 'none',
+                  fontWeight: 700,
+                  whiteSpace: 'nowrap',
+                  flexShrink: 0,
+                  fontSize: { xs: 12, sm: 13 },
+                  px: { xs: 1.5, sm: 2 },
                   bgcolor: activeMediaTab === '360' ? '#a855f7' : 'transparent',
                   color: activeMediaTab === '360' ? 'white' : 'text.primary'
                 }}
               >
-                {isAmharic ? '360° ምናባዊ እይታ' : '360° Virtual Tour'}
+                {isAmharic ? '360° እይታ' : '360° Virtual Tour'}
               </Button>
             )}
 
@@ -410,12 +491,18 @@ export default function PublicHouseDetailPage() {
                 startIcon={<Explore />}
                 size="small"
                 sx={{
-                  borderRadius: 2, textTransform: 'none', fontWeight: 700,
+                  borderRadius: 2,
+                  textTransform: 'none',
+                  fontWeight: 700,
+                  whiteSpace: 'nowrap',
+                  flexShrink: 0,
+                  fontSize: { xs: 12, sm: 13 },
+                  px: { xs: 1.5, sm: 2 },
                   bgcolor: activeMediaTab === '3d' ? '#0284c7' : 'transparent',
                   color: activeMediaTab === '3d' ? 'white' : 'text.primary'
                 }}
               >
-                {isAmharic ? '3D በይነተገናኝ ሞዴል' : '3D Interactive Model'}
+                {isAmharic ? '3D ሞዴል' : '3D Interactive Model'}
               </Button>
             )}
 
@@ -425,12 +512,18 @@ export default function PublicHouseDetailPage() {
               startIcon={<Straighten />}
               size="small"
               sx={{
-                borderRadius: 2, textTransform: 'none', fontWeight: 700,
+                borderRadius: 2,
+                textTransform: 'none',
+                fontWeight: 700,
+                whiteSpace: 'nowrap',
+                flexShrink: 0,
+                fontSize: { xs: 12, sm: 13 },
+                px: { xs: 1.5, sm: 2 },
                 bgcolor: activeMediaTab === 'floorplan' ? '#10b981' : 'transparent',
                 color: activeMediaTab === 'floorplan' ? 'white' : 'text.primary'
               }}
             >
-              {isAmharic ? 'የቤት ንድፍ እና ስፋት' : 'Floor Plan & Dimensions'}
+              {isAmharic ? 'የቤት ንድፍ' : 'Floor Plan'}
             </Button>
 
             {house.videoUrl && (
@@ -440,12 +533,18 @@ export default function PublicHouseDetailPage() {
                 startIcon={<Videocam />}
                 size="small"
                 sx={{
-                  borderRadius: 2, textTransform: 'none', fontWeight: 700,
+                  borderRadius: 2,
+                  textTransform: 'none',
+                  fontWeight: 700,
+                  whiteSpace: 'nowrap',
+                  flexShrink: 0,
+                  fontSize: { xs: 12, sm: 13 },
+                  px: { xs: 1.5, sm: 2 },
                   bgcolor: activeMediaTab === 'video' ? '#f43f5e' : 'transparent',
                   color: activeMediaTab === 'video' ? 'white' : 'text.primary'
                 }}
               >
-                {isAmharic ? 'የቪዲዮ እይታ' : 'Walkthrough Video'}
+                {isAmharic ? 'የቪዲዮ እይታ' : 'Video Tour'}
               </Button>
             )}
           </Box>
@@ -559,7 +658,7 @@ export default function PublicHouseDetailPage() {
 
             {/* 5. Walkthrough Video */}
             {activeMediaTab === 'video' && (
-              <Box sx={{ height: 500, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <Box sx={{ height: { xs: 320, sm: 420, md: 500 }, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <iframe
                   width="100%"
                   height="100%"
@@ -571,66 +670,138 @@ export default function PublicHouseDetailPage() {
                 />
               </Box>
             )}
+
+            {/* 6. Map View Tab Content */}
+            {activeMediaTab === 'map' && (
+              <Box sx={{ position: 'relative', height: { xs: 360, sm: 460, md: 550 }, width: '100%', borderRadius: 2, overflow: 'hidden' }}>
+                <MapView
+                  houses={[house, ...similarHouses]}
+                  selectedHouse={house}
+                  center={[
+                    house.location?.coordinates?.lat || 9.03,
+                    house.location?.coordinates?.lng || 38.74
+                  ]}
+                  zoom={15}
+                  onSelectHouse={(h) => {
+                    if (h._id !== house._id) {
+                      router.push(`/public/houses/${h._id}`);
+                    }
+                  }}
+                  formatPrice={(price) => `ETB ${Number(price).toLocaleString()}`}
+                  theme={theme === 'dark' ? 'dark' : 'light'}
+                />
+
+                {/* Floating Directions Action Bar */}
+                <Box sx={{
+                  position: 'absolute',
+                  bottom: 12,
+                  left: 12,
+                  right: 12,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  flexWrap: 'wrap',
+                  gap: 1,
+                  bgcolor: 'rgba(15, 23, 42, 0.88)',
+                  backdropFilter: 'blur(8px)',
+                  color: 'white',
+                  px: 2,
+                  py: 1,
+                  borderRadius: 2,
+                  zIndex: 900
+                }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, minWidth: 0, flex: 1 }}>
+                    <LocationOn sx={{ color: '#00ffff', fontSize: 20, flexShrink: 0 }} />
+                    <Typography variant="body2" sx={{ fontWeight: 600, fontSize: { xs: 12, sm: 13 }, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {house.location.address}, {house.location.neighborhood || house.location.city}
+                    </Typography>
+                  </Box>
+
+                  <Button
+                    variant="contained"
+                    size="small"
+                    color="primary"
+                    onClick={() => {
+                      const lat = house.location?.coordinates?.lat || 9.03;
+                      const lng = house.location?.coordinates?.lng || 38.74;
+                      window.open(`https://www.google.com/maps/search/?api=1&query=${lat},${lng}`, '_blank');
+                    }}
+                    sx={{
+                      borderRadius: 1.5,
+                      textTransform: 'none',
+                      fontWeight: 700,
+                      fontSize: { xs: 11, sm: 12 },
+                      px: 1.5,
+                      flexShrink: 0
+                    }}
+                  >
+                    {isAmharic ? 'በGoogle ካርታ ክፈት' : 'Open in Google Maps'}
+                  </Button>
+                </Box>
+              </Box>
+            )}
           </Box>
         </Paper>
 
         {/* ─── MAIN CONTENT TWO-COLUMN GRID ───────────────────────────── */}
-        <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', lg: '2fr 1fr' }, gap: 4 }}>
+        <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', lg: '2fr 1fr' }, gap: { xs: 3, md: 4 } }}>
           {/* Left Column: Details, Specifications, Amenities, Reviews */}
           <Box>
             {/* Quick Specs Cards */}
             <Box sx={{
-              display: 'grid', gridTemplateColumns: { xs: 'repeat(2, 1fr)', sm: 'repeat(4, 1fr)' },
-              gap: 2, mb: 4
+              display: 'grid',
+              gridTemplateColumns: { xs: 'repeat(2, 1fr)', sm: 'repeat(4, 1fr)' },
+              gap: 1.5,
+              mb: 4
             }}>
-              <Paper elevation={0} sx={{ p: 2, borderRadius: 2.5, bgcolor: 'background.paper', border: '1px solid', borderColor: 'divider' }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, color: 'text.secondary', mb: 0.5 }}>
+              <Paper elevation={0} sx={{ p: { xs: 1.5, sm: 2 }, borderRadius: 2.5, bgcolor: 'background.paper', border: '1px solid', borderColor: 'divider' }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8, color: 'text.secondary', mb: 0.5 }}>
                   <Bed fontSize="small" sx={{ color: '#06b6d4' }} />
-                  <Typography variant="caption" sx={{ fontWeight: 600 }}>{isAmharic ? 'መኝታ ቤቶች' : 'Bedrooms'}</Typography>
+                  <Typography variant="caption" sx={{ fontWeight: 600, fontSize: { xs: 11, sm: 12 } }}>{isAmharic ? 'መኝታ ክፍሎች' : 'Bedrooms'}</Typography>
                 </Box>
-                <Typography variant="h6" sx={{ fontWeight: 800 }}>{house.details.bedrooms}</Typography>
+                <Typography variant="h6" sx={{ fontWeight: 800, fontSize: { xs: 16, sm: 20 } }}>{house.details.bedrooms}</Typography>
               </Paper>
 
-              <Paper elevation={0} sx={{ p: 2, borderRadius: 2.5, bgcolor: 'background.paper', border: '1px solid', borderColor: 'divider' }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, color: 'text.secondary', mb: 0.5 }}>
+              <Paper elevation={0} sx={{ p: { xs: 1.5, sm: 2 }, borderRadius: 2.5, bgcolor: 'background.paper', border: '1px solid', borderColor: 'divider' }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8, color: 'text.secondary', mb: 0.5 }}>
                   <Bathtub fontSize="small" sx={{ color: '#06b6d4' }} />
-                  <Typography variant="caption" sx={{ fontWeight: 600 }}>{isAmharic ? 'መታጠቢያ ቤቶች' : 'Bathrooms'}</Typography>
+                  <Typography variant="caption" sx={{ fontWeight: 600, fontSize: { xs: 11, sm: 12 } }}>{isAmharic ? 'መታጠቢያ ክፍሎች' : 'Bathrooms'}</Typography>
                 </Box>
-                <Typography variant="h6" sx={{ fontWeight: 800 }}>{house.details.bathrooms}</Typography>
+                <Typography variant="h6" sx={{ fontWeight: 800, fontSize: { xs: 16, sm: 20 } }}>{house.details.bathrooms}</Typography>
               </Paper>
 
-              <Paper elevation={0} sx={{ p: 2, borderRadius: 2.5, bgcolor: 'background.paper', border: '1px solid', borderColor: 'divider' }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, color: 'text.secondary', mb: 0.5 }}>
+              <Paper elevation={0} sx={{ p: { xs: 1.5, sm: 2 }, borderRadius: 2.5, bgcolor: 'background.paper', border: '1px solid', borderColor: 'divider' }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8, color: 'text.secondary', mb: 0.5 }}>
                   <SquareFoot fontSize="small" sx={{ color: '#06b6d4' }} />
-                  <Typography variant="caption" sx={{ fontWeight: 600 }}>{isAmharic ? 'ጠቅላላ ስፋት' : 'Total Area'}</Typography>
+                  <Typography variant="caption" sx={{ fontWeight: 600, fontSize: { xs: 11, sm: 12 } }}>{isAmharic ? 'ጠቅላላ ስፋት' : 'Total Area'}</Typography>
                 </Box>
-                <Typography variant="h6" sx={{ fontWeight: 800 }}>{house.details.area} m²</Typography>
+                <Typography variant="h6" sx={{ fontWeight: 800, fontSize: { xs: 16, sm: 20 } }}>{house.details.area} m²</Typography>
               </Paper>
 
-              <Paper elevation={0} sx={{ p: 2, borderRadius: 2.5, bgcolor: 'background.paper', border: '1px solid', borderColor: 'divider' }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, color: 'text.secondary', mb: 0.5 }}>
+              <Paper elevation={0} sx={{ p: { xs: 1.5, sm: 2 }, borderRadius: 2.5, bgcolor: 'background.paper', border: '1px solid', borderColor: 'divider' }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8, color: 'text.secondary', mb: 0.5 }}>
                   <LocalParking fontSize="small" sx={{ color: '#06b6d4' }} />
-                  <Typography variant="caption" sx={{ fontWeight: 600 }}>{isAmharic ? 'መኪና ማቆሚያ' : 'Parking'}</Typography>
+                  <Typography variant="caption" sx={{ fontWeight: 600, fontSize: { xs: 11, sm: 12 } }}>{isAmharic ? 'መኪና ማቆሚያ' : 'Parking'}</Typography>
                 </Box>
-                <Typography variant="h6" sx={{ fontWeight: 800 }}>{house.details.parkingSpaces || 1} {isAmharic ? 'ቦታ' : 'Slots'}</Typography>
+                <Typography variant="h6" sx={{ fontWeight: 800, fontSize: { xs: 16, sm: 20 } }}>{house.details.parkingSpaces || 1} {isAmharic ? 'ቦታ' : 'Slots'}</Typography>
               </Paper>
             </Box>
 
             {/* Description */}
-            <Paper elevation={0} sx={{ p: 3, borderRadius: 3, bgcolor: 'background.paper', border: '1px solid', borderColor: 'divider', mb: 4 }}>
-              <Typography variant="h6" sx={{ fontWeight: 700, mb: 1.5 }}>
+            <Paper elevation={0} sx={{ p: { xs: 2, sm: 3 }, borderRadius: 3, bgcolor: 'background.paper', border: '1px solid', borderColor: 'divider', mb: 4 }}>
+              <Typography variant="h6" sx={{ fontWeight: 700, mb: 1.5, fontSize: { xs: '1.1rem', sm: '1.25rem' } }}>
                 {isAmharic ? 'ስለ ንብረቱ ዝርዝር መረጃ' : 'About this Property'}
               </Typography>
-              <Typography variant="body1" sx={{ color: 'text.secondary', lineHeight: 1.8, whiteSpace: 'pre-line' }}>
+              <Typography variant="body1" sx={{ color: 'text.secondary', lineHeight: 1.8, whiteSpace: 'pre-line', fontSize: { xs: '0.9rem', sm: '1rem' } }}>
                 {house.description}
               </Typography>
             </Paper>
 
             {/* Category-Specific Dynamic Attributes */}
             {house.categoryAttributes && Object.keys(house.categoryAttributes).length > 0 && (
-              <Paper elevation={0} sx={{ p: 3, borderRadius: 3, bgcolor: 'background.paper', border: '1px solid', borderColor: 'divider', mb: 4 }}>
-                <Typography variant="h6" sx={{ fontWeight: 700, mb: 2 }}>
-                  Category Specifications ({house.propertyType})
+              <Paper elevation={0} sx={{ p: { xs: 2, sm: 3 }, borderRadius: 3, bgcolor: 'background.paper', border: '1px solid', borderColor: 'divider', mb: 4 }}>
+                <Typography variant="h6" sx={{ fontWeight: 700, mb: 2, fontSize: { xs: '1.1rem', sm: '1.25rem' } }}>
+                  {isAmharic ? 'ልዩ የንብረት ዝርዝሮች' : 'Category Specifications'} ({house.propertyType})
                 </Typography>
                 <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 2 }}>
                   {Object.entries(house.categoryAttributes).map(([key, val]) => (
@@ -638,7 +809,7 @@ export default function PublicHouseDetailPage() {
                       <Typography variant="caption" sx={{ color: 'text.secondary', textTransform: 'capitalize' }}>
                         {key.replace(/([A-Z])/g, ' $1')}
                       </Typography>
-                      <Typography variant="body1" sx={{ fontWeight: 600 }}>
+                      <Typography variant="body1" sx={{ fontWeight: 600, fontSize: { xs: '0.9rem', sm: '1rem' } }}>
                         {typeof val === 'boolean' ? (val ? 'Yes (Equipped)' : 'No') : String(val)}
                       </Typography>
                     </Box>
@@ -648,74 +819,94 @@ export default function PublicHouseDetailPage() {
             )}
 
             {/* Amenities Grid */}
-            <Paper elevation={0} sx={{ p: 3, borderRadius: 3, bgcolor: 'background.paper', border: '1px solid', borderColor: 'divider', mb: 4 }}>
-              <Typography variant="h6" sx={{ fontWeight: 700, mb: 2 }}>
-                Amenities & Facilities
+            <Paper elevation={0} sx={{ p: { xs: 2, sm: 3 }, borderRadius: 3, bgcolor: 'background.paper', border: '1px solid', borderColor: 'divider', mb: 4 }}>
+              <Typography variant="h6" sx={{ fontWeight: 700, mb: 2, fontSize: { xs: '1.1rem', sm: '1.25rem' } }}>
+                {isAmharic ? 'አገልግሎቶች እና መገልገያዎች' : 'Amenities & Facilities'}
               </Typography>
               <Box sx={{ display: 'grid', gridTemplateColumns: { xs: 'repeat(2, 1fr)', sm: 'repeat(3, 1fr)' }, gap: 1.5 }}>
                 {(house.details.amenities || []).map((amenity, idx) => (
                   <Box key={idx} sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    <CheckCircle sx={{ color: '#10b981', fontSize: 18 }} />
-                    <Typography variant="body2" sx={{ fontWeight: 500 }}>{amenity}</Typography>
+                    <CheckCircle sx={{ color: '#10b981', fontSize: 18, flexShrink: 0 }} />
+                    <Typography variant="body2" sx={{ fontWeight: 500, fontSize: { xs: 12.5, sm: 14 } }}>{amenity}</Typography>
                   </Box>
                 ))}
               </Box>
             </Paper>
 
             {/* Nearby Landmarks & Amenities (Section 7) */}
-            <Paper elevation={0} sx={{ p: 3, borderRadius: 3, bgcolor: 'background.paper', border: '1px solid', borderColor: 'divider', mb: 4 }}>
+            <Paper elevation={0} sx={{ p: { xs: 2, sm: 3 }, borderRadius: 3, bgcolor: 'background.paper', border: '1px solid', borderColor: 'divider', mb: 4 }}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
-                <DirectionsWalk sx={{ color: '#06b6d4' }} />
-                <Typography variant="h6" sx={{ fontWeight: 700 }}>
-                  Neighborhood Landmarks & Distance Calculations
+                <DirectionsWalk sx={{ color: '#06b6d4', flexShrink: 0 }} />
+                <Typography variant="h6" sx={{ fontWeight: 700, fontSize: { xs: '1rem', sm: '1.2rem' } }}>
+                  {isAmharic ? 'የአካባቢ ምልክቶች እና ርቀት' : 'Neighborhood Landmarks & Distances'}
                 </Typography>
               </Box>
 
-              <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 2 }}>
+              <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 1.5 }}>
                 {(house.nearbyAmenities && house.nearbyAmenities.length > 0 ? house.nearbyAmenities : [
-                  { name: 'Local Primary & High School', type: 'school', distanceKm: 1.2 },
-                  { name: 'Specialized Medical Center', type: 'hospital', distanceKm: 0.8 },
-                  { name: 'Light Rail & Bus Transit', type: 'transit', distanceKm: 0.5 },
-                  { name: 'Shopping Mall & Supermarket', type: 'shopping', distanceKm: 0.7 }
+                  { name: isAmharic ? 'ትምህርት ቤት' : 'Local School', type: 'school', distanceKm: 1.2 },
+                  { name: isAmharic ? 'ሆስፒታል እና ክሊኒክ' : 'Medical Center', type: 'hospital', distanceKm: 0.8 },
+                  { name: isAmharic ? 'የትራንስፖርት ጣቢያ' : 'Transit Station', type: 'transit', distanceKm: 0.5 },
+                  { name: isAmharic ? 'ገበያ አዳራሽ' : 'Shopping Mall', type: 'shopping', distanceKm: 0.7 }
                 ]).map((amenity, idx) => (
-                  <Box key={idx} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', p: 1.5, bgcolor: 'action.hover', borderRadius: 2 }}>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                      {amenity.type === 'school' && <School sx={{ color: '#3b82f6', fontSize: 20 }} />}
-                      {amenity.type === 'hospital' && <LocalHospital sx={{ color: '#ef4444', fontSize: 20 }} />}
-                      {amenity.type === 'transit' && <DirectionsWalk sx={{ color: '#10b981', fontSize: 20 }} />}
-                      {amenity.type === 'shopping' && <ShoppingCart sx={{ color: '#f59e0b', fontSize: 20 }} />}
-                      {amenity.type === 'landmark' && <LocationOn sx={{ color: '#a855f7', fontSize: 20 }} />}
-                      <Typography variant="body2" sx={{ fontWeight: 600 }}>{amenity.name}</Typography>
+                  <Box key={idx} sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    p: 1.5,
+                    bgcolor: 'action.hover',
+                    borderRadius: 2,
+                    gap: 1
+                  }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, minWidth: 0 }}>
+                      {amenity.type === 'school' && <School sx={{ color: '#3b82f6', fontSize: 20, flexShrink: 0 }} />}
+                      {amenity.type === 'hospital' && <LocalHospital sx={{ color: '#ef4444', fontSize: 20, flexShrink: 0 }} />}
+                      {amenity.type === 'transit' && <DirectionsWalk sx={{ color: '#10b981', fontSize: 20, flexShrink: 0 }} />}
+                      {amenity.type === 'shopping' && <ShoppingCart sx={{ color: '#f59e0b', fontSize: 20, flexShrink: 0 }} />}
+                      {amenity.type === 'landmark' && <LocationOn sx={{ color: '#a855f7', fontSize: 20, flexShrink: 0 }} />}
+                      <Typography variant="body2" sx={{ fontWeight: 600, fontSize: { xs: 12.5, sm: 14 }, wordBreak: 'break-word' }}>
+                        {amenity.name}
+                      </Typography>
                     </Box>
-                    <Chip size="small" label={`${amenity.distanceKm} km`} sx={{ fontWeight: 700, fontSize: 11 }} />
+                    <Chip size="small" label={`${amenity.distanceKm} km`} sx={{ fontWeight: 700, fontSize: 11, flexShrink: 0 }} />
                   </Box>
                 ))}
               </Box>
             </Paper>
 
             {/* Ratings & Customer Reviews (Section 5 & 12) */}
-            <Paper elevation={0} sx={{ p: 3, borderRadius: 3, bgcolor: 'background.paper', border: '1px solid', borderColor: 'divider', mb: 4 }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 3 }}>
+            <Paper elevation={0} sx={{ p: { xs: 2, sm: 3 }, borderRadius: 3, bgcolor: 'background.paper', border: '1px solid', borderColor: 'divider', mb: 4 }}>
+              <Box sx={{
+                display: 'flex',
+                flexDirection: { xs: 'column', sm: 'row' },
+                alignItems: { xs: 'flex-start', sm: 'center' },
+                justifyContent: 'space-between',
+                gap: 2,
+                mb: 3
+              }}>
                 <Box>
-                  <Typography variant="h6" sx={{ fontWeight: 700 }}>Customer Reviews & Ratings</Typography>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 0.5 }}>
-                    <Rating value={reviewStats.avgRating || 4.8} precision={0.1} readOnly />
+                  <Typography variant="h6" sx={{ fontWeight: 700, fontSize: { xs: '1.1rem', sm: '1.25rem' } }}>
+                    {isAmharic ? 'የደንበኞች አስተያየት እና ደረጃ' : 'Customer Reviews & Ratings'}
+                  </Typography>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 0.5, flexWrap: 'wrap' }}>
+                    <Rating value={reviewStats.avgRating || 4.8} precision={0.1} readOnly size="small" />
                     <Typography variant="body2" sx={{ fontWeight: 700 }}>
-                      {reviewStats.avgRating ? reviewStats.avgRating.toFixed(1) : '4.8'} out of 5
+                      {reviewStats.avgRating ? reviewStats.avgRating.toFixed(1) : '4.8'} / 5
                     </Typography>
                     <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-                      ({reviewStats.totalReviews || reviews.length} verified reviews)
+                      ({reviewStats.totalReviews || reviews.length} {isAmharic ? 'ግምገማዎች' : 'reviews'})
                     </Typography>
                   </Box>
                 </Box>
 
                 <Button
                   variant="outlined"
+                  size="small"
                   startIcon={<RateReview />}
                   onClick={() => setReviewDialogOpen(true)}
-                  sx={{ borderRadius: 2, textTransform: 'none' }}
+                  sx={{ borderRadius: 2, textTransform: 'none', fontWeight: 600, flexShrink: 0 }}
                 >
-                  Write Review
+                  {isAmharic ? 'አስተያየት ይጻፉ' : 'Write Review'}
                 </Button>
               </Box>
 

@@ -72,21 +72,30 @@ const Navbar: React.FC = () => {
   // Close mobile menu when clicking outside (ignoring clicks on the toggle button itself!)
   useEffect(() => {
     const handleOutsideMenuClick = (event: MouseEvent | TouchEvent) => {
-      const target = event.target as Node;
+      const target = event.target as Element;
+      if (!isMenuOpen || !target) return;
+
+      // Ignore if clicking on or inside the mobile toggle button
       if (
-        isMenuOpen &&
-        mobileMenuRef.current &&
-        !mobileMenuRef.current.contains(target) &&
         mobileToggleRef.current &&
-        !mobileToggleRef.current.contains(target)
+        (mobileToggleRef.current === target ||
+          mobileToggleRef.current.contains(target as Node) ||
+          target.closest?.('[data-mobile-toggle]'))
       ) {
-        setIsMenuOpen(false);
-        setIsLanguageOpenMobile(false);
+        return;
       }
+
+      // Ignore if clicking inside the mobile menu drawer itself
+      if (mobileMenuRef.current && mobileMenuRef.current.contains(target as Node)) {
+        return;
+      }
+
+      setIsMenuOpen(false);
+      setIsLanguageOpenMobile(false);
     };
 
     document.addEventListener('mousedown', handleOutsideMenuClick);
-    document.addEventListener('touchstart', handleOutsideMenuClick);
+    document.addEventListener('touchstart', handleOutsideMenuClick, { passive: true });
     return () => {
       document.removeEventListener('mousedown', handleOutsideMenuClick);
       document.removeEventListener('touchstart', handleOutsideMenuClick);
@@ -137,12 +146,12 @@ const Navbar: React.FC = () => {
 
   if (!mounted) {
     return (
-      <header className="fixed top-0 left-0 right-0 w-full z-50 h-16 sm:h-20 bg-white dark:bg-[#0a192f] border-b border-gray-200 dark:border-slate-800" />
+      <header className="fixed top-0 left-0 right-0 w-full z-[9999] h-16 sm:h-20 bg-white dark:bg-[#0a192f] border-b border-gray-200 dark:border-slate-800" />
     );
   }
 
   return (
-    <nav className="fixed top-0 left-0 right-0 w-full z-50 bg-white/95 dark:bg-[#0a192f]/95 backdrop-blur-md border-b border-gray-200 dark:border-slate-800 shadow-sm transition-colors duration-200">
+    <nav className="fixed top-0 left-0 right-0 w-full z-[9999] bg-white/95 dark:bg-[#0a192f]/95 backdrop-blur-md border-b border-gray-200 dark:border-slate-800 shadow-sm transition-colors duration-200">
       <div className="container mx-auto px-3 sm:px-4 lg:px-6">
         <div className="flex justify-between items-center h-16 sm:h-20">
           
@@ -324,17 +333,23 @@ const Navbar: React.FC = () => {
             {/* Mobile Menu Hamburger Toggle */}
             <button
               ref={mobileToggleRef}
-              onClick={toggleMenu}
-              className="p-2 rounded-lg text-gray-800 dark:text-gray-100 border border-gray-300 dark:border-slate-700 hover:bg-gray-100 dark:hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
-              aria-label="Toggle mobile menu"
+              data-mobile-toggle="true"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                toggleMenu();
+              }}
+              type="button"
+              className="p-2 sm:p-2.5 rounded-xl text-gray-800 dark:text-gray-100 bg-gray-100/80 dark:bg-slate-800/80 hover:bg-gray-200 dark:hover:bg-slate-700 border border-gray-300 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all flex items-center justify-center cursor-pointer shadow-sm active:scale-95"
+              aria-label={isMenuOpen ? 'Close mobile menu' : 'Open mobile menu'}
               aria-expanded={isMenuOpen}
             >
               {isMenuOpen ? (
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.2} d="M6 18L18 6M6 6l12 12" />
+                <svg className="w-6 h-6 text-gray-900 dark:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.4} d="M6 18L18 6M6 6l12 12" />
                 </svg>
               ) : (
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-6 h-6 text-gray-900 dark:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.2} d="M4 6h16M4 12h16M4 18h16" />
                 </svg>
               )}
@@ -347,7 +362,9 @@ const Navbar: React.FC = () => {
       {isMenuOpen && (
         <div
           ref={mobileMenuRef}
-          className="lg:hidden fixed inset-x-0 top-16 sm:top-20 bottom-0 bg-white dark:bg-[#0a192f] border-t border-gray-200 dark:border-slate-800 z-50 overflow-y-auto animate-slideDown shadow-2xl"
+          onClick={(e) => e.stopPropagation()}
+          className="lg:hidden fixed inset-x-0 top-16 sm:top-20 bottom-0 bg-white/98 dark:bg-[#0a192f]/98 backdrop-blur-xl border-t border-gray-200 dark:border-slate-800 z-[9999] overflow-y-auto animate-slideDown shadow-2xl"
+          style={{ maxHeight: 'calc(100dvh - 64px)' }}
         >
           <div className="container mx-auto px-4 py-4 sm:py-6 flex flex-col min-h-full justify-between">
             <div>

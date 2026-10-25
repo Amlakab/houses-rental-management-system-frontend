@@ -72,6 +72,35 @@ function MapController({
   const map = useMap();
   const skipRef = useRef(false);
 
+  // Crucial: Invalidate Leaflet map size on mount, orientation change and window resize!
+  useEffect(() => {
+    if (!map) return;
+    const invalidate = () => {
+      try {
+        map.invalidateSize();
+      } catch (e) {
+        // Ignored
+      }
+    };
+
+    // Immediate and staged invalidations to ensure proper tile rendering in responsive flex containers
+    invalidate();
+    const t1 = setTimeout(invalidate, 100);
+    const t2 = setTimeout(invalidate, 300);
+    const t3 = setTimeout(invalidate, 800);
+
+    window.addEventListener('resize', invalidate);
+    window.addEventListener('orientationchange', invalidate);
+
+    return () => {
+      clearTimeout(t1);
+      clearTimeout(t2);
+      clearTimeout(t3);
+      window.removeEventListener('resize', invalidate);
+      window.removeEventListener('orientationchange', invalidate);
+    };
+  }, [map]);
+
   useEffect(() => {
     if (!map) return;
     skipRef.current = true;

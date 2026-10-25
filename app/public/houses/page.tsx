@@ -277,7 +277,17 @@ export default function PublicHousesPage() {
         </Box>
 
         {/* Transaction Type Tabs Bar */}
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2.5, overflowX: 'auto', pb: 1, '::-webkit-scrollbar': { height: 4 } }}>
+        <Box sx={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 1,
+          mb: 2.5,
+          overflowX: 'auto',
+          pb: 1,
+          WebkitOverflowScrolling: 'touch',
+          scrollbarWidth: 'none',
+          '&::-webkit-scrollbar': { display: 'none' }
+        }}>
           {[
             { label: isAmharic ? 'ሁሉም ቤቶች' : 'All Listings', value: '' },
             { label: isAmharic ? 'የሚከራዩ' : 'For Rent', value: 'RENT' },
@@ -293,9 +303,11 @@ export default function PublicHousesPage() {
                 borderRadius: 2.5,
                 textTransform: 'none',
                 fontWeight: 700,
-                px: 2,
+                px: { xs: 1.5, sm: 2 },
                 py: 0.8,
                 whiteSpace: 'nowrap',
+                flexShrink: 0,
+                fontSize: { xs: 12, sm: 13 },
                 bgcolor: filters.transactionType === tab.value ? 'primary.main' : 'transparent',
                 borderColor: filters.transactionType === tab.value ? 'primary.main' : 'divider',
                 color: filters.transactionType === tab.value ? 'white' : 'text.primary',
@@ -310,8 +322,18 @@ export default function PublicHousesPage() {
         </Box>
 
         {/* Popular Tags Discovery Strip */}
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 3, overflowX: 'auto', pb: 1, '::-webkit-scrollbar': { height: 4 } }}>
-          <Typography variant="caption" sx={{ fontWeight: 700, color: 'text.secondary', mr: 0.5, whiteSpace: 'nowrap' }}>
+        <Box sx={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 1,
+          mb: 3,
+          overflowX: 'auto',
+          pb: 1,
+          WebkitOverflowScrolling: 'touch',
+          scrollbarWidth: 'none',
+          '&::-webkit-scrollbar': { display: 'none' }
+        }}>
+          <Typography variant="caption" sx={{ fontWeight: 700, color: 'text.secondary', mr: 0.5, whiteSpace: 'nowrap', flexShrink: 0 }}>
             {isAmharic ? 'ተመራጭ አካባቢዎች:' : 'Trending Tags:'}
           </Typography>
           {popularTags.map((tag) => {
@@ -326,6 +348,7 @@ export default function PublicHousesPage() {
                 sx={{
                   fontWeight: 600,
                   fontSize: 12,
+                  flexShrink: 0,
                   bgcolor: isSelected ? 'primary.main' : 'background.paper',
                   border: '1px solid',
                   borderColor: isSelected ? 'primary.main' : 'divider',
@@ -339,105 +362,149 @@ export default function PublicHousesPage() {
 
         {/* Main Search & Filter Control Bar */}
         <Box sx={{
-          display: 'flex', gap: 1.5, mb: 4, flexWrap: 'wrap', alignItems: 'center',
-          p: 2, bgcolor: 'background.paper', borderRadius: 3,
-          boxShadow: '0 2px 12px rgba(0,0,0,0.05)', border: '1px solid', borderColor: 'divider'
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 1.5,
+          mb: 4,
+          p: { xs: 1.5, sm: 2 },
+          bgcolor: 'background.paper',
+          borderRadius: 3,
+          boxShadow: '0 2px 12px rgba(0,0,0,0.05)',
+          border: '1px solid',
+          borderColor: 'divider'
         }}>
           {/* Keyword Search */}
           <TextField
+            fullWidth
             placeholder={isAmharic ? 'በአካባቢ፣ ምልክት ወይም መግለጫ ይፈልጉ...' : 'Search by neighborhood, landmark, or description...'}
             value={filters.search}
             onChange={(e) => handleFilterChange('search', e.target.value)}
-            sx={{ flex: { xs: '1 1 100%', md: '1 1 260px' } }}
             size="small"
             InputProps={{
               startAdornment: <Search sx={{ color: 'text.secondary', mr: 1, fontSize: 20 }} />
             }}
           />
 
-          {/* Property Category */}
-          <FormControl size="small" sx={{ minWidth: 150, flex: { xs: '1 1 calc(50% - 6px)', sm: '0 1 160px' } }}>
-            <InputLabel>{t('property.type', 'Category')}</InputLabel>
-            <Select
-              value={filters.propertyType}
-              label={t('property.type', 'Category')}
-              onChange={(e) => handleFilterChange('propertyType', e.target.value)}
-            >
-              <MenuItem value="">{isAmharic ? 'ሁሉም ዓይነቶች' : 'All Categories'}</MenuItem>
-              <MenuItem value="APARTMENT">{isAmharic ? 'አፓርታማ' : 'Apartments'}</MenuItem>
-              <MenuItem value="VILLA">{isAmharic ? 'ቪላ እና ቤቶች' : 'Villas & Houses'}</MenuItem>
-              <MenuItem value="OFFICE">{isAmharic ? 'የንግድ ቢሮዎች' : 'Commercial Offices'}</MenuItem>
-              <MenuItem value="WAREHOUSE">{isAmharic ? 'መጋዘኖች' : 'Warehouses & Storage'}</MenuItem>
-              <MenuItem value="LAND">{isAmharic ? 'የልማት መሬት' : 'Development Land'}</MenuItem>
-            </Select>
-          </FormControl>
+          {/* Controls Row: Category, Sort, Verified, Action Buttons */}
+          <Box sx={{
+            display: 'flex',
+            flexDirection: { xs: 'column', md: 'row' },
+            gap: 1.5,
+            alignItems: { xs: 'stretch', md: 'center' },
+            justifyContent: 'space-between'
+          }}>
+            {/* Dropdowns Row */}
+            <Box sx={{
+              display: 'grid',
+              gridTemplateColumns: { xs: 'repeat(2, 1fr)', sm: '180px 180px' },
+              gap: 1.5
+            }}>
+              {/* Property Category */}
+              <FormControl size="small" fullWidth>
+                <InputLabel>{t('property.type', 'Category')}</InputLabel>
+                <Select
+                  value={filters.propertyType}
+                  label={t('property.type', 'Category')}
+                  onChange={(e) => handleFilterChange('propertyType', e.target.value)}
+                >
+                  <MenuItem value="">{isAmharic ? 'ሁሉም ዓይነቶች' : 'All Categories'}</MenuItem>
+                  <MenuItem value="APARTMENT">{isAmharic ? 'አፓርታማ' : 'Apartments'}</MenuItem>
+                  <MenuItem value="VILLA">{isAmharic ? 'ቪላ እና ቤቶች' : 'Villas & Houses'}</MenuItem>
+                  <MenuItem value="OFFICE">{isAmharic ? 'የንግድ ቢሮዎች' : 'Commercial Offices'}</MenuItem>
+                  <MenuItem value="WAREHOUSE">{isAmharic ? 'መጋዘኖች' : 'Warehouses & Storage'}</MenuItem>
+                  <MenuItem value="LAND">{isAmharic ? 'የልማት መሬት' : 'Development Land'}</MenuItem>
+                </Select>
+              </FormControl>
 
-          {/* Sort By */}
-          <FormControl size="small" sx={{ minWidth: 150, flex: { xs: '1 1 calc(50% - 6px)', sm: '0 1 160px' } }}>
-            <InputLabel>{isAmharic ? 'አስተካክል በ' : 'Sort By'}</InputLabel>
-            <Select
-              value={filters.sortBy}
-              label={isAmharic ? 'አስተካክል በ' : 'Sort By'}
-              onChange={(e) => handleFilterChange('sortBy', e.target.value)}
-            >
-              <MenuItem value="created_at">{isAmharic ? 'አዳዲሶች መጀመሪያ' : 'Newest First'}</MenuItem>
-              <MenuItem value="most_liked">{isAmharic ? 'በጣም የተወደዱ' : 'Most Liked & Popular'}</MenuItem>
-              <MenuItem value="most_viewed">{isAmharic ? 'በብዛት የታዩ' : 'Most Viewed'}</MenuItem>
-              <MenuItem value="price">{isAmharic ? 'በዋጋ' : 'Price'}</MenuItem>
-            </Select>
-          </FormControl>
+              {/* Sort By */}
+              <FormControl size="small" fullWidth>
+                <InputLabel>{isAmharic ? 'አስተካክል በ' : 'Sort By'}</InputLabel>
+                <Select
+                  value={filters.sortBy}
+                  label={isAmharic ? 'አስተካክል በ' : 'Sort By'}
+                  onChange={(e) => handleFilterChange('sortBy', e.target.value)}
+                >
+                  <MenuItem value="created_at">{isAmharic ? 'አዳዲሶች' : 'Newest'}</MenuItem>
+                  <MenuItem value="most_liked">{isAmharic ? 'ተወዳጅ' : 'Most Liked'}</MenuItem>
+                  <MenuItem value="most_viewed">{isAmharic ? 'በብዛት የታዩ' : 'Most Viewed'}</MenuItem>
+                  <MenuItem value="price">{isAmharic ? 'በዋጋ' : 'Price'}</MenuItem>
+                </Select>
+              </FormControl>
+            </Box>
 
-          {/* Verified Only Checkbox */}
-          <FormControlLabel
-            control={
-              <Checkbox
-                checked={filters.isVerified === 'true'}
-                onChange={(e) => handleFilterChange('isVerified', e.target.checked ? 'true' : '')}
-                size="small"
-                color="primary"
+            {/* Filter Toggle, Save Alert, Reset & Verified */}
+            <Box sx={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: 1,
+              flexWrap: 'wrap'
+            }}>
+              {/* Verified Only Checkbox */}
+              <FormControlLabel
+                control={
+                  <Checkbox
+                    checked={filters.isVerified === 'true'}
+                    onChange={(e) => handleFilterChange('isVerified', e.target.checked ? 'true' : '')}
+                    size="small"
+                    color="primary"
+                  />
+                }
+                label={
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                    <Verified sx={{ color: 'primary.main', fontSize: 17 }} />
+                    <Typography variant="body2" sx={{ fontWeight: 600, fontSize: { xs: 12, sm: 13 } }}>
+                      {isAmharic ? 'የተረጋገጡ' : 'Verified'}
+                    </Typography>
+                  </Box>
+                }
+                sx={{ mr: 0.5 }}
               />
-            }
-            label={
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                <Verified sx={{ color: 'primary.main', fontSize: 18 }} />
-                <Typography variant="body2" sx={{ fontWeight: 600, fontSize: 13 }}>
-                  {isAmharic ? 'የተረጋገጡ ብቻ' : 'Verified Only'}
-                </Typography>
+
+              {/* Action Buttons */}
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <Button
+                  variant="outlined"
+                  size="small"
+                  startIcon={<FilterList />}
+                  onClick={() => setFilterDrawerOpen(true)}
+                  sx={{
+                    borderRadius: 2,
+                    textTransform: 'none',
+                    fontWeight: 600,
+                    fontSize: { xs: 12, sm: 13 },
+                    px: { xs: 1.2, sm: 1.8 }
+                  }}
+                >
+                  {isAmharic ? 'ማጣሪያ' : 'Filters'}
+                </Button>
+
+                <Button
+                  variant="outlined"
+                  size="small"
+                  startIcon={<BookmarkBorder />}
+                  onClick={() => setSaveSearchModalOpen(true)}
+                  sx={{
+                    borderRadius: 2,
+                    textTransform: 'none',
+                    fontWeight: 600,
+                    fontSize: { xs: 12, sm: 13 },
+                    px: { xs: 1.2, sm: 1.8 },
+                    color: 'success.main',
+                    borderColor: 'success.main',
+                    '&:hover': { borderColor: 'success.dark', bgcolor: 'success.main', color: 'white' }
+                  }}
+                >
+                  {isAmharic ? 'ማንቂያ' : 'Save'}
+                </Button>
+
+                <Tooltip title={isAmharic ? 'ሁሉንም ማጣሪያዎች ሰርዝ' : 'Reset All Filters'}>
+                  <IconButton size="small" onClick={resetFilters} sx={{ border: '1px solid', borderColor: 'divider' }}>
+                    <RestartAlt fontSize="small" />
+                  </IconButton>
+                </Tooltip>
               </Box>
-            }
-            sx={{ mr: 1 }}
-          />
-
-          {/* Action Buttons */}
-          <Box sx={{ display: 'flex', gap: 1, ml: { xs: 0, sm: 'auto' }, width: { xs: '100%', sm: 'auto' }, justifyContent: { xs: 'space-between', sm: 'flex-end' } }}>
-            {/* Filter Drawer Toggle */}
-            <Button
-              variant="outlined"
-              size="small"
-              startIcon={<FilterList />}
-              onClick={() => setFilterDrawerOpen(true)}
-              sx={{ borderRadius: 2, textTransform: 'none', fontWeight: 600 }}
-            >
-              {isAmharic ? 'ተጨማሪ ማጣሪያዎች' : 'More Filters'}
-            </Button>
-
-            {/* Save Search Button */}
-            <Button
-              variant="outlined"
-              size="small"
-              startIcon={<BookmarkBorder />}
-              onClick={() => setSaveSearchModalOpen(true)}
-              sx={{ borderRadius: 2, textTransform: 'none', fontWeight: 600, color: 'success.main', borderColor: 'success.main', '&:hover': { borderColor: 'success.dark', bgcolor: 'success.main', color: 'white' } }}
-            >
-              {isAmharic ? 'ማንቂያ አስቀምጥ' : 'Save Alert'}
-            </Button>
-
-            {/* Reset Filters */}
-            <Tooltip title={isAmharic ? 'ሁሉንም ማጣሪያዎች ሰርዝ' : 'Reset All Filters'}>
-              <IconButton size="small" onClick={resetFilters} sx={{ border: '1px solid', borderColor: 'divider' }}>
-                <RestartAlt fontSize="small" />
-              </IconButton>
-            </Tooltip>
+            </Box>
           </Box>
         </Box>
 
@@ -578,7 +645,16 @@ export default function PublicHousesPage() {
                     </Link>
 
                     {/* Top Badges */}
-                    <Box sx={{ position: 'absolute', top: 12, left: 12, display: 'flex', gap: 0.8, flexWrap: 'wrap' }}>
+                    <Box sx={{
+                      position: 'absolute',
+                      top: 12,
+                      left: 12,
+                      display: 'flex',
+                      gap: 0.8,
+                      flexWrap: 'wrap',
+                      maxWidth: 'calc(100% - 92px)',
+                      zIndex: 2
+                    }}>
                       <Chip
                         size="small"
                         label={house.transactionType === 'BUY' ? (isAmharic ? 'ሽያጭ' : 'FOR SALE') : (isAmharic ? 'ኪራይ' : 'FOR RENT')}
@@ -673,13 +749,21 @@ export default function PublicHousesPage() {
 
                     {/* Specs Row */}
                     <Box sx={{
-                      display: 'flex', alignItems: 'center', gap: 2, mb: 2, py: 1,
-                      borderTop: '1px solid', borderBottom: '1px solid', borderColor: 'divider'
+                      display: 'flex',
+                      alignItems: 'center',
+                      flexWrap: 'wrap',
+                      columnGap: 2,
+                      rowGap: 0.8,
+                      mb: 2,
+                      py: 1,
+                      borderTop: '1px solid',
+                      borderBottom: '1px solid',
+                      borderColor: 'divider'
                     }}>
                       {house.details.bedrooms > 0 && (
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                           <Bed sx={{ fontSize: 16, color: 'text.secondary' }} />
-                          <Typography variant="caption" sx={{ fontWeight: 600, color: 'text.primary' }}>
+                          <Typography variant="caption" sx={{ fontWeight: 600, color: 'text.primary', fontSize: { xs: 11.5, sm: 12 } }}>
                             {house.details.bedrooms} {isAmharic ? 'መኝታ' : 'Beds'}
                           </Typography>
                         </Box>
@@ -687,28 +771,46 @@ export default function PublicHousesPage() {
                       {house.details.bathrooms > 0 && (
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                           <Bathtub sx={{ fontSize: 16, color: 'text.secondary' }} />
-                          <Typography variant="caption" sx={{ fontWeight: 600, color: 'text.primary' }}>
+                          <Typography variant="caption" sx={{ fontWeight: 600, color: 'text.primary', fontSize: { xs: 11.5, sm: 12 } }}>
                             {house.details.bathrooms} {isAmharic ? 'መታጠቢያ' : 'Baths'}
                           </Typography>
                         </Box>
                       )}
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                         <SquareFoot sx={{ fontSize: 16, color: 'text.secondary' }} />
-                        <Typography variant="caption" sx={{ fontWeight: 600, color: 'text.primary' }}>
+                        <Typography variant="caption" sx={{ fontWeight: 600, color: 'text.primary', fontSize: { xs: 11.5, sm: 12 } }}>
                           {house.details.area} m²
                         </Typography>
                       </Box>
                     </Box>
 
                     {/* Price & Action Button */}
-                    <Box sx={{ mt: 'auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1 }}>
-                      <Box>
-                        <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block' }}>
+                    <Box sx={{
+                      mt: 'auto',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      gap: 1,
+                      flexWrap: 'wrap'
+                    }}>
+                      <Box sx={{ minWidth: 0, flex: '1 1 auto' }}>
+                        <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', fontSize: 11 }}>
                           {isAmharic ? 'ዋጋ' : 'Price'}
                         </Typography>
-                        <Typography variant="h6" sx={{ fontWeight: 800, color: 'primary.main', lineHeight: 1.1, fontSize: 17 }}>
+                        <Typography
+                          variant="h6"
+                          sx={{
+                            fontWeight: 800,
+                            color: 'primary.main',
+                            lineHeight: 1.1,
+                            fontSize: { xs: 15, sm: 17 },
+                            whiteSpace: 'nowrap',
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis'
+                          }}
+                        >
                           {formatPrice(house.pricing.price)}
-                          <Typography component="span" sx={{ fontSize: 12, color: 'text.secondary', ml: 0.5 }}>
+                          <Typography component="span" sx={{ fontSize: 11, color: 'text.secondary', ml: 0.5 }}>
                             {house.transactionType === 'RENT' ? (isAmharic ? '/ወር' : '/ mo') : ''}
                           </Typography>
                         </Typography>
@@ -723,11 +825,14 @@ export default function PublicHousesPage() {
                           borderRadius: 2,
                           textTransform: 'none',
                           fontWeight: 700,
-                          fontSize: 13,
-                          px: 2
+                          fontSize: { xs: 12, sm: 13 },
+                          px: { xs: 1.5, sm: 2 },
+                          py: 0.8,
+                          flexShrink: 0,
+                          whiteSpace: 'nowrap'
                         }}
                       >
-                        {isAmharic ? 'ዝርዝር ይመልከቱ' : 'Explore Details'}
+                        {isAmharic ? 'ዝርዝር' : 'Explore Details'}
                       </Button>
                     </Box>
                   </CardContent>
