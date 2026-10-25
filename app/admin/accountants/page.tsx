@@ -1,24 +1,35 @@
 'use client';
 
-import { FiPlusCircle } from "react-icons/fi";
+import { FiPlusCircle } from 'react-icons/fi';
 import { useState, useEffect } from 'react';
 import {
-  Box, Typography, Card, CardContent, Button,
-  TextField, Dialog, DialogTitle, DialogContent, DialogActions,
-  Chip, Alert, Snackbar, CircularProgress,
-  useMediaQuery, IconButton
+  Box, Typography, Card, CardContent, Button, TextField, Dialog, DialogTitle,
+  DialogContent, DialogActions, Chip, Alert, Snackbar, CircularProgress,
+  useMediaQuery, IconButton, Tabs, Tab, Stack, Divider, Paper, Tooltip
 } from '@mui/material';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  AccountBalance, Phone, Person, Block, CheckCircle, Edit, Delete,
-  MoreVert
+  AccountBalance, Block, CheckCircle, Edit, Delete, Add, Person,
+  Refresh, AccountBalanceWallet
 } from '@mui/icons-material';
 import api from '@/app/utils/api';
-import { Accountant } from '@/types';
+import { Accountant, Bank } from '@/types/banks';
 import { formatDate } from '@/lib/date';
 import { useAuth } from '@/lib/auth';
 import { useTheme } from '@/lib/theme-context';
 import { useLanguage } from '@/lib/language-context';
+
+type DraftAccount = {
+  tempId: string;
+  _id?: string;              // present when editing an existing account
+  bankId: string;
+  bankName: string;
+  bankCode: string;
+  type: 'bank' | 'wallet';
+  accountHolderName: string;
+  accountNumber: string;
+  isBlocked: boolean;
+};
 
 export default function AccountantsPage() {
   const { user } = useAuth();
@@ -28,115 +39,161 @@ export default function AccountantsPage() {
   const isMobile = useMediaQuery('(max-width: 600px)');
 
   const [accountants, setAccountants] = useState<Accountant[]>([]);
-  const [filteredAccountants, setFilteredAccountants] = useState<Accountant[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [filter, setFilter] = useState<'all' | 'active' | 'blocked'>('all');
 
+  const [banks, setBanks] = useState<Bank[]>([]);
+
   const [openDialog, setOpenDialog] = useState(false);
   const [editingAccountant, setEditingAccountant] = useState<Accountant | null>(null);
-  const [formData, setFormData] = useState({
-    fullName: '',
-    phoneNumber: '',
-    accountNumber: '',
-    bankName: ''
-  });
-  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [draftAccounts, setDraftAccounts] = useState<DraftAccount[]>([]);
+  const [activeTab, setActiveTab] = useState<'bank' | 'wallet'>('bank');
+  const [editingBankId, setEditingBankId] = useState<string | null>(null);
+  const [editingDraftTempId, setEditingDraftTempId] = useState<string | null>(null);
+  const [inlineForm, setInlineForm] = useState({ accountHolderName: '', accountNumber: '' });
+  const [inlineError, setInlineError] = useState('');
   const [expandedAccountant, setExpandedAccountant] = useState<string | null>(null);
 
-  // Fetch accountants
-  const fetchAccountants = async () => {
+  // ── fetch ───────────────────────────────────────────────────────────────
+  const fetchAccountants = async (manual = false) => {
     try {
-      setLoading(true);
+      manual ? setRefreshing(true) : setLoading(true);
       let url = '/accountants';
       if (filter !== 'all') url += `?blocked=${filter === 'blocked'}`;
-      const response = await api.get(url);
-      setAccountants(response.data.data || []);
+      const r = await api.get(url);
+      setAccountants(r.data.data || []);
       setError('');
     } catch (err: any) {
       setError(err.response?.data?.message || 'Failed to fetch accountants');
     } finally {
-      setLoading(false);
+      setLoading(false); setRefreshing(false);
     }
   };
 
-  useEffect(() => {
-    if (user?.role === 'admin') fetchAccountants();
-  }, [user, filter]);
+  const fetchBanks = async () => {
+    try {
+      const r = await api.get('/banks');
+      setBanks(r.data.data || []);
+    } catch {/* silent */}
+  };
 
-  useEffect(() => {
-    const filtered = accountants.filter(acc => {
-      if (filter === 'all') return true;
-      if (filter === 'active') return !acc.isBlocked;
-      if (filter === 'blocked') return acc.isBlocked;
-      return true;
-    });
-    setFilteredAccountants(filtered);
-  }, [filter, accountants]);
+  useEffect(() => { if (user?.role === 'admin' || user?.role === 'owner' || user?.role === 'agent') { fetchAccountants(); fetchBanks(); } }, [user, filter]);
 
-  // Form handlers
-  const handleOpenDialog = (accountant: Accountant | null = null) => {
-    if (accountant) {
-      setEditingAccountant(accountant);
-      setFormData({
-        fullName: accountant.fullName,
-        phoneNumber: accountant.phoneNumber,
-        accountNumber: accountant.accountNumber,
-        bankName: accountant.bankName
-      });
+  // ── dialog ──────────────────────────────────────────────────────────────
+  const handleOpenDialog = (acc: Accountant | null = null) => {
+    if (acc) {
+      setEditingAccountant(acc);
+      setDraftAccounts((acc.accounts || []).map(a => {
+        const bank = typeof a.bankId === 'object' ? a.bankId : banks.find(b => b._id === a.bankId);
+        return {
+          tempId: crypto.randomUUID(),
+          _id: a._id,
+          bankId: typeof a.bankId === 'object' ? a.bankId._id : a.bankId,
+          bankName: a.bankName,
+          bankCode: a.bankCode,
+          type: (bank as any)?.type || 'bank',
+          accountHolderName: a.accountHolderName,
+          accountNumber: a.accountNumber,
+          isBlocked: a.isBlocked
+        };
+      }));
     } else {
       setEditingAccountant(null);
-      setFormData({ fullName: '', phoneNumber: '', accountNumber: '', bankName: '' });
+      setDraftAccounts([]);
     }
-    setErrors({});
+    setActiveTab('bank');
+    setEditingBankId(null);
+    setEditingDraftTempId(null);
+    setInlineForm({ accountHolderName: '', accountNumber: '' });
+    setInlineError('');
     setOpenDialog(true);
   };
 
   const handleCloseDialog = () => {
     setOpenDialog(false);
     setEditingAccountant(null);
-    setFormData({ fullName: '', phoneNumber: '', accountNumber: '', bankName: '' });
-    setErrors({});
+    setDraftAccounts([]);
+    setEditingBankId(null);
+    setEditingDraftTempId(null);
+    setInlineForm({ accountHolderName: '', accountNumber: '' });
+    setInlineError('');
   };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-    if (errors[name]) {
-      setErrors(prev => { const newErrors = { ...prev }; delete newErrors[name]; return newErrors; });
-    }
+  const handleStartAdd = (bank: Bank) => {
+    setEditingBankId(bank._id);
+    setEditingDraftTempId(null);
+    setInlineForm({ accountHolderName: '', accountNumber: '' });
+    setInlineError('');
   };
 
-  const validateForm = () => {
-    const newErrors: Record<string, string> = {};
-    if (!formData.fullName.trim()) {
-      newErrors.fullName = isAmharic ? 'ሙሉ ስም ማስገባት ግዴታ ነው' : 'Full name is required';
-    }
-    if (!formData.phoneNumber.trim()) {
-      newErrors.phoneNumber = isAmharic ? 'ስልክ ቁጥር ማስገባት ግዴታ ነው' : 'Phone number is required';
-    } else if (!/^\d{10,15}$/.test(formData.phoneNumber.replace(/[\s+-]/g, ''))) {
-      newErrors.phoneNumber = isAmharic ? 'ትክክለኛ ስልክ ቁጥር ያስገቡ' : 'Phone number must be 10-15 digits';
-    }
-    if (!formData.accountNumber.trim()) {
-      newErrors.accountNumber = isAmharic ? 'የሂሳብ ቁጥር ማስገባት ግዴታ ነው' : 'Account number is required';
-    }
-    if (!formData.bankName.trim()) {
-      newErrors.bankName = isAmharic ? 'የባንክ ስም ማስገባት ግዴታ ነው' : 'Bank name is required';
-    }
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+  const handleStartEdit = (draft: DraftAccount) => {
+    setActiveTab(draft.type);
+    setEditingBankId(draft.bankId);
+    setEditingDraftTempId(draft.tempId);
+    setInlineForm({ accountHolderName: draft.accountHolderName, accountNumber: draft.accountNumber });
+    setInlineError('');
   };
 
-  const handleSubmit = async () => {
-    if (!validateForm()) return;
+  const handleCancelInline = () => {
+    setEditingBankId(null);
+    setEditingDraftTempId(null);
+    setInlineForm({ accountHolderName: '', accountNumber: '' });
+    setInlineError('');
+  };
+
+  const handleConfirmInline = () => {
+    const holder = inlineForm.accountHolderName.trim();
+    const num = inlineForm.accountNumber.trim();
+    if (!holder) { setInlineError(isAmharic ? 'የሂሳብ ባለቤት ስም ያስገቡ' : 'Account holder name is required'); return; }
+    if (!/^[A-Za-z0-9]{6,25}$/.test(num)) { setInlineError(isAmharic ? 'ትክክለኛ የሂሳብ ቁጥር ያስገቡ (6-25)' : 'Account number must be 6-25 alphanumeric'); return; }
+
+    if (editingDraftTempId) {
+      setDraftAccounts(prev => prev.map(d => d.tempId === editingDraftTempId ? { ...d, accountHolderName: holder, accountNumber: num } : d));
+    } else {
+      const bank = banks.find(b => b._id === editingBankId);
+      if (!bank) return;
+      setDraftAccounts(prev => [...prev, {
+        tempId: crypto.randomUUID(),
+        bankId: bank._id,
+        bankName: bank.name,
+        bankCode: bank.code,
+        type: bank.type,
+        accountHolderName: holder,
+        accountNumber: num,
+        isBlocked: false
+      }]);
+    }
+    handleCancelInline();
+  };
+
+  const handleRemoveDraft = (tempId: string) => {
+    setDraftAccounts(prev => prev.filter(d => d.tempId !== tempId));
+  };
+
+  const handleSave = async () => {
+    if (draftAccounts.length === 0) {
+      setError(isAmharic ? 'ቢያንስ አንድ ሂሳብ ያስፈልጋል' : 'At least one account is required');
+      return;
+    }
     try {
+      const payload = {
+        accounts: draftAccounts.map(d => ({
+          ...(d._id ? { _id: d._id } : {}),
+          bankId: d.bankId,
+          accountHolderName: d.accountHolderName,
+          accountNumber: d.accountNumber
+        }))
+      };
+
       if (editingAccountant) {
-        await api.put(`/accountants/${editingAccountant._id}`, formData);
-        setSuccess(isAmharic ? 'የሂሳብ ሹም መረጃ በተሳካ ሁኔታ ተሻሽሏል' : 'Accountant updated successfully');
+        await api.put(`/accountants/${editingAccountant._id}`, payload);
+        setSuccess(isAmharic ? 'በተሳካ ሁኔታ ተሻሽሏል' : 'Accountant updated successfully');
       } else {
-        await api.post('/accountants', formData);
-        setSuccess(isAmharic ? 'የሂሳብ ሹም በተሳካ ሁኔታ ተፈጥሯል' : 'Accountant created successfully');
+        await api.post('/accountants', payload);
+        setSuccess(isAmharic ? 'በተሳካ ሁኔታ ተፈጥሯል' : 'Accountant created successfully');
       }
       handleCloseDialog();
       fetchAccountants();
@@ -146,602 +203,338 @@ export default function AccountantsPage() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm(t('accountants.delete_confirm') || 'Are you sure you want to delete this accountant?')) return;
+    if (!confirm(isAmharic ? 'ይህን የሂሳብ ሹም ማጥፋት ይፈልጋሉ?' : 'Delete this accountant?')) return;
     try {
       await api.delete(`/accountants/${id}`);
-      setSuccess(isAmharic ? 'የሂሳብ ሹም በተሳካ ሁኔታ ተሰርዟል' : 'Accountant deleted successfully');
+      setSuccess(isAmharic ? 'ተሰርዟል' : 'Deleted successfully');
       fetchAccountants();
-    } catch (err: any) {
-      setError(err.response?.data?.message || (isAmharic ? 'መሰረዝ አልተሳካም' : 'Failed to delete accountant'));
-    }
+    } catch (err: any) { setError(err.response?.data?.message || 'Failed to delete'); }
   };
 
-  const handleBlock = async (accountant: Accountant) => {
-    const confirmMsg = accountant.isBlocked 
-      ? (isAmharic ? 'እገዳውን ማንሳት ይፈልጋሉ?' : 'Are you sure you want to unblock this accountant?')
-      : (isAmharic ? 'ይህን የሂሳብ ሹም ማገድ ይፈልጋሉ?' : 'Are you sure you want to block this accountant?');
-    if (!confirm(confirmMsg)) return;
-
+  const handleToggleBlock = async (acc: Accountant) => {
+    const msg = acc.isBlocked
+      ? (isAmharic ? 'እገዳ ማንሳት?' : 'Unblock this accountant?')
+      : (isAmharic ? 'ማገድ?' : 'Block this accountant?');
+    if (!confirm(msg)) return;
     try {
-      await api.patch(`/accountants/${accountant._id}/block`, { isBlocked: !accountant.isBlocked });
-      setSuccess(accountant.isBlocked 
-        ? (isAmharic ? 'እገዳው ተነስቷል' : 'Accountant unblocked successfully')
-        : (isAmharic ? 'የሂሳብ ሹሙ ታግዷል' : 'Accountant blocked successfully'));
+      await api.patch(`/accountants/${acc._id}/block`, { isBlocked: !acc.isBlocked });
+      setSuccess(isAmharic ? 'ተዘምኗል' : 'Status updated');
       fetchAccountants();
-    } catch (err: any) {
-      setError(err.response?.data?.message || (isAmharic ? 'ሁኔታውን ማስተካከል አልተሳካም' : 'Failed to update status'));
-    }
+    } catch (err: any) { setError(err.response?.data?.message || 'Failed'); }
   };
 
-  const toggleExpandAccountant = (accountantId: string) => {
-    setExpandedAccountant(expandedAccountant === accountantId ? null : accountantId);
-  };
+  const toggleExpand = (id: string) => setExpandedAccountant(expandedAccountant === id ? null : id);
 
-  if (user?.role !== 'admin') {
-    return (
-      <div className="text-center py-12 text-red-500 font-semibold text-lg">
-        {isAmharic ? 'ፈቃድ የለዎትም። ለአድሚን ብቻ የተፈቀደ።' : 'Access denied. Admin only.'}
-      </div>
-    );
+  if (!['admin', 'owner', 'agent'].includes(user?.role || '')) {
+    return <Box sx={{ p: 4, textAlign: 'center', color: '#ef4444', fontWeight: 700 }}>
+      {isAmharic ? 'ፈቃድ የለዎትም' : 'Access denied'}
+    </Box>;
   }
 
+  const banksFiltered = banks.filter(b => b.type === activeTab && b.isActive);
+  const draftForBank = (bankId: string) => draftAccounts.find(d => d.bankId === bankId);
+
+  // ── render ──────────────────────────────────────────────────────────────
   return (
-    <Box 
-      sx={{ 
-        p: { xs: 2, sm: 3, md: 4 }, 
-        minHeight: '100vh',
-        bgcolor: isDark ? '#0a192f' : '#f8fafc',
-        color: isDark ? '#f1f5f9' : '#0f172a',
-        transition: 'background-color 0.2s ease, color 0.2s ease'
-      }}
-    >
+    <Box sx={{
+      p: { xs: 1.5, sm: 2.5, md: 3 },
+      minHeight: '100vh',
+      bgcolor: isDark ? '#0a192f' : '#f8fafc',
+      color: isDark ? '#f1f5f9' : '#0f172a',
+      transition: 'background-color 0.2s ease'
+    }}>
       {/* Header */}
-      <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
-        <Box sx={{ mb: 3 }}>
-          <Typography 
-            variant={isMobile ? "h6" : "h5"} 
-            sx={{ 
-              fontWeight: 700, 
-              color: isDark ? '#f8fafc' : '#0f172a', 
-              mb: 0.75 
-            }}
-          >
-            {t('accountants.title')}
-          </Typography>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 2 }}>
-            <Typography variant={isMobile ? "body2" : "body1"} sx={{ color: isDark ? '#94a3b8' : '#64748b' }}>
-              {t('accountants.subtitle')}
+      <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, justifyContent: 'space-between', alignItems: { xs: 'flex-start', md: 'center' }, gap: 2, mb: 3 }}>
+        <Box>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 0.5, flexWrap: 'wrap' }}>
+            <Typography variant="h4" sx={{ fontWeight: 800, color: isDark ? '#f1f5f9' : '#0f172a', fontSize: { xs: '1.5rem', sm: '2rem' } }}>
+              {isAmharic ? 'የሂሳብ ሹሞች' : 'Accountants'}
             </Typography>
-            <Button
-              variant="contained"
-              onClick={() => handleOpenDialog()}
-              startIcon={<FiPlusCircle size={18} />}
-              sx={{
-                bgcolor: '#2563eb',
-                '&:hover': { bgcolor: '#1d4ed8' },
-                borderRadius: 2,
-                px: 2.5,
-                py: 1,
-                textTransform: 'none',
-                fontWeight: 600,
-                boxShadow: '0 4px 12px rgba(37, 99, 235, 0.25)',
-                whiteSpace: 'nowrap'
-              }}
-            >
-              {isMobile ? (isAmharic ? 'ጨምር' : 'Add') : t('accountants.add')}
-            </Button>
+            <Chip size="small" label={isAmharic ? 'የፋይናንስ ማዕከል' : 'Finance Hub'} sx={{
+              bgcolor: isDark ? 'rgba(56,189,248,0.15)' : 'rgba(37,99,235,0.1)',
+              color: isDark ? '#38bdf8' : '#2563eb', fontWeight: 700,
+              border: `1px solid ${isDark ? 'rgba(56,189,248,0.3)' : 'rgba(37,99,235,0.3)'}`
+            }} />
           </Box>
+          <Typography variant="body2" sx={{ color: isDark ? '#94a3b8' : '#64748b' }}>
+            {isAmharic ? 'የባንክ እና የዋሌት ሂሳቦችን ያስተዳድሩ' : 'Manage bank & wallet accounts'}
+          </Typography>
         </Box>
-      </motion.div>
+        <Stack direction="row" spacing={1.5}>
+          <Button variant="contained" startIcon={<FiPlusCircle size={18} />} onClick={() => handleOpenDialog()}
+            sx={{ bgcolor: isDark ? '#38bdf8' : '#2563eb', color: isDark ? '#0a192f' : '#fff', fontWeight: 700, borderRadius: 2.5, textTransform: 'none', '&:hover': { bgcolor: isDark ? '#7dd3fc' : '#1d4ed8' } }}>
+            {isMobile ? (isAmharic ? 'ጨምር' : 'Add') : (isAmharic ? 'አዲስ የሂሳብ ሹም' : 'New Accountant')}
+          </Button>
+          <Tooltip title={isAmharic ? 'አድስ' : 'Refresh'}>
+            <IconButton onClick={() => fetchAccountants(true)} disabled={refreshing || loading}
+              sx={{ bgcolor: isDark ? '#112240' : '#fff', color: isDark ? '#38bdf8' : '#2563eb', border: `1px solid ${isDark ? '#233554' : '#e2e8f0'}` }}>
+              <Refresh sx={{ animation: refreshing ? 'spin 1s linear infinite' : 'none' }} />
+            </IconButton>
+          </Tooltip>
+        </Stack>
+      </Box>
 
-      {/* Filter Cards */}
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.1 }}>
-        <Box sx={{ 
-          display: 'grid', 
-          gridTemplateColumns: { xs: '1fr', sm: 'repeat(3, 1fr)' }, 
-          gap: 2, 
-          mb: 4 
-        }}>
-          {/* All */}
-          <Card 
-            onClick={() => setFilter('all')} 
-            sx={{ 
-              cursor: 'pointer', 
-              bgcolor: filter === 'all' 
-                ? '#2563eb' 
-                : (isDark ? '#112240' : '#ffffff'), 
-              color: filter === 'all' ? '#ffffff' : (isDark ? '#f1f5f9' : '#0f172a'),
-              border: filter === 'all' ? '1px solid #2563eb' : (isDark ? '1px solid #233554' : '1px solid #e2e8f0'),
-              borderRadius: 2, 
-              p: 2, 
-              textAlign: 'center',
-              minHeight: '80px',
-              display: 'flex',
-              flexDirection: 'column',
-              justifyContent: 'center',
-              transition: 'all 0.2s ease',
-              boxShadow: filter === 'all' ? '0 4px 14px rgba(37, 99, 235, 0.3)' : 'none',
-              '&:hover': {
-                transform: 'translateY(-2px)'
-              }
-            }}
-          >
-            <Typography variant={isMobile ? "body2" : "body1"} sx={{ fontWeight: 500, opacity: 0.9 }}>
-              {t('accountants.all')}
-            </Typography>
-            <Typography variant={isMobile ? "h6" : "h5"} sx={{ fontWeight: 700, mt: 0.5 }}>
-              {accountants.length}
-            </Typography>
+      {/* Filter cards */}
+      <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: 'repeat(3,1fr)' }, gap: 2, mb: 3 }}>
+        {[
+          { key: 'all', label: isAmharic ? 'ሁሉም' : 'All', count: accountants.length, color: '#2563eb' },
+          { key: 'active', label: isAmharic ? 'ንቁ' : 'Active', count: accountants.filter(a => !a.isBlocked).length, color: '#059669' },
+          { key: 'blocked', label: isAmharic ? 'የታገዱ' : 'Blocked', count: accountants.filter(a => a.isBlocked).length, color: '#dc2626' },
+        ].map(f => (
+          <Card key={f.key} onClick={() => setFilter(f.key as any)} sx={{
+            cursor: 'pointer', borderRadius: 3, p: 2, textAlign: 'center',
+            bgcolor: filter === f.key ? f.color : (isDark ? '#112240' : '#fff'),
+            color: filter === f.key ? '#fff' : (isDark ? '#f1f5f9' : '#0f172a'),
+            border: `1px solid ${filter === f.key ? f.color : (isDark ? '#233554' : '#e2e8f0')}`,
+            borderLeft: `5px solid ${f.color}`,
+            transition: 'all 0.2s ease', '&:hover': { transform: 'translateY(-2px)' }
+          }}>
+            <Typography variant="body2" sx={{ fontWeight: 500, opacity: 0.9 }}>{f.label}</Typography>
+            <Typography variant="h5" sx={{ fontWeight: 800, mt: 0.5 }}>{f.count}</Typography>
           </Card>
+        ))}
+      </Box>
 
-          {/* Active */}
-          <Card 
-            onClick={() => setFilter('active')} 
-            sx={{ 
-              cursor: 'pointer', 
-              bgcolor: filter === 'active' 
-                ? '#059669' 
-                : (isDark ? '#112240' : '#ffffff'), 
-              color: filter === 'active' ? '#ffffff' : (isDark ? '#f1f5f9' : '#0f172a'),
-              border: filter === 'active' ? '1px solid #059669' : (isDark ? '1px solid #233554' : '1px solid #e2e8f0'),
-              borderRadius: 2, 
-              p: 2, 
-              textAlign: 'center',
-              minHeight: '80px',
-              display: 'flex',
-              flexDirection: 'column',
-              justifyContent: 'center',
-              transition: 'all 0.2s ease',
-              boxShadow: filter === 'active' ? '0 4px 14px rgba(5, 150, 105, 0.3)' : 'none',
-              '&:hover': {
-                transform: 'translateY(-2px)'
-              }
-            }}
-          >
-            <Typography variant={isMobile ? "body2" : "body1"} sx={{ fontWeight: 500, opacity: 0.9 }}>
-              {t('accountants.active')}
-            </Typography>
-            <Typography variant={isMobile ? "h6" : "h5"} sx={{ fontWeight: 700, mt: 0.5 }}>
-              {accountants.filter(a => !a.isBlocked).length}
-            </Typography>
-          </Card>
-
-          {/* Blocked */}
-          <Card 
-            onClick={() => setFilter('blocked')} 
-            sx={{ 
-              cursor: 'pointer', 
-              bgcolor: filter === 'blocked' 
-                ? '#dc2626' 
-                : (isDark ? '#112240' : '#ffffff'), 
-              color: filter === 'blocked' ? '#ffffff' : (isDark ? '#f1f5f9' : '#0f172a'),
-              border: filter === 'blocked' ? '1px solid #dc2626' : (isDark ? '1px solid #233554' : '1px solid #e2e8f0'),
-              borderRadius: 2, 
-              p: 2, 
-              textAlign: 'center',
-              minHeight: '80px',
-              display: 'flex',
-              flexDirection: 'column',
-              justifyContent: 'center',
-              transition: 'all 0.2s ease',
-              boxShadow: filter === 'blocked' ? '0 4px 14px rgba(220, 38, 38, 0.3)' : 'none',
-              '&:hover': {
-                transform: 'translateY(-2px)'
-              }
-            }}
-          >
-            <Typography variant={isMobile ? "body2" : "body1"} sx={{ fontWeight: 500, opacity: 0.9 }}>
-              {t('accountants.blocked')}
-            </Typography>
-            <Typography variant={isMobile ? "h6" : "h5"} sx={{ fontWeight: 700, mt: 0.5 }}>
-              {accountants.filter(a => a.isBlocked).length}
-            </Typography>
-          </Card>
-        </Box>
-      </motion.div>
-
-      {/* Accountant Cards */}
+      {/* List */}
       {loading ? (
-        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '200px' }}>
-          <CircularProgress size={isMobile ? 36 : 48} sx={{ color: '#2563eb' }} />
+        <Box sx={{ display: 'flex', justifyContent: 'center', py: 8 }}>
+          <CircularProgress sx={{ color: isDark ? '#38bdf8' : '#2563eb' }} />
         </Box>
+      ) : accountants.length === 0 ? (
+        <Paper elevation={0} sx={{
+          p: 6, textAlign: 'center', borderRadius: 3,
+          border: '1px dashed', borderColor: isDark ? 'rgba(56,189,248,0.2)' : '#cbd5e1',
+          bgcolor: isDark ? 'rgba(15,23,42,0.3)' : '#f8fafc'
+        }}>
+          <AccountBalance sx={{ fontSize: 48, color: isDark ? '#38bdf8' : '#2563eb', opacity: 0.8, mb: 1 }} />
+          <Typography variant="h6" sx={{ fontWeight: 700, color: isDark ? '#f1f5f9' : '#0f172a' }}>
+            {isAmharic ? 'ምንም የሂሳብ ሹም አልተገኘም' : 'No accountants yet'}
+          </Typography>
+          <Typography variant="body2" sx={{ color: isDark ? '#94a3b8' : '#64748b' }}>
+            {isAmharic ? 'ለመጀመር አዲስ የሂሳብ ሹም ይፍጠሩ' : 'Create your first accountant to get started'}
+          </Typography>
+        </Paper>
       ) : (
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.4 }}>
-          {/* Mobile View - Cards */}
-          {isMobile && (
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-              {filteredAccountants.map((acc) => {
-                const isExpanded = expandedAccountant === acc._id;
-                
-                return (
-                  <Card 
-                    key={acc._id} 
-                    sx={{ 
-                      borderRadius: 2.5, 
-                      bgcolor: isDark ? '#112240' : '#ffffff',
-                      color: isDark ? '#f1f5f9' : '#0f172a',
-                      border: isDark ? '1px solid #233554' : '1px solid #e2e8f0',
-                      boxShadow: isDark ? '0 4px 12px rgba(0,0,0,0.3)' : '0 2px 8px rgba(0,0,0,0.04)'
-                    }}
-                  >
-                    <CardContent sx={{ p: 2 }}>
-                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1 }}>
-                        <Box>
-                          <Box sx={{ display: 'flex', alignItems: 'center', mb: 0.5 }}>
-                            <Person sx={{ fontSize: 18, mr: 1, color: isDark ? '#60a5fa' : '#2563eb' }} />
-                            <Typography variant="subtitle2" sx={{ fontWeight: 700, fontSize: '0.95rem' }}>
-                              {acc.fullName}
-                            </Typography>
-                          </Box>
-                          <Box sx={{ display: 'flex', alignItems: 'center', mb: 0.5 }}>
-                            <Phone sx={{ fontSize: 16, mr: 1, color: isDark ? '#94a3b8' : '#64748b' }} />
-                            <Typography variant="body2" sx={{ color: isDark ? '#cbd5e1' : '#334155' }}>
-                              {acc.phoneNumber}
-                            </Typography>
-                          </Box>
-                        </Box>
-                        <IconButton 
-                          size="small" 
-                          onClick={() => toggleExpandAccountant(acc._id)}
-                          sx={{ color: isDark ? '#94a3b8' : '#64748b' }}
-                        >
-                          <MoreVert />
-                        </IconButton>
-                      </Box>
-
-                      {isExpanded && (
-                        <Box sx={{ pt: 1.5, borderTop: isDark ? '1px solid #1e293b' : '1px solid #f1f5f9' }}>
-                          <Box sx={{ display: 'flex', alignItems: 'center', mb: 1.5 }}>
-                            <AccountBalance sx={{ fontSize: 16, mr: 1, color: isDark ? '#94a3b8' : '#64748b' }} />
-                            <Typography variant="body2" sx={{ color: isDark ? '#cbd5e1' : '#334155' }}>
-                              {acc.bankName} ({acc.accountNumber})
-                            </Typography>
-                          </Box>
-                          
-                          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1.5 }}>
-                            <Typography variant="body2" sx={{ color: isDark ? '#94a3b8' : '#64748b' }}>
-                              {isAmharic ? 'ሁኔታ:' : 'Status:'}
-                            </Typography>
-                            <Chip 
-                              icon={acc.isBlocked ? <Block sx={{ fontSize: 14 }} /> : <CheckCircle sx={{ fontSize: 14 }} />} 
-                              label={acc.isBlocked ? t('accountants.blocked') : t('accountants.active')} 
-                              size="small"
-                              sx={{ 
-                                height: 24, 
-                                fontSize: '0.75rem',
-                                fontWeight: 600,
-                                bgcolor: acc.isBlocked ? 'rgba(239, 68, 68, 0.15)' : 'rgba(16, 185, 129, 0.15)',
-                                color: acc.isBlocked ? '#ef4444' : '#10b981',
-                                border: acc.isBlocked ? '1px solid rgba(239, 68, 68, 0.3)' : '1px solid rgba(16, 185, 129, 0.3)'
-                              }}
-                            />
-                          </Box>
-                          
-                          <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
-                            <Typography variant="body2" sx={{ color: isDark ? '#94a3b8' : '#64748b' }}>
-                              {isAmharic ? 'የተመዘገበበት:' : 'Created:'}
-                            </Typography>
-                            <Typography variant="body2" sx={{ color: isDark ? '#94a3b8' : '#64748b' }}>
-                              {formatDate(acc.createdAt)}
-                            </Typography>
-                          </Box>
-
-                          <Box sx={{ display: 'flex', gap: 1 }}>
-                            <Button
-                              variant="outlined"
-                              size="small"
-                              onClick={() => handleOpenDialog(acc)}
-                              sx={{ 
-                                flex: 1, 
-                                fontSize: '0.75rem',
-                                textTransform: 'none',
-                                borderColor: isDark ? '#3b82f6' : '#2563eb',
-                                color: isDark ? '#60a5fa' : '#2563eb'
-                              }}
-                            >
-                              <Edit sx={{ fontSize: 15, mr: 0.5 }} />
-                              {t('common.edit') || 'Edit'}
-                            </Button>
-                            <Button
-                              variant="outlined"
-                              size="small"
-                              onClick={() => handleDelete(acc._id)}
-                              sx={{ 
-                                flex: 1, 
-                                fontSize: '0.75rem',
-                                textTransform: 'none',
-                                borderColor: '#ef4444', 
-                                color: '#ef4444' 
-                              }}
-                            >
-                              <Delete sx={{ fontSize: 15, mr: 0.5 }} />
-                              {t('common.delete') || 'Delete'}
-                            </Button>
-                            <Button
-                              variant="outlined"
-                              size="small"
-                              onClick={() => handleBlock(acc)}
-                              sx={{ 
-                                flex: 1, 
-                                fontSize: '0.75rem',
-                                textTransform: 'none',
-                                borderColor: acc.isBlocked ? '#10b981' : '#f59e0b', 
-                                color: acc.isBlocked ? '#10b981' : '#f59e0b' 
-                              }}
-                            >
-                              {acc.isBlocked ? t('accountants.unblock') : t('accountants.block')}
-                            </Button>
-                          </Box>
-                        </Box>
-                      )}
-                    </CardContent>
-                  </Card>
-                );
-              })}
-            </Box>
-          )}
-
-          {/* Desktop/Tablet View - Grid */}
-          {!isMobile && (
-            <Box sx={{ 
-              display: 'grid', 
-              gridTemplateColumns: { 
-                xs: '1fr', 
-                sm: '1fr', 
-                md: 'repeat(2, 1fr)', 
-                lg: 'repeat(3, 1fr)' 
-              }, 
-              gap: 3 
-            }}>
-              <AnimatePresence>
-                {filteredAccountants.map((acc, index) => (
-                  <motion.div 
-                    key={acc._id} 
-                    initial={{ opacity: 0, scale: 0.95 }} 
-                    animate={{ opacity: 1, scale: 1 }} 
-                    exit={{ opacity: 0, scale: 0.95 }} 
-                    transition={{ duration: 0.25, delay: index * 0.05 }} 
-                    whileHover={{ scale: 1.01 }}
-                  >
-                    <Card sx={{ 
-                      borderRadius: 2.5, 
-                      bgcolor: isDark ? '#112240' : '#ffffff',
-                      color: isDark ? '#f1f5f9' : '#0f172a',
-                      border: isDark ? '1px solid #233554' : '1px solid #e2e8f0',
-                      boxShadow: isDark ? '0 4px 14px rgba(0,0,0,0.25)' : '0 2px 8px rgba(0,0,0,0.04)',
-                      display: 'flex', 
-                      flexDirection: 'column', 
-                      height: '100%',
-                      transition: 'border-color 0.2s ease, box-shadow 0.2s ease',
-                      '&:hover': {
-                        borderColor: isDark ? '#3b82f6' : '#93c5fd',
-                        boxShadow: isDark ? '0 8px 20px rgba(0,0,0,0.35)' : '0 6px 16px rgba(0,0,0,0.08)'
-                      }
-                    }}>
-                      <CardContent sx={{ flexGrow: 1, p: 2.5 }}>
-                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1.5 }}>
-                          <Typography variant="h6" sx={{ fontWeight: 700, fontSize: '1.05rem', display: 'flex', alignItems: 'center', gap: 1 }}>
-                            <Person sx={{ fontSize: 20, color: isDark ? '#60a5fa' : '#2563eb' }} /> 
-                            {acc.fullName}
+        <Stack spacing={2.5}>
+          <AnimatePresence>
+            {accountants.map((acc, idx) => {
+              const expanded = expandedAccountant === acc._id;
+              return (
+                <motion.div key={acc._id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={{ duration: 0.2, delay: idx * 0.03 }}>
+                  <Paper elevation={0} sx={{
+                    p: 2.5, borderRadius: 3,
+                    bgcolor: isDark ? '#112240' : '#fff',
+                    border: `1px solid ${isDark ? '#233554' : '#e2e8f0'}`,
+                    transition: 'border-color 0.2s',
+                    '&:hover': { borderColor: isDark ? '#3b82f6' : '#93c5fd' }
+                  }}>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1.5, flexWrap: 'wrap', gap: 1 }}>
+                      <Box>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
+                          <Typography variant="subtitle1" sx={{ fontWeight: 700, color: isDark ? '#f1f5f9' : '#0f172a' }}>
+                            {acc.accountsCount ?? acc.accounts?.length ?? 0} {(acc.accountsCount ?? acc.accounts?.length) === 1
+                              ? (isAmharic ? 'ሂሳብ' : 'account')
+                              : (isAmharic ? 'ሂሳቦች' : 'accounts')}
                           </Typography>
-                          <Chip 
-                            icon={acc.isBlocked ? <Block sx={{ fontSize: 13 }} /> : <CheckCircle sx={{ fontSize: 13 }} />} 
-                            label={acc.isBlocked ? t('accountants.blocked') : t('accountants.active')} 
-                            size="small"
-                            sx={{ 
-                              height: 22, 
-                              fontSize: '0.7rem',
-                              fontWeight: 600,
-                              bgcolor: acc.isBlocked ? 'rgba(239, 68, 68, 0.15)' : 'rgba(16, 185, 129, 0.15)',
-                              color: acc.isBlocked ? '#ef4444' : '#10b981',
-                              border: acc.isBlocked ? '1px solid rgba(239, 68, 68, 0.3)' : '1px solid rgba(16, 185, 129, 0.3)'
-                            }}
-                          />
+                          <Chip size="small"
+                            icon={acc.isBlocked ? <Block sx={{ fontSize: 13 }} /> : <CheckCircle sx={{ fontSize: 13 }} />}
+                            label={acc.isBlocked ? (isAmharic ? 'ታግዷል' : 'Blocked') : (isAmharic ? 'ንቁ' : 'Active')}
+                            sx={{
+                              height: 22, fontSize: '0.7rem', fontWeight: 700,
+                              bgcolor: acc.isBlocked ? 'rgba(239,68,68,0.15)' : 'rgba(16,185,129,0.15)',
+                              color: acc.isBlocked ? '#ef4444' : '#10b981'
+                            }} />
                         </Box>
-                        
-                        <Typography sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1, fontSize: '0.875rem', color: isDark ? '#cbd5e1' : '#475569' }}>
-                          <Phone fontSize="small" sx={{ color: isDark ? '#94a3b8' : '#64748b' }} /> {acc.phoneNumber}
+                        <Typography variant="caption" sx={{ color: isDark ? '#94a3b8' : '#64748b' }}>
+                          {isAmharic ? 'የተፈጠረ:' : 'Created:'} {formatDate(acc.createdAt)}
                         </Typography>
-                        
-                        <Typography sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1.5, fontSize: '0.875rem', color: isDark ? '#cbd5e1' : '#475569' }}>
-                          <AccountBalance fontSize="small" sx={{ color: isDark ? '#94a3b8' : '#64748b' }} /> {acc.bankName} ({acc.accountNumber})
-                        </Typography>
-
-                        <Typography variant="body2" sx={{ fontSize: '0.78rem', color: isDark ? '#64748b' : '#94a3b8', pt: 1, borderTop: isDark ? '1px solid #1e293b' : '1px solid #f1f5f9' }}>
-                          {isAmharic ? 'የተመዘገበበት:' : 'Created:'} {formatDate(acc.createdAt)}
-                        </Typography>
-                      </CardContent>
-
-                      <Box sx={{ p: 2, pt: 0, display: 'flex', gap: 1 }}>
-                        <Button 
-                          variant="outlined" 
-                          startIcon={<Edit sx={{ fontSize: 16 }} />} 
-                          onClick={() => handleOpenDialog(acc)} 
-                          fullWidth 
-                          size="small"
-                          sx={{ 
-                            borderRadius: 1.5, 
-                            borderColor: isDark ? '#3b82f6' : '#2563eb', 
-                            color: isDark ? '#60a5fa' : '#2563eb', 
-                            fontSize: '0.78rem',
-                            textTransform: 'none',
-                            fontWeight: 600,
-                            '&:hover': { 
-                              borderColor: '#1d4ed8', 
-                              bgcolor: isDark ? 'rgba(59,130,246,0.1)' : 'rgba(37,99,235,0.08)' 
-                            } 
-                          }}
-                        >
-                          {t('common.edit') || 'Edit'}
+                      </Box>
+                      <Box sx={{ display: 'flex', gap: 1 }}>
+                        <Button size="small" variant="outlined" startIcon={<Edit sx={{ fontSize: 15 }} />} onClick={() => handleOpenDialog(acc)}
+                          sx={{ textTransform: 'none', borderRadius: 2, borderColor: isDark ? '#3b82f6' : '#2563eb', color: isDark ? '#60a5fa' : '#2563eb' }}>
+                          {isAmharic ? 'አርትዕ' : 'Edit'}
                         </Button>
-                        <Button 
-                          variant="outlined" 
-                          startIcon={<Delete sx={{ fontSize: 16 }} />} 
-                          onClick={() => handleDelete(acc._id)} 
-                          fullWidth 
-                          size="small"
-                          sx={{ 
-                            borderRadius: 1.5, 
-                            borderColor: '#ef4444', 
-                            color: '#ef4444', 
-                            fontSize: '0.78rem',
-                            textTransform: 'none',
-                            fontWeight: 600,
-                            '&:hover': { 
-                              borderColor: '#dc2626', 
-                              bgcolor: 'rgba(239,68,68,0.08)' 
-                            } 
-                          }}
-                        >
-                          {t('common.delete') || 'Delete'}
+                        <Button size="small" variant="outlined" onClick={() => handleToggleBlock(acc)}
+                          sx={{ textTransform: 'none', borderRadius: 2, borderColor: acc.isBlocked ? '#10b981' : '#f59e0b', color: acc.isBlocked ? '#10b981' : '#f59e0b' }}>
+                          {acc.isBlocked ? (isAmharic ? 'ክፈት' : 'Unblock') : (isAmharic ? 'አግድ' : 'Block')}
                         </Button>
-                        <Button 
-                          variant="outlined" 
-                          onClick={() => handleBlock(acc)} 
-                          fullWidth 
-                          size="small"
-                          sx={{ 
-                            borderRadius: 1.5, 
-                            borderColor: acc.isBlocked ? '#10b981' : '#f59e0b', 
-                            color: acc.isBlocked ? '#10b981' : '#f59e0b', 
-                            fontSize: '0.78rem',
-                            textTransform: 'none',
-                            fontWeight: 600,
-                            '&:hover': { 
-                              bgcolor: acc.isBlocked ? 'rgba(16,185,129,0.08)' : 'rgba(245,158,11,0.08)' 
-                            } 
-                          }}
-                        >
-                          {acc.isBlocked ? t('accountants.unblock') : t('accountants.block')}
+                        <Button size="small" variant="outlined" startIcon={<Delete sx={{ fontSize: 15 }} />} onClick={() => handleDelete(acc._id)}
+                          sx={{ textTransform: 'none', borderRadius: 2, borderColor: '#ef4444', color: '#ef4444' }}>
+                          {isAmharic ? 'አጥፋ' : 'Delete'}
                         </Button>
                       </Box>
-                    </Card>
-                  </motion.div>
-                ))}
-              </AnimatePresence>
-            </Box>
-          )}
+                    </Box>
 
-          {filteredAccountants.length === 0 && !loading && (
-            <Box sx={{ 
-              textAlign: 'center', 
-              mt: 4, 
-              p: 4, 
-              bgcolor: isDark ? '#112240' : '#ffffff', 
-              borderRadius: 3, 
-              border: isDark ? '1px dashed #233554' : '1px dashed #cbd5e1' 
-            }}>
-              <Typography variant="body1" sx={{ color: isDark ? '#94a3b8' : '#64748b' }}>
-                {isAmharic ? 'ምንም የሂሳብ ሹም አልተገኘም።' : 'No accountants found.'}
-              </Typography>
-            </Box>
-          )}
-        </motion.div>
+                    <Divider sx={{ my: 1.5, borderColor: isDark ? 'rgba(255,255,255,0.08)' : '#e2e8f0' }} />
+
+                    <Stack spacing={1}>
+                      {acc.accounts?.slice(0, expanded ? undefined : 3).map(a => (
+                        <Box key={a._id} sx={{
+                          display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 1,
+                          p: 1.2, borderRadius: 2,
+                          bgcolor: isDark ? 'rgba(255,255,255,0.03)' : '#f8fafc'
+                        }}>
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.2, minWidth: 0 }}>
+                            {(typeof a.bankId === 'object' ? a.bankId.type : 'bank') === 'wallet'
+                              ? <AccountBalanceWallet sx={{ fontSize: 18, color: '#8b5cf6' }} />
+                              : <AccountBalance sx={{ fontSize: 18, color: '#2563eb' }} />}
+                            <Box sx={{ minWidth: 0 }}>
+                              <Typography variant="body2" sx={{ fontWeight: 700, color: isDark ? '#f1f5f9' : '#0f172a' }}>
+                                {a.bankName}
+                              </Typography>
+                              <Typography variant="caption" sx={{ color: isDark ? '#94a3b8' : '#64748b', display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                                <Person sx={{ fontSize: 12 }} /> {a.accountHolderName} · {a.accountNumber}
+                              </Typography>
+                            </Box>
+                          </Box>
+                          {a.isBlocked && (
+                            <Chip size="small" label={isAmharic ? 'ታግዷል' : 'Blocked'} sx={{ height: 20, fontSize: '0.65rem', bgcolor: 'rgba(239,68,68,0.15)', color: '#ef4444' }} />
+                          )}
+                        </Box>
+                      ))}
+                      {(acc.accounts?.length || 0) > 3 && (
+                        <Button size="small" onClick={() => toggleExpand(acc._id)} sx={{ textTransform: 'none', alignSelf: 'center', color: isDark ? '#38bdf8' : '#2563eb' }}>
+                          {expanded ? (isAmharic ? 'ያሳንሱ' : 'Show less') : (isAmharic ? `ሁሉንም ${acc.accounts.length} አሳይ` : `Show all ${acc.accounts.length}`)}
+                        </Button>
+                      )}
+                    </Stack>
+                  </Paper>
+                </motion.div>
+              );
+            })}
+          </AnimatePresence>
+        </Stack>
       )}
 
-      {/* Add/Edit Dialog */}
-      <Dialog 
-        open={openDialog} 
-        onClose={handleCloseDialog} 
-        maxWidth="sm" 
-        fullWidth
-        fullScreen={isMobile}
-        PaperProps={{
-          sx: {
-            bgcolor: isDark ? '#112240' : '#ffffff',
-            color: isDark ? '#f1f5f9' : '#0f172a',
-            border: isDark ? '1px solid #233554' : '1px solid #e2e8f0',
-            borderRadius: isMobile ? 0 : 2.5
-          }
-        }}
-      >
-        <DialogTitle sx={{ fontWeight: 700, pb: 1, borderBottom: isDark ? '1px solid #1e293b' : '1px solid #e2e8f0' }}>
-          {editingAccountant ? t('accountants.edit') : t('accountants.add')}
+      {/* ── Add / Edit Dialog ────────────────────────────────────────────── */}
+      <Dialog open={openDialog} onClose={handleCloseDialog} maxWidth="md" fullWidth fullScreen={isMobile}
+        PaperProps={{ sx: { bgcolor: isDark ? '#112240' : '#fff', color: isDark ? '#f1f5f9' : '#0f172a', borderRadius: isMobile ? 0 : 2.5, border: `1px solid ${isDark ? '#233554' : '#e2e8f0'}` } }}>
+        <DialogTitle sx={{ fontWeight: 800, pb: 1, borderBottom: `1px solid ${isDark ? '#1e293b' : '#e2e8f0'}` }}>
+          {editingAccountant ? (isAmharic ? 'የሂሳብ ሹም አርትዕ' : 'Edit Accountant') : (isAmharic ? 'አዲስ የሂሳብ ሹም' : 'New Accountant')}
         </DialogTitle>
         <DialogContent sx={{ pt: 2.5 }}>
-          <Box sx={{ pt: 1, display: 'flex', flexDirection: 'column', gap: 2.5 }}>
-            <TextField 
-              fullWidth 
-              label={t('accountants.full_name')} 
-              name="fullName" 
-              value={formData.fullName} 
-              onChange={handleInputChange} 
-              error={!!errors.fullName} 
-              helperText={errors.fullName} 
-              size="small"
-            />
-            <TextField 
-              fullWidth 
-              label={t('accountants.phone_number')} 
-              name="phoneNumber" 
-              value={formData.phoneNumber} 
-              onChange={handleInputChange} 
-              error={!!errors.phoneNumber} 
-              helperText={errors.phoneNumber} 
-              size="small"
-              placeholder="+251..."
-            />
-            <TextField 
-              fullWidth 
-              label={t('accountants.account_number')} 
-              name="accountNumber" 
-              value={formData.accountNumber} 
-              onChange={handleInputChange} 
-              error={!!errors.accountNumber} 
-              helperText={errors.accountNumber} 
-              size="small"
-            />
-            <TextField 
-              fullWidth 
-              label={t('accountants.bank_name')} 
-              name="bankName" 
-              value={formData.bankName} 
-              onChange={handleInputChange} 
-              error={!!errors.bankName} 
-              helperText={errors.bankName} 
-              size="small"
-              placeholder={isAmharic ? 'ምሳሌ፡ ንግድ ባንክ (CBE)' : 'e.g., Commercial Bank of Ethiopia (CBE)'}
-            />
+          {/* Tabs */}
+          <Tabs value={activeTab} onChange={(_, v) => { setActiveTab(v); handleCancelInline(); }}
+            sx={{
+              mb: 2,
+              '& .MuiTab-root': { textTransform: 'none', fontWeight: 700, color: isDark ? '#94a3b8' : '#64748b' },
+              '& .Mui-selected': { color: isDark ? '#38bdf8 !important' : '#2563eb !important' },
+              '& .MuiTabs-indicator': { bgcolor: isDark ? '#38bdf8' : '#2563eb', height: 3, borderRadius: 2 }
+            }}>
+            <Tab icon={<AccountBalance />} iconPosition="start" value="bank" label={isAmharic ? 'ባንኮች' : 'Banks'} />
+            <Tab icon={<AccountBalanceWallet />} iconPosition="start" value="wallet" label={isAmharic ? 'ዋሌቶች' : 'Wallets'} />
+          </Tabs>
+
+          {/* Bank/Wallet list */}
+          <Stack spacing={1} sx={{ mb: 3 }}>
+            {banksFiltered.map(bank => {
+              const draft = draftForBank(bank._id);
+              const isEditingThis = editingBankId === bank._id;
+              const isEditingExisting = isEditingThis && editingDraftTempId && draft?.tempId === editingDraftTempId;
+              return (
+                <Box key={bank._id} sx={{
+                  p: 1.5, borderRadius: 2,
+                  border: `1px solid ${isDark ? '#233554' : '#e2e8f0'}`,
+                  bgcolor: isDark ? '#0f172a40' : '#f8fafc'
+                }}>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 1 }}>
+                    <Typography variant="body2" sx={{ fontWeight: 700, color: isDark ? '#f1f5f9' : '#0f172a' }}>
+                      {bank.name} <Typography component="span" variant="caption" sx={{ color: isDark ? '#94a3b8' : '#64748b' }}>({bank.code})</Typography>
+                    </Typography>
+                    {draft && !isEditingThis ? (
+                      <Chip size="small" icon={<CheckCircle sx={{ fontSize: 14 }} />} label={isAmharic ? 'ተጨምሯል' : 'Added'}
+                        sx={{ bgcolor: 'rgba(16,185,129,0.15)', color: '#10b981', fontWeight: 700 }} />
+                    ) : !isEditingThis ? (
+                      <Button size="small" startIcon={<Add sx={{ fontSize: 16 }} />} onClick={() => handleStartAdd(bank)}
+                        sx={{ textTransform: 'none', color: isDark ? '#38bdf8' : '#2563eb', fontWeight: 700 }}>
+                        {isAmharic ? 'ጨምር' : 'Add'}
+                      </Button>
+                    ) : null}
+                  </Box>
+
+                  {isEditingThis && (
+                    <Stack spacing={1.5} sx={{ mt: 1.5 }}>
+                      <TextField size="small" fullWidth label={isAmharic ? 'የሂሳብ ባለቤት ስም' : 'Account Holder Name'}
+                        value={inlineForm.accountHolderName}
+                        onChange={(e) => setInlineForm(f => ({ ...f, accountHolderName: e.target.value }))} />
+                      <TextField size="small" fullWidth label={isAmharic ? 'የሂሳብ ቁጥር' : 'Account Number'}
+                        value={inlineForm.accountNumber}
+                        onChange={(e) => setInlineForm(f => ({ ...f, accountNumber: e.target.value }))}
+                        error={!!inlineError} helperText={inlineError} />
+                      <Stack direction="row" spacing={1}>
+                        <Button size="small" variant="contained" onClick={handleConfirmInline}
+                          sx={{ bgcolor: '#10b981', textTransform: 'none', fontWeight: 700, '&:hover': { bgcolor: '#059669' } }}>
+                          {isEditingExisting ? (isAmharic ? 'አዘምን' : 'Update') : (isAmharic ? 'ጨምር' : 'Add')}
+                        </Button>
+                        <Button size="small" variant="outlined" onClick={handleCancelInline}
+                          sx={{ textTransform: 'none', borderColor: isDark ? '#64748b' : '#cbd5e1', color: isDark ? '#94a3b8' : '#64748b' }}>
+                          {isAmharic ? 'ሰርዝ' : 'Cancel'}
+                        </Button>
+                      </Stack>
+                    </Stack>
+                  )}
+                </Box>
+              );
+            })}
+          </Stack>
+
+          {/* Selected Accounts */}
+          <Box>
+            <Typography variant="subtitle2" sx={{ fontWeight: 700, color: isDark ? '#f1f5f9' : '#0f172a', mb: 1 }}>
+              {isAmharic ? `የተመረጡ ሂሳቦች (${draftAccounts.length})` : `Selected Accounts (${draftAccounts.length})`}
+            </Typography>
+            {draftAccounts.length === 0 ? (
+              <Typography variant="caption" sx={{ color: isDark ? '#94a3b8' : '#64748b' }}>
+                {isAmharic ? 'ከላይ ካለው ዝርዝር ሂሳብ ይጨምሩ' : 'Add an account from the list above'}
+              </Typography>
+            ) : (
+              <Stack spacing={1}>
+                {draftAccounts.map(d => (
+                  <Box key={d.tempId} sx={{
+                    p: 1.2, borderRadius: 2,
+                    bgcolor: isDark ? 'rgba(16,185,129,0.08)' : 'rgba(16,185,129,0.06)',
+                    border: '1px solid rgba(16,185,129,0.3)',
+                    display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 1
+                  }}>
+                    <Box sx={{ minWidth: 0 }}>
+                      <Typography variant="body2" sx={{ fontWeight: 700, color: isDark ? '#f1f5f9' : '#0f172a' }}>
+                        {d.bankName}
+                      </Typography>
+                      <Typography variant="caption" sx={{ color: isDark ? '#94a3b8' : '#64748b' }}>
+                        {d.accountHolderName} · {d.accountNumber}
+                      </Typography>
+                    </Box>
+                    <Stack direction="row" spacing={0.5}>
+                      <IconButton size="small" onClick={() => handleStartEdit(d)} sx={{ color: isDark ? '#60a5fa' : '#2563eb' }}>
+                        <Edit sx={{ fontSize: 16 }} />
+                      </IconButton>
+                      <IconButton size="small" onClick={() => handleRemoveDraft(d.tempId)} sx={{ color: '#ef4444' }}>
+                        <Delete sx={{ fontSize: 16 }} />
+                      </IconButton>
+                    </Stack>
+                  </Box>
+                ))}
+              </Stack>
+            )}
           </Box>
         </DialogContent>
-        <DialogActions sx={{ p: 2.5, borderTop: isDark ? '1px solid #1e293b' : '1px solid #e2e8f0' }}>
-          <Button 
-            onClick={handleCloseDialog} 
-            sx={{ 
-              borderRadius: 2, 
-              color: isDark ? '#94a3b8' : '#64748b',
-              textTransform: 'none' 
-            }}
-          >
-            {t('common.cancel') || 'Cancel'}
+        <DialogActions sx={{ p: 2.5, borderTop: `1px solid ${isDark ? '#1e293b' : '#e2e8f0'}` }}>
+          <Button onClick={handleCloseDialog} sx={{ textTransform: 'none', color: isDark ? '#94a3b8' : '#64748b' }}>
+            {isAmharic ? 'ሰርዝ' : 'Cancel'}
           </Button>
-          <Button 
-            onClick={handleSubmit} 
-            variant="contained" 
-            sx={{ 
-              borderRadius: 2, 
-              px: 3, 
-              bgcolor: '#2563eb', 
-              '&:hover': { bgcolor: '#1d4ed8' },
-              textTransform: 'none',
-              fontWeight: 600
-            }}
-          >
-            {editingAccountant ? (t('common.update') || 'Update') : (t('common.create') || 'Create')}
+          <Button variant="contained" onClick={handleSave} disabled={draftAccounts.length === 0}
+            sx={{ bgcolor: isDark ? '#38bdf8' : '#2563eb', color: isDark ? '#0a192f' : '#fff', fontWeight: 700, textTransform: 'none', px: 3, '&:hover': { bgcolor: isDark ? '#7dd3fc' : '#1d4ed8' } }}>
+            {editingAccountant ? (isAmharic ? 'አዘምን' : 'Update') : (isAmharic ? 'አስቀምጥ' : 'Save')}
           </Button>
         </DialogActions>
       </Dialog>
 
-      {/* Notifications */}
-      <Snackbar open={!!error} autoHideDuration={5000} onClose={() => setError('')}>
-        <Alert severity="error" onClose={() => setError('')} sx={{ fontSize: '0.875rem' }}>
-          {error}
-        </Alert>
+      {/* Snackbars */}
+      <Snackbar open={!!error} autoHideDuration={5000} onClose={() => setError('')} anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}>
+        <Alert severity="error" onClose={() => setError('')} sx={{ borderRadius: 2 }}>{error}</Alert>
       </Snackbar>
-      <Snackbar open={!!success} autoHideDuration={5000} onClose={() => setSuccess('')}>
-        <Alert severity="success" onClose={() => setSuccess('')} sx={{ fontSize: '0.875rem' }}>
-          {success}
-        </Alert>
+      <Snackbar open={!!success} autoHideDuration={5000} onClose={() => setSuccess('')} anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}>
+        <Alert severity="success" onClose={() => setSuccess('')} sx={{ borderRadius: 2 }}>{success}</Alert>
       </Snackbar>
     </Box>
   );
