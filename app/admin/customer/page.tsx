@@ -176,7 +176,7 @@ export default function AdminCustomerPage() {
         </motion.div>
 
         {/* Action Shortcuts */}
-        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5} sx={{ width: { xs: '100%', sm: 'auto' } }}>
+        {/* <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5} sx={{ width: { xs: '100%', sm: 'auto' } }}>
           <Button
             component={Link}
             href="/admin/customer/orders"
@@ -229,7 +229,7 @@ export default function AdminCustomerPage() {
               <Refresh sx={{ animation: refreshing ? 'spin 1s linear infinite' : 'none' }} />
             </IconButton>
           </Tooltip>
-        </Stack>
+        </Stack> */}
       </Box>
 
       {/* ─── Metric Highlight Cards ─── */}
