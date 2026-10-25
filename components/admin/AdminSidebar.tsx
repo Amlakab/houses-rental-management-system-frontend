@@ -8,7 +8,7 @@ import { useLanguage } from '@/lib/language-context';
 import { useAuth } from '@/lib/auth';
 import {
   X, LogOut, ChevronLeft, ChevronRight,
-  Users as UsersIcon,
+  Users as UsersIcon, Settings as SettingsIcon,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { resolveIcon } from '@/lib/icon-map';
@@ -250,6 +250,45 @@ export default function AdminSidebar({
                   </div>
                 </li>
               )}
+
+              {/* Settings Navigation Link */}
+              <li className="pt-1.5 mt-1 border-t border-gray-100 dark:border-slate-800/80">
+                <Link
+                  href="/admin/settings"
+                  className={cn(
+                    'flex items-center px-3 py-2.5 rounded-xl transition-all group font-medium text-xs sm:text-sm',
+                    pathname === '/admin/settings'
+                      ? theme === 'dark'
+                        ? 'bg-blue-600/20 border-l-4 border-blue-400 text-blue-400 font-bold'
+                        : 'bg-blue-50 border-l-4 border-blue-600 text-blue-700 font-bold'
+                      : theme === 'dark'
+                        ? 'text-gray-300 hover:bg-slate-800/60 hover:text-white'
+                        : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+                  )}
+                  onClick={() => {
+                    if (typeof window !== 'undefined' && window.innerWidth < 1024) {
+                      onClose?.();
+                    }
+                  }}
+                >
+                  <SettingsIcon className={cn('h-4 w-4 sm:h-5 sm:w-5 flex-shrink-0', isCollapsed ? 'mx-auto' : 'mr-3')} />
+                  {!isCollapsed && (
+                    <span className="truncate">{isAmharic ? 'ቅንብሮች' : 'Settings'}</span>
+                  )}
+                  {isCollapsed && (
+                    <div
+                      className={cn(
+                        'absolute left-full ml-2 px-3 py-1.5 rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all whitespace-nowrap z-50 shadow-xl text-xs font-semibold',
+                        theme === 'dark'
+                          ? 'bg-[#112240] border border-slate-700 text-white'
+                          : 'bg-white border border-gray-200 text-gray-900'
+                      )}
+                    >
+                      {isAmharic ? 'ቅንብሮች' : 'Settings'}
+                    </div>
+                  )}
+                </Link>
+              </li>
             </ul>
           </nav>
         </div>

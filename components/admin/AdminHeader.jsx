@@ -4,7 +4,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '@/lib/auth';
 import { useTheme } from '@/lib/theme-context';
 import { useLanguage } from '@/lib/language-context';
-import { Bell, LogOut, User, Menu } from 'lucide-react';
+import Link from 'next/link';
+import { Bell, LogOut, User, Menu, Settings } from 'lucide-react';
 import { FaSun, FaMoon, FaChevronDown, FaCheck } from 'react-icons/fa';
 import { useRouter } from 'next/navigation';
 import NotificationCenter from '@/components/NotificationCenter';
@@ -91,12 +92,12 @@ export default function AdminHeader({ onMenuClick, onSidebarToggle, isSidebarCol
           <Menu className="h-5 w-5" />
         </button>
 
-        <h1 className="
+        {/* <h1 className="
           truncate text-sm sm:text-base lg:text-lg font-bold transition-colors
           text-gray-900 dark:text-white
         ">
           {t('dashboard.title', 'Dashboard')}
-        </h1>
+        </h1> */}
       </div>
 
       <div className="flex shrink-0 items-center gap-1.5 sm:gap-2.5">
@@ -190,6 +191,21 @@ export default function AdminHeader({ onMenuClick, onSidebarToggle, isSidebarCol
             </div>
           )}
         </div>
+
+        {/* Settings Button */}
+        <Link
+          href="/admin/settings"
+          className="
+            shrink-0 p-2 rounded-lg transition-all 
+            border border-gray-200 dark:border-slate-700
+            text-gray-700 dark:text-gray-200
+            hover:bg-gray-100 dark:hover:bg-slate-800
+          "
+          title={isAmharic ? 'ቅንብሮች' : 'Settings'}
+          aria-label="Settings"
+        >
+          <Settings className="h-4 w-4 sm:h-5 sm:w-5 text-gray-700 dark:text-gray-300" />
+        </Link>
 
         {/* User Profile */}
         <div className="flex items-center">
