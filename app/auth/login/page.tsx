@@ -64,7 +64,7 @@ export default function LoginPage() {
         if (['admin', 'user', 'owner', 'agent', 'manager', 'accountant'].includes(user.role)) {
           router.push('/admin/dashboard');
         } else {
-          router.push('/admin/customer/orders');
+          router.push('/admin/customer');
         }
       } else {
         const errorMsg = isAmharic ? 'መግባት አልተቻለም፡ የተጠቃሚ መረጃ አልተገኘም' : 'Login failed: User data is missing';
