@@ -15,6 +15,7 @@ import {
 } from '@mui/material';
 import { motion } from 'framer-motion';
 import { useTheme } from '@/lib/theme-context';
+import { useLanguage } from '@/lib/language-context';
 import {
   People, Block, CheckCircle,
   PersonAdd, Refresh, Delete, Lock,
@@ -76,6 +77,7 @@ const ROLE_OPTIONS: { value: Role; label: string; icon: React.ReactNode }[] = [
 
 const UsersPage = () => {
   const { theme } = useTheme();
+  const { t, isAmharic } = useLanguage();
   const isMobile = useMediaQuery('(max-width: 768px)');
 
   // ─── List state ────────────────────────────────────────────────
@@ -516,13 +518,13 @@ const UsersPage = () => {
                 mb: 1,
               }}
             >
-              User Management
+              {t('dashboard.user_management', 'User Management')}
             </Typography>
             <Typography
               variant={isMobile ? 'body2' : 'body1'}
               color={theme === 'dark' ? '#a8b2d1' : '#666666'}
             >
-              Manage system users, roles, and permissions
+              {isAmharic ? 'የስርዓት ተጠቃሚዎችን፣ ሚናዎችን እና ፈቃዶችን ያስተዳድሩ' : 'Manage system users, roles, and permissions'}
             </Typography>
           </Box>
         </motion.div>
@@ -543,28 +545,28 @@ const UsersPage = () => {
           >
             {[
               {
-                title: 'Total Users',
+                title: t('dashboard.total_users', 'Total Users'),
                 value: stats?.totalUsers || 0,
                 icon: <People sx={{ fontSize: 28 }} />,
-                color: theme === 'dark' ? '#00ffff' : '#007bff',
+                color: '#3b82f6',
               },
               {
-                title: 'Active Users',
+                title: t('dashboard.active_users', 'Active Users'),
                 value: stats?.activeUsers || 0,
                 icon: <CheckCircle sx={{ fontSize: 28 }} />,
-                color: theme === 'dark' ? '#00ff00' : '#28a745',
+                color: '#10b981',
               },
               {
-                title: 'Blocked Users',
+                title: t('dashboard.blocked_users', 'Blocked Users'),
                 value: stats?.blockedUsers || 0,
                 icon: <Block sx={{ fontSize: 28 }} />,
-                color: theme === 'dark' ? '#ff0000' : '#dc3545',
+                color: '#ef4444',
               },
               {
-                title: 'Role Types',
+                title: t('dashboard.role_types', 'Role Types'),
                 value: stats?.roles?.length || 0,
                 icon: <Category sx={{ fontSize: 28 }} />,
-                color: theme === 'dark' ? '#ff00ff' : '#9333ea',
+                color: '#8b5cf6',
               },
             ].map((stat, index) => (
               <Card

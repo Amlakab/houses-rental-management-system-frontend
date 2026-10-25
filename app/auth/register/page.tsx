@@ -5,48 +5,32 @@ import Link from 'next/link';
 import { useAuth } from '@/lib/auth';
 import { useRouter } from 'next/navigation';
 import { useTheme } from '@/lib/theme-context';
-import { motion } from 'framer-motion';
-import Image from 'next/image';
+import { useLanguage } from '@/lib/language-context';
 import Navbar from '@/components/ui/Navbar';
 import Footer from '@/components/ui/Footer';
-import { toast } from 'react-toastify';
+import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { 
   Eye,
   EyeOff,
   User,
   Mail,
-  Phone,
-  Building,
-  Briefcase,
   Home,
   CheckCircle,
-  AlertCircle
+  ShieldCheck
 } from 'lucide-react';
 import { 
-  FaGoogle, 
-  FaMicrosoft, 
-  FaGithub,
-  FaApple,
-  FaHome,
-  FaBuilding,
-  FaKey,
-  FaHandshake,
+  FaHome, 
+  FaBuilding, 
   FaShieldAlt,
-  FaChartLine
+  FaHandshake,
+  FaUsers
 } from 'react-icons/fa';
 import { User as UserType } from '@/types';
 
-// Import real estate images
-const images = {
-  hero: '/INSA/image15.jpg',
-  interior: '/INSA/image12.jpg',
-  office: '/INSA/image17.jpg',
-  team: '/INSA/image19.jpg',
-};
-
 export default function RegisterPage() {
   const { theme } = useTheme();
+  const { t, isAmharic } = useLanguage();
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -65,26 +49,6 @@ export default function RegisterPage() {
   const { register } = useAuth();
   const router = useRouter();
 
-  // Theme styles with real estate colors (blue theme)
-  const themeStyles = {
-    background: theme === 'dark' 
-      ? 'linear-gradient(135deg, #0a192f, #112240)' 
-      : 'linear-gradient(135deg, #f0f5ff, #ffffff)',
-    textColor: theme === 'dark' ? 'text-[#ccd6f6]' : 'text-[#333333]',
-    primaryColor: theme === 'dark' ? 'text-[#3b82f6]' : 'text-[#2563eb]',
-    secondaryColor: theme === 'dark' ? 'text-[#60a5fa]' : 'text-[#3b82f6]',
-    borderColor: theme === 'dark' ? 'border-[#3b82f6]' : 'border-[#2563eb]',
-    buttonBg: theme === 'dark' 
-      ? 'border-[#3b82f6] text-[#3b82f6] hover:bg-[#3b82f6] hover:text-white' 
-      : 'border-[#2563eb] text-[#2563eb] hover:bg-[#2563eb] hover:text-white',
-    cardBg: theme === 'dark' 
-      ? 'bg-gradient-to-br from-[#0a192f] to-[#112240] border-[#3b82f6]/30' 
-      : 'bg-gradient-to-br from-white to-blue-50 border-[#2563eb]/30',
-    inputBg: theme === 'dark' 
-      ? 'bg-[#0a192f] border-[#3b82f6]/50 text-white placeholder-gray-400 focus:ring-[#3b82f6]' 
-      : 'bg-white border-[#2563eb]/50 text-[#333333] focus:ring-[#2563eb]'
-  };
-
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     setFormData({
       ...formData,
@@ -94,40 +58,46 @@ export default function RegisterPage() {
 
   const validateForm = () => {
     if (!formData.name || !formData.email || !formData.phone || !formData.password) {
-      setMessage('Please fill in all required fields');
-      toast.error('Please fill in all required fields');
+      const err = isAmharic ? 'እባክዎ ሁሉንም አስፈላጊ መረጃዎች ይሙሉ' : 'Please fill in all required fields';
+      setMessage(err);
+      toast.error(err);
       return false;
     }
 
     if (formData.password !== formData.confirmPassword) {
-      setMessage('Passwords do not match');
-      toast.error('Passwords do not match');
+      const err = isAmharic ? 'የይለፍ ቃሎች አይመሳሰሉም' : 'Passwords do not match';
+      setMessage(err);
+      toast.error(err);
       return false;
     }
 
     if (formData.password.length < 6) {
-      setMessage('Password must be at least 6 characters');
-      toast.error('Password must be at least 6 characters');
+      const err = isAmharic ? 'የይለፍ ቃል ቢያንስ 6 ቁምፊዎች መሆን አለበት' : 'Password must be at least 6 characters';
+      setMessage(err);
+      toast.error(err);
       return false;
     }
 
     const emailRegex = /^\S+@\S+\.\S+$/;
     if (!emailRegex.test(formData.email)) {
-      setMessage('Please enter a valid email address');
-      toast.error('Please enter a valid email address');
+      const err = isAmharic ? 'እባክዎ ትክክለኛ የኢሜይል አድራሻ ያስገቡ' : 'Please enter a valid email address';
+      setMessage(err);
+      toast.error(err);
       return false;
     }
 
     const phoneRegex = /^09\d{8}$/;
     if (!phoneRegex.test(formData.phone)) {
-      setMessage('Please enter a valid Ethiopian phone number (09XXXXXXXX)');
-      toast.error('Please enter a valid Ethiopian phone number (09XXXXXXXX)');
+      const err = isAmharic ? 'እባክዎ ትክክለኛ የኢትዮጵያ ስልክ ቁጥር ያስገቡ (09XXXXXXXX)' : 'Please enter a valid Ethiopian phone number (09XXXXXXXX)';
+      setMessage(err);
+      toast.error(err);
       return false;
     }
 
     if (!acceptedTerms) {
-      setMessage('Please accept the Terms of Service and Privacy Policy');
-      toast.error('Please accept the Terms of Service and Privacy Policy');
+      const err = isAmharic ? 'እባክዎ የአገልግሎት ውሎችን ይቀበሉ' : 'Please accept the Terms of Service';
+      setMessage(err);
+      toast.error(err);
       return false;
     }
 
@@ -136,7 +106,6 @@ export default function RegisterPage() {
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
-    
     if (!validateForm()) return;
 
     setIsLoading(true);
@@ -148,457 +117,319 @@ export default function RegisterPage() {
         email: formData.email,
         phone: formData.phone,
         password: formData.password,
-        background: formData.background,
+        background: formData.background || undefined,
         role: formData.role
       };
 
       const user = await register(userData);
 
-      if (user && user.role) {
-        toast.success('Registration successful! Welcome to RealEstate Pro!', {
+      if (user) {
+        toast.success(isAmharic ? 'ምዝገባው ተሳክቷል! እንኳን ደህና መጡ!' : 'Registration successful! Welcome!', {
           position: 'top-right',
           autoClose: 2000,
         });
 
-        // Redirect based on role
-        if (user.role === 'admin') {
-          router.push('/admin/dashboard');
-        } else {
-          router.push('/admin/dashboard');
-        }
+        router.push('/admin/customer/orders');
       } else {
-        setMessage('Registration failed: User data is missing');
-        toast.error('Registration failed: User data is missing');
+        const err = isAmharic ? 'ምዝገባው አልተሳካም' : 'Registration failed: User creation failed';
+        setMessage(err);
+        toast.error(err);
       }
     } catch (error: any) {
-      const errorMsg = error.message || 'Registration failed';
-      setMessage(errorMsg);
-      toast.error(errorMsg);
+      const err = error.message || (isAmharic ? 'ምዝገባው አልተሳካም። እባክዎ እንደገና ይሞክሩ' : 'Registration failed');
+      setMessage(err);
+      toast.error(err);
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Property types for display
-  const propertyTypes = [
-    { icon: <FaHome className="w-4 h-4 sm:w-5 sm:h-5" />, title: "Houses", description: "Single-family homes" },
-    { icon: <FaBuilding className="w-4 h-4 sm:w-5 sm:h-5" />, title: "Apartments", description: "Modern living spaces" },
-    { icon: <FaKey className="w-4 h-4 sm:w-5 sm:h-5" />, title: "Rentals", description: "Lease options" },
-  ];
-
   return (
-    <div className={`min-h-screen transition-colors duration-300 ${themeStyles.background} ${theme === 'dark' ? 'text-white' : 'text-[#333333]'}`}>
+    <div className={`min-h-screen transition-colors duration-200 ${
+      theme === 'dark' 
+        ? 'bg-[#0a192f] text-gray-100' 
+        : 'bg-[#f8fafc] text-gray-900'
+    }`}>
       <Navbar />
-      <div className="container mx-auto px-4 py-6 sm:py-8 pt-20 sm:pt-24">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          className="max-w-6xl mx-auto"
-        >
-          <div className="text-center mb-8 sm:mb-12">
-            <motion.h1
-              initial={{ scale: 0.9 }}
-              animate={{ scale: 1 }}
-              transition={{ duration: 0.5 }}
-              className={`text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold mb-3 sm:mb-4 ${themeStyles.primaryColor}`}
-            >
-              Join RealEstate Pro
-            </motion.h1>
-            <p className={`text-sm sm:text-base md:text-lg ${theme === 'dark' ? 'text-[#ccd6f6]' : 'text-[#555555]'} max-w-2xl mx-auto px-2`}>
-              Create your account to start your real estate journey with us
-            </p>
-          </div>
+      
+      <ToastContainer
+        position="top-right"
+        autoClose={3000}
+        theme={theme === 'dark' ? 'dark' : 'light'}
+      />
 
-          <div className="grid lg:grid-cols-2 gap-8 sm:gap-12 items-start">
-            {/* Registration Form Card */}
-            <motion.div
-              initial={{ x: -50, opacity: 0 }}
-              animate={{ x: 0, opacity: 1 }}
-              transition={{ duration: 0.6, delay: 0.1 }}
-              className={`rounded-2xl shadow-2xl p-5 sm:p-6 md:p-8 border ${themeStyles.cardBg}`}
-            >
-              <div className="flex items-center gap-3 mb-6 sm:mb-8">
-                <div className={`p-2 sm:p-3 rounded-xl ${theme === 'dark' ? 'bg-[#3b82f6]/20' : 'bg-[#2563eb]/10'}`}>
-                  <User className={`w-6 h-6 sm:w-8 sm:h-8 ${themeStyles.primaryColor}`} />
-                </div>
-                <h2 className={`text-lg sm:text-xl md:text-2xl font-bold ${themeStyles.primaryColor}`}>
-                  Create Account
-                </h2>
+      <div className="container mx-auto px-4 py-8 pt-20 sm:pt-24 max-w-5xl">
+        <div className="text-center mb-8 sm:mb-10">
+          <h1 className="text-2xl sm:text-4xl font-extrabold mb-2 text-blue-600 dark:text-blue-400">
+            {t('auth.signup_title', 'Create an Account')}
+          </h1>
+          <p className={`text-xs sm:text-base max-w-xl mx-auto ${
+            theme === 'dark' ? 'text-gray-300' : 'text-gray-600'
+          }`}>
+            {t('auth.signup_subtitle', 'Join our platform to buy, sell, or rent properties seamlessly.')}
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+          {/* Main Form Card */}
+          <div className={`lg:col-span-7 p-6 sm:p-8 rounded-3xl border ${
+            theme === 'dark' 
+              ? 'bg-[#112240] border-slate-700 shadow-xl' 
+              : 'bg-white border-gray-200 shadow-sm'
+          }`}>
+            <div className="flex items-center gap-3 mb-6">
+              <div className={`p-2.5 rounded-xl ${
+                theme === 'dark' ? 'bg-blue-900/30 text-blue-400' : 'bg-blue-50 text-blue-600'
+              }`}>
+                <Home className="w-6 h-6" />
               </div>
-
-              <p className={`text-xs sm:text-sm mb-5 sm:mb-6 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
-                Sign up to browse properties, save favorites, and connect with agents.
-              </p>
-
-              {message && (
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  className={`mb-5 sm:mb-6 p-3 sm:p-4 rounded-lg flex items-start gap-2 text-sm ${
-                    message.includes('success')
-                      ? 'bg-green-100 text-green-800 border border-green-200'
-                      : 'bg-red-100 text-red-800 border border-red-200'
-                  } ${theme === 'dark' ? 'bg-opacity-20' : ''}`}
-                >
-                  {message.includes('success') ? (
-                    <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0 mt-0.5" />
-                  ) : (
-                    <AlertCircle className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0 mt-0.5" />
-                  )}
-                  <span>{message}</span>
-                </motion.div>
-              )}
-
-              <form className="space-y-5 sm:space-y-6" onSubmit={handleRegister}>
-                {/* Full Name */}
-                <div>
-                  <label
-                    htmlFor="name"
-                    className={`block text-xs sm:text-sm font-medium mb-1.5 sm:mb-2 ${theme === 'dark' ? 'text-[#ccd6f6]' : 'text-gray-700'}`}
-                  >
-                    Full Name *
-                  </label>
-                  <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <User className={`w-4 h-4 sm:w-5 sm:h-5 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`} />
-                    </div>
-                    <input
-                      id="name"
-                      name="name"
-                      type="text"
-                      required
-                      className={`w-full pl-9 sm:pl-10 px-3 sm:px-4 py-2.5 sm:py-3 border rounded-lg focus:outline-none focus:ring-2 focus:border-transparent transition-colors duration-300 text-sm sm:text-base ${themeStyles.inputBg}`}
-                      placeholder="John Doe"
-                      value={formData.name}
-                      onChange={handleChange}
-                    />
-                  </div>
-                </div>
-
-                {/* Email */}
-                <div>
-                  <label
-                    htmlFor="email"
-                    className={`block text-xs sm:text-sm font-medium mb-1.5 sm:mb-2 ${theme === 'dark' ? 'text-[#ccd6f6]' : 'text-gray-700'}`}
-                  >
-                    Email Address *
-                  </label>
-                  <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <Mail className={`w-4 h-4 sm:w-5 sm:h-5 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`} />
-                    </div>
-                    <input
-                      id="email"
-                      name="email"
-                      type="email"
-                      required
-                      className={`w-full pl-9 sm:pl-10 px-3 sm:px-4 py-2.5 sm:py-3 border rounded-lg focus:outline-none focus:ring-2 focus:border-transparent transition-colors duration-300 text-sm sm:text-base ${themeStyles.inputBg}`}
-                      placeholder="john@example.com"
-                      value={formData.email}
-                      onChange={handleChange}
-                    />
-                  </div>
-                </div>
-
-                {/* Phone Number */}
-                <div>
-                  <label
-                    htmlFor="phone"
-                    className={`block text-xs sm:text-sm font-medium mb-1.5 sm:mb-2 ${theme === 'dark' ? 'text-[#ccd6f6]' : 'text-gray-700'}`}
-                  >
-                    Phone Number *
-                  </label>
-                  <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <span className={`${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'} text-xs sm:text-sm`}>+251</span>
-                    </div>
-                    <input
-                      id="phone"
-                      name="phone"
-                      type="tel"
-                      required
-                      className={`w-full pl-14 sm:pl-16 px-3 sm:px-4 py-2.5 sm:py-3 border rounded-lg focus:outline-none focus:ring-2 focus:border-transparent transition-colors duration-300 text-sm sm:text-base ${themeStyles.inputBg}`}
-                      placeholder="912345678"
-                      value={formData.phone}
-                      onChange={handleChange}
-                    />
-                  </div>
-                </div>
-
-                {/* Password */}
-                <div>
-                  <label
-                    htmlFor="password"
-                    className={`block text-xs sm:text-sm font-medium mb-1.5 sm:mb-2 ${theme === 'dark' ? 'text-[#ccd6f6]' : 'text-gray-700'}`}
-                  >
-                    Password *
-                  </label>
-                  <div className="relative">
-                    <input
-                      id="password"
-                      name="password"
-                      type={showPassword ? 'text' : 'password'}
-                      required
-                      className={`w-full px-3 sm:px-4 py-2.5 sm:py-3 border rounded-lg focus:outline-none focus:ring-2 focus:border-transparent transition-colors duration-300 pr-10 sm:pr-12 text-sm sm:text-base ${themeStyles.inputBg}`}
-                      placeholder="Enter your password"
-                      value={formData.password}
-                      onChange={handleChange}
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword((prev) => !prev)}
-                      className={`absolute inset-y-0 right-2 sm:right-3 flex items-center ${
-                        theme === 'dark' ? 'text-gray-400 hover:text-[#3b82f6]' : 'text-gray-500 hover:text-[#2563eb]'
-                      }`}
-                    >
-                      {showPassword ? (
-                        <EyeOff className="h-4 w-4 sm:h-5 sm:w-5" />
-                      ) : (
-                        <Eye className="h-4 w-4 sm:h-5 sm:w-5" />
-                      )}
-                    </button>
-                  </div>
-                </div>
-
-                {/* Confirm Password */}
-                <div>
-                  <label
-                    htmlFor="confirmPassword"
-                    className={`block text-xs sm:text-sm font-medium mb-1.5 sm:mb-2 ${theme === 'dark' ? 'text-[#ccd6f6]' : 'text-gray-700'}`}
-                  >
-                    Confirm Password *
-                  </label>
-                  <div className="relative">
-                    <input
-                      id="confirmPassword"
-                      name="confirmPassword"
-                      type={showConfirmPassword ? 'text' : 'password'}
-                      required
-                      className={`w-full px-3 sm:px-4 py-2.5 sm:py-3 border rounded-lg focus:outline-none focus:ring-2 focus:border-transparent transition-colors duration-300 pr-10 sm:pr-12 text-sm sm:text-base ${themeStyles.inputBg}`}
-                      placeholder="Confirm your password"
-                      value={formData.confirmPassword}
-                      onChange={handleChange}
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowConfirmPassword((prev) => !prev)}
-                      className={`absolute inset-y-0 right-2 sm:right-3 flex items-center ${
-                        theme === 'dark' ? 'text-gray-400 hover:text-[#3b82f6]' : 'text-gray-500 hover:text-[#2563eb]'
-                      }`}
-                    >
-                      {showConfirmPassword ? (
-                        <EyeOff className="h-4 w-4 sm:h-5 sm:w-5" />
-                      ) : (
-                        <Eye className="h-4 w-4 sm:h-5 sm:w-5" />
-                      )}
-                    </button>
-                  </div>
-                </div>
-
-                {/* Background/Profile */}
-                <div>
-                  <label
-                    htmlFor="background"
-                    className={`block text-xs sm:text-sm font-medium mb-1.5 sm:mb-2 ${theme === 'dark' ? 'text-[#ccd6f6]' : 'text-gray-700'}`}
-                  >
-                    Background / Bio
-                  </label>
-                  <textarea
-                    id="background"
-                    name="background"
-                    rows={3}
-                    className={`w-full px-3 sm:px-4 py-2.5 sm:py-3 border rounded-lg focus:outline-none focus:ring-2 focus:border-transparent transition-colors duration-300 text-sm sm:text-base ${themeStyles.inputBg}`}
-                    placeholder="Tell us about your real estate interests or professional background..."
-                    value={formData.background}
-                    onChange={handleChange}
-                  />
-                </div>
-
-                {/* Role Selection */}
-                <div>
-                  <label
-                    htmlFor="role"
-                    className={`block text-xs sm:text-sm font-medium mb-1.5 sm:mb-2 ${theme === 'dark' ? 'text-[#ccd6f6]' : 'text-gray-700'}`}
-                  >
-                    I am a *
-                  </label>
-                  <select
-                    id="role"
-                    name="role"
-                    required
-                    className={`w-full px-3 sm:px-4 py-2.5 sm:py-3 border rounded-lg focus:outline-none focus:ring-2 focus:border-transparent transition-colors duration-300 text-sm sm:text-base ${themeStyles.inputBg}`}
-                    value={formData.role}
-                    onChange={handleChange}
-                  >
-                    <option value="user">Customer</option>
-                    {/* <option value="user">Property Seller</option>
-                    <option value="user">Real Estate Investor</option>
-                    <option value="user">Property Renter</option>
-                    <option value="user">Real Estate Agent</option>
-                    <option value="user">Property Manager</option> */}
-                  </select>
-                </div>
-
-                {/* Terms and Conditions */}
-                <div className="flex items-start gap-2 sm:gap-3">
-                  <input
-                    type="checkbox"
-                    id="terms"
-                    checked={acceptedTerms}
-                    onChange={(e) => setAcceptedTerms(e.target.checked)}
-                    className="mt-0.5 w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#2563eb] border-gray-300 rounded focus:ring-[#2563eb]"
-                  />
-                  <label htmlFor="terms" className={`text-xs sm:text-sm ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
-                    I agree to the{' '}
-                    <Link href="/terms-of-service" className={`${themeStyles.primaryColor} hover:underline`}>
-                      Terms of Service
-                    </Link>{' '}
-                    and{' '}
-                    <Link href="/privacy-policy" className={`${themeStyles.primaryColor} hover:underline`}>
-                      Privacy Policy
-                    </Link>
-                  </label>
-                </div>
-
-                {/* Submit Button */}
-                <button
-                  type="submit"
-                  disabled={isLoading}
-                  className={`w-full px-5 sm:px-6 py-2.5 sm:py-3 rounded-lg font-semibold text-sm sm:text-base md:text-lg shadow-lg hover:shadow-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed ${
-                    theme === 'dark'
-                      ? 'bg-gradient-to-r from-[#3b82f6] to-[#2563eb] text-white hover:opacity-90'
-                      : 'bg-gradient-to-r from-[#2563eb] to-[#1d4ed8] text-white hover:opacity-90'
-                  }`}
-                >
-                  {isLoading ? (
-                    <span className="flex items-center justify-center">
-                      <svg className="animate-spin -ml-1 mr-2 h-4 w-4 sm:h-5 sm:w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                      </svg>
-                      Creating Account...
-                    </span>
-                  ) : (
-                    'Create Account'
-                  )}
-                </button>
-              </form>
-
-              {/* Login Link */}
-              <div className="mt-6 sm:mt-8 pt-5 sm:pt-6 border-t border-gray-700/30">
-                <p className={`text-center ${theme === 'dark' ? 'text-[#ccd6f6]' : 'text-gray-600'} text-xs sm:text-sm`}>
-                  Already have an account?{' '}
-                  <Link
-                    href="/auth/login"
-                    className={`font-semibold ${
-                      theme === 'dark' ? 'text-[#3b82f6] hover:text-blue-300' : 'text-[#2563eb] hover:text-blue-700'
-                    } transition duration-200`}
-                  >
-                    Sign in here
-                  </Link>
+              <div>
+                <h2 className={`text-lg sm:text-xl font-bold ${
+                  theme === 'dark' ? 'text-white' : 'text-gray-900'
+                }`}>
+                  {isAmharic ? 'የደንበኛ ምዝገባ' : 'User Registration'}
+                </h2>
+                <p className="text-xs text-gray-500 dark:text-gray-400">
+                  {isAmharic ? 'ለቤት ግዢ፣ ሽያጭ ወይም ኪራይ' : 'For property seekers & home buyers'}
                 </p>
               </div>
-            </motion.div>
+            </div>
 
-            {/* Right Side - Information */}
-            <motion.div
-              initial={{ x: 50, opacity: 0 }}
-              animate={{ x: 0, opacity: 1 }}
-              transition={{ duration: 0.6, delay: 0.2 }}
-              className="space-y-5 sm:space-y-6"
-            >
-              {/* Welcome Image */}
-              <div className={`rounded-2xl overflow-hidden shadow-2xl ${themeStyles.cardBg} border`}>
-                <div className="relative h-48 sm:h-56 md:h-64">
-                  <Image
-                    src={images.office || '/api/placeholder/600/300'}
-                    alt="Real Estate Office"
-                    fill
-                    className="object-cover"
-                    sizes="(max-width: 768px) 100vw, 50vw"
+            {message && (
+              <div className={`mb-5 p-3.5 rounded-xl text-xs sm:text-sm font-medium ${
+                message.includes('success') || message.includes('ተሳክቷል')
+                  ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800'
+                  : 'bg-rose-100 text-rose-800 dark:bg-rose-950/40 dark:text-rose-300 border border-rose-200 dark:border-rose-800'
+              }`}>
+                {message}
+              </div>
+            )}
+
+            <form onSubmit={handleRegister} className="space-y-4">
+              {/* Full Name */}
+              <div>
+                <label className="block text-xs font-semibold mb-1 text-gray-700 dark:text-gray-300">
+                  {t('auth.full_name', 'Full Name')} *
+                </label>
+                <input
+                  type="text"
+                  name="name"
+                  required
+                  value={formData.name}
+                  onChange={handleChange}
+                  placeholder={isAmharic ? 'ሙሉ ስምዎን ያስገቡ' : 'Abebe Bikila'}
+                  className={`w-full px-4 py-2.5 rounded-xl border text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all ${
+                    theme === 'dark' 
+                      ? 'bg-slate-800 border-slate-700 text-white placeholder-gray-500' 
+                      : 'bg-white border-gray-300 text-gray-900 placeholder-gray-400'
+                  }`}
+                />
+              </div>
+
+              {/* Email */}
+              <div>
+                <label className="block text-xs font-semibold mb-1 text-gray-700 dark:text-gray-300">
+                  {t('auth.email', 'Email Address')} *
+                </label>
+                <input
+                  type="email"
+                  name="email"
+                  required
+                  value={formData.email}
+                  onChange={handleChange}
+                  placeholder="name@example.com"
+                  className={`w-full px-4 py-2.5 rounded-xl border text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all ${
+                    theme === 'dark' 
+                      ? 'bg-slate-800 border-slate-700 text-white placeholder-gray-500' 
+                      : 'bg-white border-gray-300 text-gray-900 placeholder-gray-400'
+                  }`}
+                />
+              </div>
+
+              {/* Phone */}
+              <div>
+                <label className="block text-xs font-semibold mb-1 text-gray-700 dark:text-gray-300">
+                  {t('auth.phone', 'Phone Number')} (09XXXXXXXX) *
+                </label>
+                <input
+                  type="tel"
+                  name="phone"
+                  required
+                  value={formData.phone}
+                  onChange={handleChange}
+                  placeholder="0912345678"
+                  className={`w-full px-4 py-2.5 rounded-xl border text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all ${
+                    theme === 'dark' 
+                      ? 'bg-slate-800 border-slate-700 text-white placeholder-gray-500' 
+                      : 'bg-white border-gray-300 text-gray-900 placeholder-gray-400'
+                  }`}
+                />
+              </div>
+
+              {/* Password */}
+              <div>
+                <label className="block text-xs font-semibold mb-1 text-gray-700 dark:text-gray-300">
+                  {t('auth.password', 'Password')} *
+                </label>
+                <div className="relative">
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    name="password"
+                    required
+                    value={formData.password}
+                    onChange={handleChange}
+                    placeholder="••••••••"
+                    className={`w-full px-4 py-2.5 rounded-xl border text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all ${
+                      theme === 'dark' 
+                        ? 'bg-slate-800 border-slate-700 text-white placeholder-gray-500' 
+                        : 'bg-white border-gray-300 text-gray-900 placeholder-gray-400'
+                    }`}
                   />
-                  <div className={`absolute inset-0 ${theme === 'dark' ? 'bg-black/40' : 'bg-black/20'}`}></div>
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="text-center p-4 sm:p-6 md:p-8">
-                      <h3 className={`text-lg sm:text-xl md:text-2xl font-bold mb-1 sm:mb-2 ${themeStyles.primaryColor}`}>
-                        Join Our Community
-                      </h3>
-                      <p className={`text-xs sm:text-sm md:text-base ${theme === 'dark' ? 'text-gray-200' : 'text-gray-700'}`}>
-                        10,000+ happy property owners
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400"
+                  >
+                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
+              </div>
+
+              {/* Confirm Password */}
+              <div>
+                <label className="block text-xs font-semibold mb-1 text-gray-700 dark:text-gray-300">
+                  {t('auth.confirm_password', 'Confirm Password')} *
+                </label>
+                <div className="relative">
+                  <input
+                    type={showConfirmPassword ? 'text' : 'password'}
+                    name="confirmPassword"
+                    required
+                    value={formData.confirmPassword}
+                    onChange={handleChange}
+                    placeholder="••••••••"
+                    className={`w-full px-4 py-2.5 rounded-xl border text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all ${
+                      theme === 'dark' 
+                        ? 'bg-slate-800 border-slate-700 text-white placeholder-gray-500' 
+                        : 'bg-white border-gray-300 text-gray-900 placeholder-gray-400'
+                    }`}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400"
+                  >
+                    {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
+              </div>
+
+              {/* Bio / Background */}
+              <div>
+                <label className="block text-xs font-semibold mb-1 text-gray-700 dark:text-gray-300">
+                  {isAmharic ? 'ስለ እርስዎ አጭር መረጃ' : 'Background / Bio'}
+                </label>
+                <textarea
+                  name="background"
+                  rows={2}
+                  value={formData.background}
+                  onChange={handleChange}
+                  placeholder={isAmharic ? 'የሚፈልጉትን የቤት ዓይነት ወይም ፍላጎትዎን ይጥቀሱ...' : 'Tell us about your property interests...'}
+                  className={`w-full px-4 py-2 rounded-xl border text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all ${
+                    theme === 'dark' 
+                      ? 'bg-slate-800 border-slate-700 text-white placeholder-gray-500' 
+                      : 'bg-white border-gray-300 text-gray-900 placeholder-gray-400'
+                  }`}
+                />
+              </div>
+
+              {/* Terms Checkbox */}
+              <div className="flex items-center gap-2 pt-1">
+                <input
+                  type="checkbox"
+                  id="terms"
+                  checked={acceptedTerms}
+                  onChange={(e) => setAcceptedTerms(e.target.checked)}
+                  className="w-4 h-4 rounded text-blue-600 focus:ring-blue-500 border-gray-300"
+                />
+                <label htmlFor="terms" className="text-xs text-gray-600 dark:text-gray-400">
+                  {isAmharic ? 'የአገልግሎት ውሎችን እና ግላዊነት ፖሊሲን ተቀብያለሁ' : 'I agree to the Terms of Service & Privacy Policy'}
+                </label>
+              </div>
+
+              {/* Submit Button */}
+              <button
+                type="submit"
+                disabled={isLoading}
+                className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold text-sm sm:text-base shadow-md transition-all disabled:opacity-50"
+              >
+                {isLoading 
+                  ? (isAmharic ? 'በመመዝገብ ላይ...' : 'Creating Account...') 
+                  : (isAmharic ? 'ተመዝገብ' : 'Create Account')}
+              </button>
+
+              {/* Sign In Link */}
+              <div className="text-center pt-2 text-xs sm:text-sm">
+                <span className="text-gray-500 dark:text-gray-400">
+                  {t('auth.have_account', 'Already have an account?')}{' '}
+                </span>
+                <Link
+                  href="/auth/login"
+                  className="font-bold text-blue-600 dark:text-blue-400 hover:underline ml-1"
+                >
+                  {t('auth.login_btn', 'Sign In')}
+                </Link>
+              </div>
+            </form>
+          </div>
+
+          {/* Right Info Section */}
+          <div className="lg:col-span-5 space-y-4">
+            <div className={`p-6 rounded-3xl border ${
+              theme === 'dark' ? 'bg-[#112240] border-slate-700' : 'bg-white border-gray-200 shadow-sm'
+            }`}>
+              <h3 className={`text-base font-bold mb-3 ${
+                theme === 'dark' ? 'text-white' : 'text-gray-900'
+              }`}>
+                {isAmharic ? 'ለምን መለያ ይከፍታሉ?' : 'Why Create an Account?'}
+              </h3>
+              <div className="space-y-3.5">
+                {[
+                  { icon: <FaHome className="text-blue-500" />, title: isAmharic ? 'ቤቶችን በቀላሉ መከታተል' : 'Save Favorite Homes', desc: isAmharic ? 'የወደዷቸውን ቤቶች በአንድ ቦታ ያስቀምጡ' : 'Bookmark and compare listings easily' },
+                  { icon: <FaShieldAlt className="text-emerald-500" />, title: isAmharic ? 'የቀጥታ ትዕዛዝ እና ክፍያ' : 'Direct Orders & Offers', desc: isAmharic ? 'በመድረኩ በኩል የቤት ግዢ ጥያቄ ያቅርቡ' : 'Submit purchase offers and track payment status' },
+                  { icon: <FaUsers className="text-purple-500" />, title: isAmharic ? 'ከወኪሎች ጋር የቀጥታ መልእክት' : 'Direct Agent Chat', desc: isAmharic ? 'ጥያቄዎችዎን በቀጥታ ከባለቤቶች ጋር ይወያዩ' : 'Message property managers and agents directly' },
+                ].map((item, idx) => (
+                  <div key={idx} className="flex gap-3 items-start">
+                    <div className={`p-2 rounded-xl shrink-0 mt-0.5 ${
+                      theme === 'dark' ? 'bg-slate-800' : 'bg-blue-50'
+                    }`}>
+                      {item.icon}
+                    </div>
+                    <div>
+                      <h4 className={`text-xs sm:text-sm font-bold ${
+                        theme === 'dark' ? 'text-white' : 'text-gray-900'
+                      }`}>
+                        {item.title}
+                      </h4>
+                      <p className={`text-[11px] sm:text-xs ${
+                        theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
+                      }`}>
+                        {item.desc}
                       </p>
                     </div>
                   </div>
-                </div>
+                ))}
               </div>
+            </div>
 
-              {/* Benefits */}
-              <div className={`rounded-2xl shadow-xl p-4 sm:p-5 md:p-6 ${themeStyles.cardBg} border`}>
-                <h3 className={`text-base sm:text-lg md:text-xl font-bold mb-4 sm:mb-6 ${themeStyles.primaryColor}`}>
-                  Member Benefits
-                </h3>
-                <div className="space-y-3 sm:space-y-4">
-                  {[
-                    { icon: <FaHome />, text: "Access to exclusive property listings" },
-                    { icon: <FaChartLine />, text: "Real-time market insights and analytics" },
-                    { icon: <FaHandshake />, text: "Direct connection with verified agents" },
-                    { icon: <FaShieldAlt />, text: "Secure and transparent transactions" },
-                    { icon: <Building />, text: "Save and compare favorite properties" },
-                    { icon: <Briefcase />, text: "Investment opportunity alerts" }
-                  ].map((benefit, index) => (
-                    <div key={index} className="flex items-center gap-2 sm:gap-3">
-                      <div className={`p-1.5 sm:p-2 rounded-full flex-shrink-0 ${theme === 'dark' ? 'bg-[#3b82f6]/20' : 'bg-[#2563eb]/10'}`}>
-                        <span className={`${themeStyles.primaryColor} text-sm sm:text-base`}>{benefit.icon}</span>
-                      </div>
-                      <span className="text-xs sm:text-sm">{benefit.text}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Property Types */}
-              <div className={`rounded-2xl shadow-xl p-4 sm:p-5 md:p-6 ${themeStyles.cardBg} border`}>
-                <h3 className={`text-base sm:text-lg md:text-xl font-bold mb-4 sm:mb-6 ${themeStyles.primaryColor}`}>
-                  Popular Property Types
-                </h3>
-                <div className="grid grid-cols-3 gap-2 sm:gap-3 md:gap-4">
-                  {propertyTypes.map((type, index) => (
-                    <div key={index} className="text-center">
-                      <div className={`inline-flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 rounded-full mb-1 sm:mb-2 ${
-                        theme === 'dark' ? 'bg-[#3b82f6]/20' : 'bg-[#2563eb]/10'
-                      }`}>
-                        <span className={`${themeStyles.primaryColor} text-base sm:text-lg`}>{type.icon}</span>
-                      </div>
-                      <div className="text-xs sm:text-sm font-medium">{type.title}</div>
-                      <div className="text-[10px] sm:text-xs text-gray-500">{type.description}</div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Testimonial */}
-              <div className={`rounded-2xl shadow-xl p-4 sm:p-5 md:p-6 ${themeStyles.cardBg} border`}>
-                <div className="flex items-center gap-3 sm:gap-4 mb-3 sm:mb-4">
-                  <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-gradient-to-r from-blue-500 to-blue-600 flex items-center justify-center text-white font-bold text-sm sm:text-base md:text-lg">
-                    JD
-                  </div>
-                  <div>
-                    <div className="font-semibold text-sm sm:text-base">John Doe</div>
-                    <div className="text-xs sm:text-sm text-gray-500">Happy Homeowner</div>
-                  </div>
-                </div>
-                <p className="text-xs sm:text-sm italic">
-                  "RealEstate Pro made finding my dream home so easy! The platform is intuitive,
-                  and the agents are incredibly helpful. Highly recommended!"
-                </p>
-                <div className="mt-2 sm:mt-3 flex text-yellow-400 text-xs sm:text-sm">
-                  {'★★★★★'}
-                </div>
-              </div>
-            </motion.div>
+            <div className="p-4 rounded-2xl bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-900/50 text-xs text-emerald-900 dark:text-emerald-300">
+              <span className="font-bold block mb-1">100% {isAmharic ? 'ነፃ ምዝገባ' : 'Free Registration'}</span>
+              <span>{isAmharic ? 'ምንም አይነት የተደበቀ ክፍያ የለም፤ አሁኑኑ ይቀላቀሉን!' : 'No hidden fees or charges for buyer and renter registration.'}</span>
+            </div>
           </div>
-        </motion.div>
+        </div>
       </div>
+
       <Footer />
     </div>
   );

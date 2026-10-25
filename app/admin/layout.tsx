@@ -1,4 +1,3 @@
-// app/admin/layout.tsx
 'use client';
 
 import React, { useState, ReactNode, useEffect } from 'react';
@@ -25,12 +24,20 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
   const closeSidebar = () => setSidebarOpen(false);
   const toggleSidebarCollapse = () => setSidebarCollapsed((collapsed) => !collapsed);
 
-  if (!mounted) return null;
+  if (!mounted) {
+    return (
+      <div className="min-h-screen bg-white dark:bg-[#0a192f]">
+        <div className="h-16 border-b border-gray-200 dark:border-slate-800" />
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-screen flex flex-col transition-colors duration-300">
+    <div className={`min-h-screen flex flex-col transition-colors duration-200 ${
+      theme === 'dark' ? 'bg-[#0a192f] text-white' : 'bg-[#f8fafc] text-gray-900'
+    }`}>
       {/* Fixed Header */}
-      <div className="fixed top-0 left-0 right-0 z-50">
+      <div className="fixed top-0 left-0 right-0 z-40 h-16">
         <AdminHeader 
           onMenuClick={toggleSidebar}
           isSidebarOpen={sidebarOpen}
@@ -40,45 +47,31 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
       </div>
 
       {/* Main Content Area */}
-      <div className="flex flex-1 pt-16"> {/* pt-16 to account for fixed header height */}
-        {/* Fixed Sidebar */}
-        <div id="admin-sidebar" className={`fixed top-16 left-0 bottom-0 z-40 transition-transform duration-300 ${
-          sidebarCollapsed ? 'lg:w-20' : 'lg:w-64'
-        } ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0`}>
-          <AdminSidebar 
-            isOpen={sidebarOpen} 
-            onClose={closeSidebar}
-            isCollapsed={sidebarCollapsed}
-            onToggleCollapse={toggleSidebarCollapse}
-          />
-        </div>
+      <div className="flex flex-1 pt-16 min-h-screen">
+        {/* Sidebar Component handles both desktop and mobile drawer cleanly */}
+        <AdminSidebar 
+          isOpen={sidebarOpen} 
+          onClose={closeSidebar}
+          isCollapsed={sidebarCollapsed}
+          onToggleCollapse={toggleSidebarCollapse}
+        />
 
-        {/* Main Content - Adjusted for sidebar width */}
-        <main className={`flex-1 transition-all duration-300 ${
+        {/* Main Content - Adjusted for desktop sidebar offset */}
+        <main className={`flex-1 transition-all duration-300 w-full min-w-0 ${
           sidebarCollapsed ? 'lg:pl-20' : 'lg:pl-64'
-        } w-full min-h-[calc(100vh-64px)]`}>
-          <div className={`h-full transition-colors duration-300 ${
-            theme === 'dark' 
-              ? 'bg-gradient-to-br from-[#0a192f] to-[#112240]' 
-              : 'bg-gradient-to-br from-[#f0f0f0] to-[#ffffff]'
-          }`}>
-            <div className="pt-2">
-              <div className={`rounded-xl shadow-lg transition-all duration-300 ${
-                theme === 'dark' 
-                  ? 'bg-[#0f172a80] backdrop-blur-sm border border-[#00ffff]/20 text-white' 
-                  : 'bg-white border border-gray-200 text-gray-900'
-              }`}>
-                <div className="pt-2">
-                  {children}
-                </div>
-              </div>
-            </div>
+        }`}>
+          <div className="p-3 sm:p-5 lg:p-6 min-h-[calc(100vh-64px)] w-full max-w-full overflow-x-hidden">
+            {children}
           </div>
         </main>
       </div>
       
-      {/* Footer */}
-      <Footer />
+      {/* Footer adjusted for desktop sidebar offset */}
+      <div className={`transition-all duration-300 ${
+        sidebarCollapsed ? 'lg:pl-20' : 'lg:pl-64'
+      }`}>
+        <Footer />
+      </div>
     </div>
   );
 }

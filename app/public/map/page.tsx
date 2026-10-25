@@ -10,7 +10,9 @@ import {
 } from '@mui/material';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTheme } from '@/lib/theme-context';
+import { useLanguage } from '@/lib/language-context';
 import Navbar from '@/components/ui/Navbar';
+import Footer from '@/components/ui/Footer';
 import {
   Home, LocationOn, Bed, Bathtub,
   SquareFoot, Close, FilterList,
@@ -33,7 +35,7 @@ const MapView = dynamic(() => import('@/components/MapView'), {
         bgcolor: '#1a1a2e',
       }}
     >
-      <CircularProgress sx={{ color: '#00ffff' }} />
+      <CircularProgress sx={{ color: 'primary.main' }} />
     </Box>
   ),
 });
@@ -48,6 +50,7 @@ const propertyTypeLabels: Record<PropertyType, string> = {
 
 export default function MapViewPage() {
   const { theme } = useTheme();
+  const { t, isAmharic } = useLanguage();
   const isMobile = useMediaQuery('(max-width: 1024px)');
 
   const [houses, setHouses] = useState<House[]>([]);
@@ -289,17 +292,21 @@ export default function MapViewPage() {
         onClick={() => setFilterDrawerOpen(false)}
         sx={{
           mt: 2,
-          background:
-            theme === 'dark'
-              ? 'linear-gradient(135deg, #00ffff, #00b3b3)'
-              : 'linear-gradient(135deg, #007bff, #0056b3)',
+          fontWeight: 700,
+          textTransform: 'none',
+          borderRadius: 2
         }}
       >
-        Apply Filters
+        {isAmharic ? 'ማጣሪያዎችን ተግብር' : 'Apply Filters'}
       </Button>
 
-      <Button fullWidth variant="outlined" onClick={resetFilters} sx={{ mt: 1 }}>
-        Reset All Filters
+      <Button
+        fullWidth
+        variant="outlined"
+        onClick={resetFilters}
+        sx={{ mt: 1, textTransform: 'none', fontWeight: 600, borderRadius: 2 }}
+      >
+        {isAmharic ? 'ሁሉንም ማጣሪያዎች ሰርዝ' : 'Reset All Filters'}
       </Button>
     </Box>
   );
@@ -324,16 +331,19 @@ export default function MapViewPage() {
             fontWeight: 'bold',
             color: theme === 'dark' ? '#ccd6f6' : '#333333',
             mb: 1,
+            fontSize: { xs: '1.5rem', sm: '2.1rem' }
           }}
         >
-          Find Properties on Map
+          {isAmharic ? 'ቤቶችን በካርታ ላይ ይፈልጉ' : 'Find Properties on Map'}
         </Typography>
         <Typography
           variant="body1"
           color={theme === 'dark' ? '#a8b2d1' : '#666666'}
+          sx={{ fontSize: { xs: '0.9rem', sm: '1rem' } }}
         >
-          Search and explore properties visually on the map. Click on markers to
-          see details, or browse the list below.
+          {isAmharic
+            ? 'ቤቶችን በካርታ እይታ ያስሱ። ዝርዝር ለማየት ምልክቶቹን ይጫኑ ወይም ከስር ያለውን ዝርዝር ይመልከቱ።'
+            : 'Search and explore properties visually on the map. Click on markers to see details, or browse the list below.'}
         </Typography>
       </Box>
 
@@ -727,21 +737,22 @@ export default function MapViewPage() {
         <FilterContent />
       </Drawer>
 
-      <Snackbar
-        open={!!error}
-        autoHideDuration={6000}
-        onClose={() => setError('')}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-      >
-        <Alert
-          severity="error"
+        <Snackbar
+          open={!!error}
+          autoHideDuration={6000}
           onClose={() => setError('')}
-          sx={{ borderRadius: 2 }}
+          anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
         >
-          {error}
-        </Alert>
-      </Snackbar>
+          <Alert
+            severity="error"
+            onClose={() => setError('')}
+            sx={{ borderRadius: 2 }}
+          >
+            {error}
+          </Alert>
+        </Snackbar>
       </div>
+      <Footer />
     </div>
   );
 }

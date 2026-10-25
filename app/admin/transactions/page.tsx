@@ -89,6 +89,7 @@ import {
   Work
 } from '@mui/icons-material';
 import { useTheme } from '@/lib/theme-context';
+import { useLanguage } from '@/lib/language-context';
 import api from '@/app/utils/api';
 import { format } from 'date-fns';
 
@@ -186,6 +187,7 @@ interface Filters {
 export default function TransactionsPage() {
   const muiTheme = useMuiTheme();
   const { theme } = useTheme();
+  const { t, isAmharic } = useLanguage();
   const isMobile = useMediaQuery(muiTheme.breakpoints.down('sm'));
   const isTablet = useMediaQuery(muiTheme.breakpoints.down('md'));
 
@@ -664,10 +666,10 @@ export default function TransactionsPage() {
             color: theme === 'dark' ? '#ccd6f6' : '#333333',
             mb: 1 
           }}>
-            Transaction Management
+            {isAmharic ? 'የግብይቶች አስተዳደር' : 'Transaction Management'}
           </Typography>
           <Typography variant={isMobile ? "body2" : "body1"} color={theme === 'dark' ? '#a8b2d1' : '#666666'}>
-            Track and manage all financial transactions and availability status
+            {isAmharic ? 'ሁሉንም የፋይናንስ ግብይቶች እና የሁኔታ መረጃዎችን ይከታተሉ' : 'Track and manage all financial transactions and availability status'}
           </Typography>
         </Box>
       </motion.div>

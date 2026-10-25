@@ -5,54 +5,32 @@ import Link from 'next/link';
 import { useAuth } from '@/lib/auth';
 import { useRouter } from 'next/navigation';
 import { useTheme } from '@/lib/theme-context';
+import { useLanguage } from '@/lib/language-context';
 import { motion } from 'framer-motion';
-import Image from 'next/image';
 import Navbar from '@/components/ui/Navbar';
 import Footer from '@/components/ui/Footer';
-import { toast } from 'react-toastify';
+import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { 
   Eye,
   EyeOff,
-  User,
-  Shield,
   Home,
-  Building,
+  Shield,
   Key,
-  Clock,
-  Star,
-  Phone as PhoneIcon,
-  Mail,
-  Bell,
-  MapPin,
-  Search,
-  Award
 } from 'lucide-react';
 import { 
   FaHome, 
   FaBuilding, 
   FaCity, 
-  FaKey, 
+  FaChartLine, 
   FaHandshake, 
   FaShieldAlt,
-  FaChartLine,
-  FaAward,
-  FaUsers,
-  FaClock,
-  FaPhone,
-  FaEnvelope
+  FaUsers
 } from 'react-icons/fa';
-
-// Import real estate images
-const images = {
-  hero: '/INSA/image15.jpg',
-  interior: '/INSA/image12.jpg',
-  office: '/INSA/image17.jpg',
-  team: '/INSA/image19.jpg',
-};
 
 export default function LoginPage() {
   const { theme } = useTheme();
+  const { t, isAmharic } = useLanguage();
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
   const [isOtpLogin, setIsOtpLogin] = useState(false);
@@ -63,26 +41,6 @@ export default function LoginPage() {
 
   const { login, loginWithOtp } = useAuth();
   const router = useRouter();
-
-  // Theme styles with real estate colors (blue theme)
-  const themeStyles = {
-    background: theme === 'dark' 
-      ? 'linear-gradient(135deg, #0a192f, #112240)' 
-      : 'linear-gradient(135deg, #f0f5ff, #ffffff)',
-    textColor: theme === 'dark' ? 'text-[#ccd6f6]' : 'text-[#333333]',
-    primaryColor: theme === 'dark' ? 'text-[#3b82f6]' : 'text-[#2563eb]',
-    secondaryColor: theme === 'dark' ? 'text-[#60a5fa]' : 'text-[#3b82f6]',
-    borderColor: theme === 'dark' ? 'border-[#3b82f6]' : 'border-[#2563eb]',
-    buttonBg: theme === 'dark' 
-      ? 'border-[#3b82f6] text-[#3b82f6] hover:bg-[#3b82f6] hover:text-white' 
-      : 'border-[#2563eb] text-[#2563eb] hover:bg-[#2563eb] hover:text-white',
-    cardBg: theme === 'dark' 
-      ? 'bg-gradient-to-br from-[#0a192f] to-[#112240] border-[#3b82f6]/30' 
-      : 'bg-gradient-to-br from-white to-blue-50 border-[#2563eb]/30',
-    inputBg: theme === 'dark' 
-      ? 'bg-[#0a192f] border-[#3b82f6]/50 text-white placeholder-gray-400 focus:ring-[#3b82f6]' 
-      : 'bg-white border-[#2563eb]/50 text-[#333333] focus:ring-[#2563eb]'
-  };
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -98,23 +56,23 @@ export default function LoginPage() {
       }
 
       if (user && user.role) {
-        toast.success('Login successful! Welcome back!', {
+        toast.success(isAmharic ? 'በተሳካ ሁኔታ ገብተዋል! እንኳን ደህና መጡ!' : 'Login successful! Welcome back!', {
           position: 'top-right',
           autoClose: 2000,
         });
 
-        // Role routing  for real estate management
-        if (user.role === 'admin' || user.role === 'user' || user.role === 'owner' || user.role === 'agent' || user.role === 'manager' || user.role === 'accountant') {
+        if (['admin', 'user', 'owner', 'agent', 'manager', 'accountant'].includes(user.role)) {
           router.push('/admin/dashboard');
         } else {
           router.push('/admin/customer/orders');
         }
       } else {
-        setMessage('Login failed: User data is missing');
-        toast.error('Login failed: User data is missing');
+        const errorMsg = isAmharic ? 'መግባት አልተቻለም፡ የተጠቃሚ መረጃ አልተገኘም' : 'Login failed: User data is missing';
+        setMessage(errorMsg);
+        toast.error(errorMsg);
       }
     } catch (error: any) {
-      const errorMsg = error.message || 'Login failed';
+      const errorMsg = error.message || (isAmharic ? 'መግባት አልተቻለም። እባክዎ መረጃዎን ያረጋግጡ' : 'Login failed. Please check your credentials');
       setMessage(errorMsg);
       toast.error(errorMsg);
     } finally {
@@ -124,8 +82,9 @@ export default function LoginPage() {
 
   const handleSendOtp = async () => {
     if (!phone) {
-      setMessage('Please enter your phone number');
-      toast.error('Please enter your phone number');
+      const errorMsg = isAmharic ? 'እባክዎ ስልክ ቁጥር ያስገቡ' : 'Please enter your phone number';
+      setMessage(errorMsg);
+      toast.error(errorMsg);
       return;
     }
 
@@ -133,24 +92,25 @@ export default function LoginPage() {
     setMessage('');
 
     try {
-      const response = await fetch('/api/auth/send-otp', {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:3001/api'}/auth/send-otp`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ phone }),
       });
 
+      const data = await response.json();
+
       if (response.ok) {
-        setMessage('OTP sent to your phone');
-        toast.success('OTP sent to your phone');
-        setIsOtpLogin(true);
+        const successMsg = isAmharic ? 'የማረጋገጫ ኮድ ወደ ስልክዎ ተልኳል' : 'OTP sent to your phone successfully';
+        setMessage(successMsg);
+        toast.success(successMsg);
       } else {
-        const error = await response.json();
-        const errorMsg = error.message || 'Failed to send OTP';
+        const errorMsg = data.message || (isAmharic ? 'ኮድ መላክ አልተቻለም' : 'Failed to send OTP');
         setMessage(errorMsg);
         toast.error(errorMsg);
       }
     } catch {
-      const errorMsg = 'Failed to send OTP';
+      const errorMsg = isAmharic ? 'ኮድ መላክ አልተቻለም' : 'Failed to send OTP';
       setMessage(errorMsg);
       toast.error(errorMsg);
     } finally {
@@ -158,446 +118,246 @@ export default function LoginPage() {
     }
   };
 
-  // Property types
-  const propertyTypes = [
-    { icon: <FaHome className="w-4 h-4 sm:w-5 sm:h-5" />, title: "Houses", description: "Single-family homes", color: "blue" },
-    { icon: <FaBuilding className="w-4 h-4 sm:w-5 sm:h-5" />, title: "Apartments", description: "Modern living spaces", color: "indigo" },
-    { icon: <FaCity className="w-4 h-4 sm:w-5 sm:h-5" />, title: "Villas", description: "Luxury properties", color: "purple" },
-    { icon: <FaKey className="w-4 h-4 sm:w-5 sm:h-5" />, title: "Rentals", description: "Lease options", color: "green" },
-    { icon: <FaChartLine className="w-4 h-4 sm:w-5 sm:h-5" />, title: "Commercial", description: "Business spaces", color: "orange" },
-    { icon: <FaHandshake className="w-4 h-4 sm:w-5 sm:h-5" />, title: "Investment", description: "High ROI", color: "red" },
-  ];
-
-  // Real estate features
-  const features = [
-    { icon: <FaUsers className="w-4 h-4 sm:w-5 sm:h-5" />, title: "Expert Agents", description: "Professional guidance" },
-    { icon: <FaChartLine className="w-4 h-4 sm:w-5 sm:h-5" />, title: "Market Insights", description: "Data-driven decisions" },
-    { icon: <FaHandshake className="w-4 h-4 sm:w-5 sm:h-5" />, title: "Trusted Service", description: "Since 2005" },
-    { icon: <FaShieldAlt className="w-4 h-4 sm:w-5 sm:h-5" />, title: "Secure Process", description: "Protected transactions" },
-  ];
-
   return (
-    <div className={`min-h-screen transition-colors duration-300 ${themeStyles.background} ${theme === 'dark' ? 'text-white' : 'text-[#333333]'}`}>
+    <div className={`min-h-screen transition-colors duration-200 ${
+      theme === 'dark' 
+        ? 'bg-[#0a192f] text-gray-100' 
+        : 'bg-[#f8fafc] text-gray-900'
+    }`}>
       <Navbar />
-      <div className="container mx-auto px-4 py-6 sm:py-8 pt-20 sm:pt-24">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          id="login-form"
-          className="max-w-6xl mx-auto"
-        >
-          <div className="text-center mb-8 sm:mb-12">
-            <motion.h1
-              initial={{ scale: 0.9 }}
-              animate={{ scale: 1 }}
-              transition={{ duration: 0.5 }}
-              className={`text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold mb-3 sm:mb-4 ${themeStyles.primaryColor}`}
-            >
-              RealEstate Pro Login
-            </motion.h1>
-            <p className={`text-sm sm:text-base md:text-lg ${theme === 'dark' ? 'text-[#ccd6f6]' : 'text-[#555555]'} max-w-2xl mx-auto px-2`}>
-              Access your account to manage properties, track orders, and communicate with agents.
-            </p>
-          </div>
+      
+      <ToastContainer
+        position="top-right"
+        autoClose={3000}
+        theme={theme === 'dark' ? 'dark' : 'light'}
+      />
 
-          <div className="grid lg:grid-cols-2 gap-8 sm:gap-12 items-start">
-            {/* Login Form Card */}
-            <motion.div
-              initial={{ x: -50, opacity: 0 }}
-              animate={{ x: 0, opacity: 1 }}
-              transition={{ duration: 0.6, delay: 0.1 }}
-              className={`rounded-2xl shadow-2xl p-5 sm:p-6 md:p-8 border ${themeStyles.cardBg}`}
-            >
-              <div className="flex items-center gap-3 mb-6 sm:mb-8">
-                <div className={`p-2 sm:p-3 rounded-xl ${theme === 'dark' ? 'bg-[#3b82f6]/20' : 'bg-[#2563eb]/10'}`}>
-                  <Home className={`w-6 h-6 sm:w-8 sm:h-8 ${themeStyles.primaryColor}`} />
-                </div>
-                <h2 className={`text-lg sm:text-xl md:text-2xl font-bold ${themeStyles.primaryColor}`}>
-                  Agent & Client Login
+      <div className="container mx-auto px-4 py-8 pt-20 sm:pt-24 max-w-5xl">
+        <div className="text-center mb-8 sm:mb-10">
+          <h1 className="text-2xl sm:text-4xl font-extrabold mb-2 text-blue-600 dark:text-blue-400">
+            {t('auth.signin_title', 'Sign In to Your Account')}
+          </h1>
+          <p className={`text-xs sm:text-base max-w-xl mx-auto ${
+            theme === 'dark' ? 'text-gray-300' : 'text-gray-600'
+          }`}>
+            {t('auth.signin_subtitle', 'Welcome back! Please enter your credentials to continue.')}
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+          {/* Main Form Card */}
+          <div className={`lg:col-span-7 p-6 sm:p-8 rounded-3xl border ${
+            theme === 'dark' 
+              ? 'bg-[#112240] border-slate-700 shadow-xl' 
+              : 'bg-white border-gray-200 shadow-sm'
+          }`}>
+            <div className="flex items-center gap-3 mb-6">
+              <div className={`p-2.5 rounded-xl ${
+                theme === 'dark' ? 'bg-blue-900/30 text-blue-400' : 'bg-blue-50 text-blue-600'
+              }`}>
+                <Home className="w-6 h-6" />
+              </div>
+              <div>
+                <h2 className={`text-lg sm:text-xl font-bold ${
+                  theme === 'dark' ? 'text-white' : 'text-gray-900'
+                }`}>
+                  {isAmharic ? 'የመለያ መግቢያ' : 'Portal Sign In'}
                 </h2>
+                <p className="text-xs text-gray-500 dark:text-gray-400">
+                  {isAmharic ? 'የደንበኛ፣ ወኪል ወይም አስተዳዳሪ' : 'Customer, Agent & Admin Access'}
+                </p>
+              </div>
+            </div>
+
+            {message && (
+              <div className={`mb-5 p-3.5 rounded-xl text-xs sm:text-sm font-medium ${
+                message.includes('success') || message.includes('ተሳክቷል')
+                  ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800'
+                  : 'bg-rose-100 text-rose-800 dark:bg-rose-950/40 dark:text-rose-300 border border-rose-200 dark:border-rose-800'
+              }`}>
+                {message}
+              </div>
+            )}
+
+            <form onSubmit={handleLogin} className="space-y-4 sm:space-y-5">
+              {/* Phone Input */}
+              <div>
+                <label className="block text-xs font-semibold mb-1 text-gray-700 dark:text-gray-300">
+                  {t('auth.phone', 'Phone Number')} *
+                </label>
+                <div className="relative">
+                  <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center text-xs font-bold text-gray-500 dark:text-gray-400">
+                    +251
+                  </span>
+                  <input
+                    type="tel"
+                    required
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value.replace(/\D/g, ''))}
+                    placeholder="912345678"
+                    className={`w-full pl-14 pr-4 py-2.5 sm:py-3 rounded-xl border text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all ${
+                      theme === 'dark' 
+                        ? 'bg-slate-800 border-slate-700 text-white placeholder-gray-500' 
+                        : 'bg-white border-gray-300 text-gray-900 placeholder-gray-400'
+                    }`}
+                  />
+                </div>
               </div>
 
-              <p className={`text-xs sm:text-sm mb-5 sm:mb-6 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
-                Sign in to browse properties, manage listings, or track your real estate investments.
-              </p>
-
-              {message && (
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  className={`mb-5 sm:mb-6 p-3 sm:p-4 rounded-lg text-sm ${
-                    message.includes('sent') || message.includes('success')
-                      ? 'bg-green-100 text-green-800 border border-green-200'
-                      : 'bg-red-100 text-red-800 border border-red-200'
-                  } ${theme === 'dark' ? 'bg-opacity-20' : ''}`}
-                >
-                  {message}
-                </motion.div>
-              )}
-
-              <form className="space-y-5 sm:space-y-6" onSubmit={handleLogin}>
-                {/* Phone Number */}
+              {!isOtpLogin ? (
+                /* Password Input */
                 <div>
-                  <label
-                    htmlFor="phone"
-                    className={`block text-xs sm:text-sm font-medium mb-1.5 sm:mb-2 ${theme === 'dark' ? 'text-[#ccd6f6]' : 'text-gray-700'}`}
-                  >
-                    Phone Number *
-                  </label>
+                  <div className="flex justify-between items-center mb-1">
+                    <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300">
+                      {t('auth.password', 'Password')} *
+                    </label>
+                    <Link
+                      href="/auth/forgot-password"
+                      className="text-xs font-semibold text-blue-600 dark:text-blue-400 hover:underline"
+                    >
+                      {t('auth.forgot_password', 'Forgot password?')}
+                    </Link>
+                  </div>
                   <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <span className={`${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'} text-xs sm:text-sm`}>+251</span>
-                    </div>
                     <input
-                      id="phone"
-                      name="phone"
-                      type="tel"
+                      type={showPassword ? 'text' : 'password'}
                       required
-                      className={`w-full pl-14 sm:pl-16 px-3 sm:px-4 py-2.5 sm:py-3 border rounded-lg focus:outline-none focus:ring-2 focus:border-transparent transition-colors duration-300 text-sm sm:text-base ${themeStyles.inputBg}`}
-                      placeholder="912345678"
-                      value={phone}
-                      onChange={(e) => setPhone(e.target.value)}
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      placeholder="••••••••"
+                      className={`w-full px-4 py-2.5 sm:py-3 rounded-xl border text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all ${
+                        theme === 'dark' 
+                          ? 'bg-slate-800 border-slate-700 text-white placeholder-gray-500' 
+                          : 'bg-white border-gray-300 text-gray-900 placeholder-gray-400'
+                      }`}
                     />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
+                    >
+                      {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
                   </div>
                 </div>
-
-                {/* Password or OTP */}
-                {!isOtpLogin ? (
-                  <div>
-                    <div className="flex items-center justify-between mb-1.5 sm:mb-2">
-                      <label
-                        htmlFor="password"
-                        className={`block text-xs sm:text-sm font-medium ${theme === 'dark' ? 'text-[#ccd6f6]' : 'text-gray-700'}`}
-                      >
-                        Password *
-                      </label>
-                      <Link
-                        href="/forgot-password"
-                        className={`text-xs ${themeStyles.primaryColor} hover:underline`}
-                      >
-                        Forgot password?
-                      </Link>
-                    </div>
-                    <div className="relative">
-                      <input
-                        id="password"
-                        name="password"
-                        type={showPassword ? 'text' : 'password'}
-                        required
-                        className={`w-full px-3 sm:px-4 py-2.5 sm:py-3 border rounded-lg focus:outline-none focus:ring-2 focus:border-transparent transition-colors duration-300 pr-10 sm:pr-12 text-sm sm:text-base ${themeStyles.inputBg}`}
-                        placeholder="Enter your password"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setShowPassword((prev) => !prev)}
-                        className={`absolute inset-y-0 right-2 sm:right-3 flex items-center ${
-                          theme === 'dark' ? 'text-gray-400 hover:text-[#3b82f6]' : 'text-gray-500 hover:text-[#2563eb]'
-                        }`}
-                      >
-                        {showPassword ? (
-                          <EyeOff className="h-4 w-4 sm:h-5 sm:w-5" />
-                        ) : (
-                          <Eye className="h-4 w-4 sm:h-5 sm:w-5" />
-                        )}
-                      </button>
-                    </div>
-                  </div>
-                ) : (
-                  <div>
-                    <label
-                      htmlFor="otp"
-                      className={`block text-xs sm:text-sm font-medium mb-1.5 sm:mb-2 ${theme === 'dark' ? 'text-[#ccd6f6]' : 'text-gray-700'}`}
-                    >
-                      OTP Code *
-                    </label>
+              ) : (
+                /* OTP Input */
+                <div>
+                  <label className="block text-xs font-semibold mb-1 text-gray-700 dark:text-gray-300">
+                    {isAmharic ? 'የማረጋገጫ ኮድ (OTP) *' : 'Enter OTP Code *'}
+                  </label>
+                  <div className="flex gap-2">
                     <input
-                      id="otp"
-                      name="otp"
                       type="text"
                       required
-                      className={`w-full px-3 sm:px-4 py-2.5 sm:py-3 border rounded-lg focus:outline-none focus:ring-2 focus:border-transparent transition-colors duration-300 text-sm sm:text-base ${themeStyles.inputBg}`}
-                      placeholder="Enter 6-digit OTP"
                       value={otp}
                       onChange={(e) => setOtp(e.target.value)}
+                      placeholder="123456"
+                      className={`flex-1 px-4 py-2.5 sm:py-3 rounded-xl border text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all ${
+                        theme === 'dark' 
+                          ? 'bg-slate-800 border-slate-700 text-white placeholder-gray-500' 
+                          : 'bg-white border-gray-300 text-gray-900 placeholder-gray-400'
+                      }`}
                     />
-                    <p className="text-xs mt-1 text-gray-500">
-                      We've sent a one-time password to your phone
-                    </p>
-                  </div>
-                )}
-
-                {/* Submit Button */}
-                <button
-                  type="submit"
-                  disabled={isLoading}
-                  className={`w-full px-5 sm:px-6 py-2.5 sm:py-3 rounded-lg font-semibold text-sm sm:text-base md:text-lg shadow-lg hover:shadow-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed ${
-                    theme === 'dark'
-                      ? 'bg-gradient-to-r from-[#3b82f6] to-[#2563eb] text-white hover:opacity-90'
-                      : 'bg-gradient-to-r from-[#2563eb] to-[#1d4ed8] text-white hover:opacity-90'
-                  }`}
-                >
-                  {isLoading ? (
-                    <span className="flex items-center justify-center">
-                      <svg
-                        className="animate-spin -ml-1 mr-2 h-4 w-4 sm:h-5 sm:w-5"
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                      >
-                        <circle
-                          className="opacity-25"
-                          cx="12"
-                          cy="12"
-                          r="10"
-                          stroke="currentColor"
-                          strokeWidth="4"
-                        ></circle>
-                        <path
-                          className="opacity-75"
-                          fill="currentColor"
-                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 
-                          3.042 1.135 5.824 3 7.938l3-2.647z"
-                        ></path>
-                      </svg>
-                      Signing in...
-                    </span>
-                  ) : (
-                    'Sign in to Your Account'
-                  )}
-                </button>
-
-                {/* OTP Option */}
-                {!isOtpLogin && (
-                  <div className="pt-4 border-t border-gray-700/30">
                     <button
                       type="button"
                       onClick={handleSendOtp}
                       disabled={isLoading}
-                      className={`w-full px-5 sm:px-6 py-2.5 sm:py-3 border-2 rounded-lg font-medium text-sm sm:text-base transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed ${themeStyles.buttonBg}`}
+                      className="px-4 py-2.5 rounded-xl border border-blue-600 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/30 text-xs font-bold shrink-0 transition-colors"
                     >
-                      <div className="flex items-center justify-center gap-2">
-                        <Bell className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                        Login with OTP
-                      </div>
+                      {t('auth.send_otp', 'Send OTP')}
                     </button>
                   </div>
-                )}
-              </form>
+                </div>
+              )}
+
+              {/* Login Button */}
+              <button
+                type="submit"
+                disabled={isLoading}
+                className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold text-sm sm:text-base shadow-md transition-all disabled:opacity-50"
+              >
+                {isLoading 
+                  ? (isAmharic ? 'በመግባት ላይ...' : 'Signing in...') 
+                  : (isAmharic ? 'ግባ' : 'Sign In')}
+              </button>
+
+              {/* OTP Login Toggle */}
+              <div className="text-center pt-2">
+                <button
+                  type="button"
+                  onClick={() => setIsOtpLogin(!isOtpLogin)}
+                  className="text-xs font-semibold text-blue-600 dark:text-blue-400 hover:underline"
+                >
+                  {isOtpLogin 
+                    ? (isAmharic ? 'በይለፍ ቃል ግባ' : 'Sign in with Password instead') 
+                    : (isAmharic ? 'በስልክ ኮድ (OTP) ግባ' : 'Sign in with OTP code')}
+                </button>
+              </div>
 
               {/* Register Link */}
-              <div className="mt-6 sm:mt-8 pt-5 sm:pt-6 border-t border-gray-700/30">
-                <p className={`text-center ${theme === 'dark' ? 'text-[#ccd6f6]' : 'text-gray-600'} text-xs sm:text-sm`}>
-                  Don't have an account?{' '}
-                  <Link
-                    href="/auth/register"
-                    className={`font-semibold ${
-                      theme === 'dark' ? 'text-[#3b82f6] hover:text-blue-300' : 'text-[#2563eb] hover:text-blue-700'
-                    } transition duration-200`}
-                  >
-                    Create an account
-                  </Link>
-                </p>
+              <div className="text-center pt-3 border-t border-gray-100 dark:border-slate-800 text-xs sm:text-sm">
+                <span className="text-gray-500 dark:text-gray-400">
+                  {t('auth.no_account', "Don't have an account?")}{' '}
+                </span>
+                <Link
+                  href="/auth/register"
+                  className="font-bold text-blue-600 dark:text-blue-400 hover:underline ml-1"
+                >
+                  {t('auth.signup_title', 'Create an Account')}
+                </Link>
               </div>
-            </motion.div>
+            </form>
+          </div>
 
-            {/* Real Estate Features Section */}
-            <motion.div
-              initial={{ x: 50, opacity: 0 }}
-              animate={{ x: 0, opacity: 1 }}
-              transition={{ duration: 0.6, delay: 0.2 }}
-              className="space-y-5 sm:space-y-6"
-            >
-              {/* Real Estate Image */}
-              <div className={`rounded-2xl overflow-hidden shadow-2xl ${themeStyles.cardBg} border`}>
-                <div className="relative h-48 sm:h-56 md:h-64">
-                  <Image
-                    src={images.office || '/api/placeholder/600/300'}
-                    alt="Real Estate Office"
-                    fill
-                    className="object-cover"
-                    sizes="(max-width: 768px) 100vw, 50vw"
-                  />
-                  <div className={`absolute inset-0 ${
-                    theme === 'dark' ? 'bg-black/40' : 'bg-black/20'
-                  }`}></div>
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="text-center p-4 sm:p-6 md:p-8">
-                      <h3 className={`text-lg sm:text-xl md:text-2xl font-bold mb-1 sm:mb-2 ${themeStyles.primaryColor}`}>
-                        Welcome to RealEstate Pro
-                      </h3>
-                      <p className={`text-xs sm:text-sm md:text-base ${theme === 'dark' ? 'text-gray-200' : 'text-gray-700'}`}>
-                        Your trusted partner in real estate since 2005
+          {/* Right Info Section */}
+          <div className="lg:col-span-5 space-y-4">
+            <div className={`p-6 rounded-3xl border ${
+              theme === 'dark' ? 'bg-[#112240] border-slate-700' : 'bg-white border-gray-200 shadow-sm'
+            }`}>
+              <h3 className={`text-base font-bold mb-3 ${
+                theme === 'dark' ? 'text-white' : 'text-gray-900'
+              }`}>
+                {isAmharic ? 'የመድረካችን ጥቅሞች' : 'Platform Benefits'}
+              </h3>
+              <div className="space-y-3.5">
+                {[
+                  { icon: <FaHome className="text-blue-500" />, title: isAmharic ? 'የተረጋገጡ ቤቶች' : 'Verified Listings', desc: isAmharic ? '100% ህጋዊ ሰነድ ያላቸው ምርጥ ቤቶች' : 'Accurate details and verified ownership' },
+                  { icon: <FaShieldAlt className="text-emerald-500" />, title: isAmharic ? 'አስተማማኝ ግብይት' : 'Secure Transactions', desc: isAmharic ? 'በህግ አግባብ የተጠበቀ የክፍያ እና የውል አሰራር' : 'Protected data and safe payment channels' },
+                  { icon: <FaUsers className="text-purple-500" />, title: isAmharic ? 'የወሰኑ ወኪሎች' : 'Dedicated Agents', desc: isAmharic ? 'በማንኛውም ሰዓት ድጋፍ የሚሰጥ የባለሙያ ቡድን' : 'Expert real estate advice whenever you need' },
+                ].map((item, idx) => (
+                  <div key={idx} className="flex gap-3 items-start">
+                    <div className={`p-2 rounded-xl shrink-0 mt-0.5 ${
+                      theme === 'dark' ? 'bg-slate-800' : 'bg-blue-50'
+                    }`}>
+                      {item.icon}
+                    </div>
+                    <div>
+                      <h4 className={`text-xs sm:text-sm font-bold ${
+                        theme === 'dark' ? 'text-white' : 'text-gray-900'
+                      }`}>
+                        {item.title}
+                      </h4>
+                      <p className={`text-[11px] sm:text-xs ${
+                        theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
+                      }`}>
+                        {item.desc}
                       </p>
                     </div>
                   </div>
-                </div>
-              </div>
-
-              {/* Property Types */}
-              <div className={`rounded-2xl shadow-xl p-4 sm:p-5 md:p-6 ${themeStyles.cardBg} border`}>
-                <h3 className={`text-base sm:text-lg md:text-xl font-bold mb-4 sm:mb-6 ${themeStyles.primaryColor}`}>
-                  Property Types
-                </h3>
-                <div className="grid grid-cols-3 gap-2 sm:gap-3 md:gap-4">
-                  {propertyTypes.map((type, index) => (
-                    <motion.div
-                      key={index}
-                      whileHover={{ scale: 1.05 }}
-                      className={`p-2 sm:p-3 rounded-xl text-center ${
-                        theme === 'dark' 
-                          ? 'bg-white/5 hover:bg-white/10' 
-                          : 'bg-blue-50 hover:bg-blue-100'
-                      } transition-colors duration-300`}
-                    >
-                      <div className={`inline-flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 rounded-full mb-1 sm:mb-2 ${
-                        theme === 'dark' ? 'bg-[#3b82f6]/20' : 'bg-[#2563eb]/10'
-                      }`}>
-                        <span className={themeStyles.primaryColor}>
-                          {type.icon}
-                        </span>
-                      </div>
-                      <div className="text-xs sm:text-sm font-medium truncate">
-                        {type.title}
-                      </div>
-                      <div className="text-[10px] sm:text-xs text-gray-500 truncate">
-                        {type.description}
-                      </div>
-                    </motion.div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Real Estate Features */}
-              <div className={`rounded-2xl shadow-xl p-4 sm:p-5 md:p-6 ${themeStyles.cardBg} border`}>
-                <h3 className={`text-base sm:text-lg md:text-xl font-bold mb-4 sm:mb-6 ${themeStyles.primaryColor}`}>
-                  Why Choose RealEstate Pro?
-                </h3>
-                <div className="grid grid-cols-2 gap-2 sm:gap-3 md:gap-4">
-                  {features.map((feature, index) => (
-                    <div
-                      key={index}
-                      className={`p-2 sm:p-3 rounded-lg flex items-start gap-2 sm:gap-3 ${
-                        theme === 'dark' 
-                          ? 'bg-white/5' 
-                          : 'bg-white'
-                      }`}
-                    >
-                      <div className={`p-1.5 sm:p-2 rounded-full flex-shrink-0 ${theme === 'dark' ? 'bg-[#3b82f6]/20' : 'bg-[#2563eb]/10'}`}>
-                        <span className={themeStyles.primaryColor}>
-                          {feature.icon}
-                        </span>
-                      </div>
-                      <div className="min-w-0">
-                        <div className="font-medium text-xs sm:text-sm">{feature.title}</div>
-                        <div className="text-[10px] sm:text-xs text-gray-500">{feature.description}</div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Quick Access */}
-              <div className={`rounded-2xl shadow-xl p-4 sm:p-5 md:p-6 ${themeStyles.cardBg} border`}>
-                <h3 className={`text-base sm:text-lg md:text-xl font-bold mb-3 sm:mb-4 ${themeStyles.primaryColor}`}>
-                  Quick Access
-                </h3>
-                <div className="grid grid-cols-2 gap-2 sm:gap-3 md:gap-4">
-                  <Link
-                    href="/public/houses"
-                    className={`p-3 sm:p-4 rounded-xl text-center transition-all duration-300 ${
-                      theme === 'dark'
-                        ? 'bg-[#3b82f6]/10 hover:bg-[#3b82f6]/20 border border-[#3b82f6]/30'
-                        : 'bg-[#2563eb]/10 hover:bg-[#2563eb]/20 border border-[#2563eb]/30'
-                    }`}
-                  >
-                    <div className={`font-semibold text-xs sm:text-sm ${themeStyles.primaryColor}`}>Browse Properties</div>
-                    <div className="text-[10px] sm:text-xs mt-1 opacity-75">Find your dream home</div>
-                  </Link>
-                  <Link
-                    href="/about"
-                    className={`p-3 sm:p-4 rounded-xl text-center transition-all duration-300 ${
-                      theme === 'dark'
-                        ? 'bg-white/5 hover:bg-white/10 border border-white/10'
-                        : 'bg-gray-100 hover:bg-gray-200 border border-gray-200'
-                    }`}
-                  >
-                    <div className="font-semibold text-xs sm:text-sm">About Us</div>
-                    <div className="text-[10px] sm:text-xs mt-1 opacity-75">Our story & values</div>
-                  </Link>
-                </div>
-              </div>
-            </motion.div>
-          </div>
-
-          {/* Office Hours */}
-          <div className={`mt-8 sm:mt-12 p-5 sm:p-6 rounded-2xl ${themeStyles.cardBg} border`}>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 sm:gap-6">
-              <div className="text-center">
-                <div className={`inline-flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 rounded-full mb-2 sm:mb-4 ${
-                  theme === 'dark' ? 'bg-[#3b82f6]/20' : 'bg-[#2563eb]/10'
-                }`}>
-                  <Clock className={`w-5 h-5 sm:w-6 sm:h-6 ${themeStyles.primaryColor}`} />
-                </div>
-                <h4 className={`font-bold text-sm sm:text-base mb-1 sm:mb-2 ${themeStyles.primaryColor}`}>Office Hours</h4>
-                <p className="text-xs sm:text-sm text-gray-500">
-                  Mon-Fri: 9AM - 6PM<br />
-                  Sat: 10AM - 4PM<br />
-                  Sun: By Appointment
-                </p>
-              </div>
-              <div className="text-center">
-                <div className={`inline-flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 rounded-full mb-2 sm:mb-4 ${
-                  theme === 'dark' ? 'bg-[#3b82f6]/20' : 'bg-[#2563eb]/10'
-                }`}>
-                  <PhoneIcon className={`w-5 h-5 sm:w-6 sm:h-6 ${themeStyles.primaryColor}`} />
-                </div>
-                <h4 className={`font-bold text-sm sm:text-base mb-1 sm:mb-2 ${themeStyles.primaryColor}`}>Contact</h4>
-                <p className="text-xs sm:text-sm text-gray-500">
-                  Phone: (123) 456-7890<br />
-                  Email: info@realestatepro.com<br />
-                  24/7 Virtual Consultations
-                </p>
-              </div>
-              <div className="text-center">
-                <div className={`inline-flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 rounded-full mb-2 sm:mb-4 ${
-                  theme === 'dark' ? 'bg-[#3b82f6]/20' : 'bg-[#2563eb]/10'
-                }`}>
-                  <MapPin className={`w-5 h-5 sm:w-6 sm:h-6 ${themeStyles.primaryColor}`} />
-                </div>
-                <h4 className={`font-bold text-sm sm:text-base mb-1 sm:mb-2 ${themeStyles.primaryColor}`}>Location</h4>
-                <p className="text-xs sm:text-sm text-gray-500">
-                  123 Real Estate Avenue<br />
-                  Downtown District<br />
-                  City Center, CC 12345
-                </p>
+                ))}
               </div>
             </div>
-          </div>
 
-          {/* Terms */}
-          <div className="mt-6 sm:mt-8 text-center">
-            <p className={`text-[10px] sm:text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
-              By signing in, you agree to our{' '}
-              <Link
-                href="/terms-of-service"
-                className={`${theme === 'dark' ? 'text-[#3b82f6]' : 'text-[#2563eb]'} hover:underline`}
-              >
-                Terms of Service
-              </Link>{' '}
-              and{' '}
-              <Link
-                href="/privacy-policy"
-                className={`${theme === 'dark' ? 'text-[#3b82f6]' : 'text-[#2563eb]'} hover:underline`}
-              >
-                Privacy Policy
-              </Link>
-            </p>
+            {/* Support Note */}
+            <div className="p-4 rounded-2xl bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-900/50 text-xs text-blue-900 dark:text-blue-300">
+              <span className="font-bold block mb-1">{isAmharic ? 'የእርዳታ መስመር' : 'Need help signing in?'}</span>
+              <span>{isAmharic ? 'ለማንኛውም እገዛ በ +251 906 974 055 ይደውሉልን።' : 'Call our dedicated support desk at +251 906 974 055.'}</span>
+            </div>
           </div>
-        </motion.div>
+        </div>
       </div>
+
       <Footer />
     </div>
   );

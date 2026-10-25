@@ -11,7 +11,9 @@ import {
 } from '@mui/material';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTheme } from '@/lib/theme-context';
+import { useLanguage } from '@/lib/language-context';
 import Navbar from '@/components/ui/Navbar';
+import Footer from '@/components/ui/Footer';
 import {
   Home, LocationOn, AttachMoney, Bed, Bathtub,
   SquareFoot, ArrowBack, Visibility,
@@ -38,6 +40,7 @@ import Link from 'next/link';
 
 export default function PublicHouseDetailPage() {
   const { theme } = useTheme();
+  const { t, isAmharic } = useLanguage();
   const isMobile = useMediaQuery('(max-width: 768px)');
   const params = useParams();
   const router = useRouter();
@@ -239,17 +242,17 @@ export default function PublicHouseDetailPage() {
             startIcon={<ArrowBack />}
             sx={{ textTransform: 'none', color: 'text.secondary', fontWeight: 600 }}
           >
-            Back to Search
+            {isAmharic ? 'ወደ ፍለጋ ተመለስ' : 'Back to Search'}
           </Button>
 
           {/* Social Share & Like Buttons */}
           <Box sx={{ display: 'flex', gap: 1 }}>
-            <Tooltip title="Share Listing">
+            <Tooltip title={isAmharic ? 'አጋራ' : 'Share Listing'}>
               <IconButton onClick={handleShare} sx={{ border: '1px solid', borderColor: 'divider' }}>
                 <Share fontSize="small" />
               </IconButton>
             </Tooltip>
-            <Tooltip title={isLiked ? 'Remove from favorites' : 'Add to favorites'}>
+            <Tooltip title={isLiked ? (isAmharic ? 'ከተወዳጅ አስወግድ' : 'Remove from favorites') : (isAmharic ? 'ወደ ተወዳጅ አስገባ' : 'Add to favorites')}>
               <IconButton
                 onClick={handleLikeToggle}
                 sx={{
@@ -261,7 +264,7 @@ export default function PublicHouseDetailPage() {
                 {isLiked ? <Favorite fontSize="small" /> : <FavoriteBorder fontSize="small" />}
               </IconButton>
             </Tooltip>
-            <Tooltip title="Report Misleading Information">
+            <Tooltip title={isAmharic ? 'ስህተት ጥቆማ' : 'Report Misleading Information'}>
               <IconButton onClick={() => setReportModalOpen(true)} sx={{ border: '1px solid', borderColor: 'divider' }}>
                 <Flag fontSize="small" sx={{ color: 'text.secondary' }} />
               </IconButton>
@@ -271,11 +274,11 @@ export default function PublicHouseDetailPage() {
 
         {/* Title, Badges & Price Bar */}
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 2, mb: 3 }}>
-          <Box sx={{ flex: 1, minWidth: 300 }}>
+          <Box sx={{ flex: 1, minWidth: { xs: '100%', sm: 300 } }}>
             {/* Badges Row */}
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1, flexWrap: 'wrap' }}>
               <Chip
-                label={isForSale ? 'For Sale' : isShortStay ? 'Short Stay' : 'For Rent'}
+                label={isForSale ? (isAmharic ? 'የሚሸጥ' : 'For Sale') : isShortStay ? (isAmharic ? 'የአጭር ጊዜ' : 'Short Stay') : (isAmharic ? 'የሚከራይ' : 'For Rent')}
                 sx={{
                   bgcolor: isForSale ? '#10b981' : '#06b6d4',
                   color: 'white',
@@ -290,7 +293,7 @@ export default function PublicHouseDetailPage() {
               {house.isVerified && (
                 <Chip
                   icon={<Verified sx={{ fontSize: '16px !important', color: 'white' }} />}
-                  label="Official Verified Listing"
+                  label={isAmharic ? 'የተረጋገጠ ይፋዊ ማስታወቂያ' : 'Official Verified Listing'}
                   sx={{ bgcolor: '#0284c7', color: 'white', fontWeight: 700, fontSize: 12 }}
                 />
               )}
@@ -302,7 +305,7 @@ export default function PublicHouseDetailPage() {
               )}
             </Box>
 
-            <Typography variant="h4" sx={{ fontWeight: 800, color: 'text.primary', mb: 0.5, lineHeight: 1.2 }}>
+            <Typography variant="h4" sx={{ fontWeight: 800, color: 'text.primary', mb: 0.5, lineHeight: 1.2, fontSize: { xs: '1.5rem', sm: '2rem' } }}>
               {house.title}
             </Typography>
 
@@ -315,16 +318,16 @@ export default function PublicHouseDetailPage() {
           </Box>
 
           {/* Pricing Box */}
-          <Box sx={{ textAlign: { xs: 'left', sm: 'right' } }}>
+          <Box sx={{ textAlign: { xs: 'left', sm: 'right' }, width: { xs: '100%', sm: 'auto' } }}>
             <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600 }}>
-              {isForSale ? 'Asking Purchase Price' : 'Monthly Rental Rate'}
+              {isForSale ? (isAmharic ? 'የመሸጫ ዋጋ' : 'Asking Purchase Price') : (isAmharic ? 'የወር ኪራይ ዋጋ' : 'Monthly Rental Rate')}
             </Typography>
-            <Typography variant="h3" sx={{ fontWeight: 900, color: '#06b6d4', lineHeight: 1 }}>
+            <Typography variant="h3" sx={{ fontWeight: 900, color: '#06b6d4', lineHeight: 1, fontSize: { xs: '2rem', sm: '2.5rem' } }}>
               ETB {house.pricing.price.toLocaleString()}
             </Typography>
             {!isForSale && house.pricing.securityDeposit > 0 && (
               <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mt: 0.5 }}>
-                Security Deposit: ETB {house.pricing.securityDeposit.toLocaleString()}
+                {isAmharic ? 'የዋስትና ገንዘብ:' : 'Security Deposit:'} ETB {house.pricing.securityDeposit.toLocaleString()}
               </Typography>
             )}
           </Box>
@@ -381,7 +384,7 @@ export default function PublicHouseDetailPage() {
                 color: activeMediaTab === 'images' ? 'white' : 'text.primary'
               }}
             >
-              Photo Gallery ({house.images?.length || 1})
+              {isAmharic ? 'የፎቶ ማሳያ' : 'Photo Gallery'} ({house.images?.length || 1})
             </Button>
 
             {house.panoramic360?.enabled && (
@@ -396,7 +399,7 @@ export default function PublicHouseDetailPage() {
                   color: activeMediaTab === '360' ? 'white' : 'text.primary'
                 }}
               >
-                360° Virtual Tour
+                {isAmharic ? '360° ምናባዊ እይታ' : '360° Virtual Tour'}
               </Button>
             )}
 
@@ -412,7 +415,7 @@ export default function PublicHouseDetailPage() {
                   color: activeMediaTab === '3d' ? 'white' : 'text.primary'
                 }}
               >
-                3D Interactive Model
+                {isAmharic ? '3D በይነተገናኝ ሞዴል' : '3D Interactive Model'}
               </Button>
             )}
 
@@ -427,7 +430,7 @@ export default function PublicHouseDetailPage() {
                 color: activeMediaTab === 'floorplan' ? 'white' : 'text.primary'
               }}
             >
-              Floor Plan & Dimensions
+              {isAmharic ? 'የቤት ንድፍ እና ስፋት' : 'Floor Plan & Dimensions'}
             </Button>
 
             {house.videoUrl && (
@@ -442,7 +445,7 @@ export default function PublicHouseDetailPage() {
                   color: activeMediaTab === 'video' ? 'white' : 'text.primary'
                 }}
               >
-                Walkthrough Video
+                {isAmharic ? 'የቪዲዮ እይታ' : 'Walkthrough Video'}
               </Button>
             )}
           </Box>
@@ -583,7 +586,7 @@ export default function PublicHouseDetailPage() {
               <Paper elevation={0} sx={{ p: 2, borderRadius: 2.5, bgcolor: 'background.paper', border: '1px solid', borderColor: 'divider' }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, color: 'text.secondary', mb: 0.5 }}>
                   <Bed fontSize="small" sx={{ color: '#06b6d4' }} />
-                  <Typography variant="caption" sx={{ fontWeight: 600 }}>Bedrooms</Typography>
+                  <Typography variant="caption" sx={{ fontWeight: 600 }}>{isAmharic ? 'መኝታ ቤቶች' : 'Bedrooms'}</Typography>
                 </Box>
                 <Typography variant="h6" sx={{ fontWeight: 800 }}>{house.details.bedrooms}</Typography>
               </Paper>
@@ -591,7 +594,7 @@ export default function PublicHouseDetailPage() {
               <Paper elevation={0} sx={{ p: 2, borderRadius: 2.5, bgcolor: 'background.paper', border: '1px solid', borderColor: 'divider' }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, color: 'text.secondary', mb: 0.5 }}>
                   <Bathtub fontSize="small" sx={{ color: '#06b6d4' }} />
-                  <Typography variant="caption" sx={{ fontWeight: 600 }}>Bathrooms</Typography>
+                  <Typography variant="caption" sx={{ fontWeight: 600 }}>{isAmharic ? 'መታጠቢያ ቤቶች' : 'Bathrooms'}</Typography>
                 </Box>
                 <Typography variant="h6" sx={{ fontWeight: 800 }}>{house.details.bathrooms}</Typography>
               </Paper>
@@ -599,7 +602,7 @@ export default function PublicHouseDetailPage() {
               <Paper elevation={0} sx={{ p: 2, borderRadius: 2.5, bgcolor: 'background.paper', border: '1px solid', borderColor: 'divider' }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, color: 'text.secondary', mb: 0.5 }}>
                   <SquareFoot fontSize="small" sx={{ color: '#06b6d4' }} />
-                  <Typography variant="caption" sx={{ fontWeight: 600 }}>Total Area</Typography>
+                  <Typography variant="caption" sx={{ fontWeight: 600 }}>{isAmharic ? 'ጠቅላላ ስፋት' : 'Total Area'}</Typography>
                 </Box>
                 <Typography variant="h6" sx={{ fontWeight: 800 }}>{house.details.area} m²</Typography>
               </Paper>
@@ -607,16 +610,16 @@ export default function PublicHouseDetailPage() {
               <Paper elevation={0} sx={{ p: 2, borderRadius: 2.5, bgcolor: 'background.paper', border: '1px solid', borderColor: 'divider' }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, color: 'text.secondary', mb: 0.5 }}>
                   <LocalParking fontSize="small" sx={{ color: '#06b6d4' }} />
-                  <Typography variant="caption" sx={{ fontWeight: 600 }}>Parking</Typography>
+                  <Typography variant="caption" sx={{ fontWeight: 600 }}>{isAmharic ? 'መኪና ማቆሚያ' : 'Parking'}</Typography>
                 </Box>
-                <Typography variant="h6" sx={{ fontWeight: 800 }}>{house.details.parkingSpaces || 1} Slots</Typography>
+                <Typography variant="h6" sx={{ fontWeight: 800 }}>{house.details.parkingSpaces || 1} {isAmharic ? 'ቦታ' : 'Slots'}</Typography>
               </Paper>
             </Box>
 
             {/* Description */}
             <Paper elevation={0} sx={{ p: 3, borderRadius: 3, bgcolor: 'background.paper', border: '1px solid', borderColor: 'divider', mb: 4 }}>
               <Typography variant="h6" sx={{ fontWeight: 700, mb: 1.5 }}>
-                About this Property
+                {isAmharic ? 'ስለ ንብረቱ ዝርዝር መረጃ' : 'About this Property'}
               </Typography>
               <Typography variant="body1" sx={{ color: 'text.secondary', lineHeight: 1.8, whiteSpace: 'pre-line' }}>
                 {house.description}
@@ -750,7 +753,7 @@ export default function PublicHouseDetailPage() {
             {/* Primary Action Card */}
             <Paper elevation={0} sx={{ p: 3, borderRadius: 3, bgcolor: 'background.paper', border: '1px solid', borderColor: 'divider' }}>
               <Typography variant="h6" sx={{ fontWeight: 700, mb: 2 }}>
-                Interested in this Property?
+                {isAmharic ? 'ይህን ንብረት ወደዱት?' : 'Interested in this Property?'}
               </Typography>
 
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
@@ -762,15 +765,13 @@ export default function PublicHouseDetailPage() {
                   startIcon={<CalendarToday />}
                   onClick={() => setAppointmentModalOpen(true)}
                   sx={{
-                    bgcolor: '#06b6d4',
-                    '&:hover': { bgcolor: '#0891b2' },
                     borderRadius: 2.5,
                     py: 1.4,
                     fontWeight: 700,
                     textTransform: 'none'
                   }}
                 >
-                  Schedule Viewing Tour
+                  {isAmharic ? 'የጉብኝት ቀጠሮ ይያዙ' : 'Schedule Viewing Tour'}
                 </Button>
 
                 {/* 2. For Sale: Submit Purchase Offer */}
@@ -779,18 +780,17 @@ export default function PublicHouseDetailPage() {
                     variant="contained"
                     fullWidth
                     size="large"
+                    color="success"
                     startIcon={<LocalOffer />}
                     onClick={() => setOfferModalOpen(true)}
                     sx={{
-                      bgcolor: '#10b981',
-                      '&:hover': { bgcolor: '#059669' },
                       borderRadius: 2.5,
                       py: 1.4,
                       fontWeight: 700,
                       textTransform: 'none'
                     }}
                   >
-                    Make a Purchase Offer
+                    {isAmharic ? 'የግዢ ጥያቄ ያቅርቡ' : 'Make a Purchase Offer'}
                   </Button>
                 ) : (
                   /* For Rent: Apply for Rental */
@@ -798,18 +798,17 @@ export default function PublicHouseDetailPage() {
                     variant="contained"
                     fullWidth
                     size="large"
+                    color="success"
                     startIcon={<Description />}
                     onClick={() => setRentalApplicationOpen(true)}
                     sx={{
-                      bgcolor: '#10b981',
-                      '&:hover': { bgcolor: '#059669' },
                       borderRadius: 2.5,
                       py: 1.4,
                       fontWeight: 700,
                       textTransform: 'none'
                     }}
                   >
-                    Apply for Rental Lease
+                    {isAmharic ? 'የኪራይ ውል ያመልክቱ' : 'Apply for Rental Lease'}
                   </Button>
                 )}
 
@@ -821,7 +820,7 @@ export default function PublicHouseDetailPage() {
                   onClick={() => setMessageModalOpen(true)}
                   sx={{ borderRadius: 2.5, py: 1.2, textTransform: 'none', fontWeight: 600 }}
                 >
-                  Send Direct Inquiry
+                  {isAmharic ? 'ቀጥታ ጥያቄ ይላኩ' : 'Send Direct Inquiry'}
                 </Button>
               </Box>
             </Paper>
@@ -1064,6 +1063,8 @@ export default function PublicHouseDetailPage() {
         onClose={() => setSnackbarMessage('')}
         message={snackbarMessage}
       />
+
+      <Footer />
     </Box>
   );
 }

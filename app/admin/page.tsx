@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import api from '@/app/utils/api';
 import { useTheme } from '@/lib/theme-context';
+import { useLanguage } from '@/lib/language-context';
 import type { Role } from '@/lib/menu-types';
 
 // ─── Types ──────────────────────────────────────────────────────────
@@ -213,6 +214,7 @@ const ROLE_CONTENT: Record<Role, RoleContent> = {
 // ─── Component ─────────────────────────────────────────────────────
 export default function Dashboard() {
   const { theme } = useTheme();
+  const { t, isAmharic } = useLanguage();
   const { user, isLoading } = useAuth();
   const router = useRouter();
 
@@ -282,14 +284,14 @@ export default function Dashboard() {
         setError('');
       } catch (err: any) {
         console.error('Dashboard error:', err);
-        setError('Failed to fetch dashboard data');
+        setError(isAmharic ? 'የዳሽቦርድ መረጃ መጫን አልተቻለም' : 'Failed to fetch dashboard data');
       } finally {
         setLoading(false);
       }
     };
 
     fetchAdminData();
-  }, [user]);
+  }, [user, isAmharic]);
 
   // Content for the current role
   const content: RoleContent = useMemo(
@@ -299,15 +301,12 @@ export default function Dashboard() {
 
   // ─── Styling helpers ─────────────────────────────────────────────
   const themeStyles = {
-    background:
-      theme === 'dark'
-        ? 'linear-gradient(135deg, #0a192f, #112240)'
-        : 'linear-gradient(135deg, #f0f0f0, #ffffff)',
-    textColor: theme === 'dark' ? '#ccd6f6' : '#333333',
-    primaryColor: theme === 'dark' ? '#00ffff' : '#007bff',
-    modalBackground: theme === 'dark' ? '#112240' : '#ffffff',
-    borderColor: theme === 'dark' ? '#2d3748' : '#e2e8f0',
-    subtleBg: theme === 'dark' ? '#1a202c' : '#f8f9fa',
+    background: 'transparent',
+    textColor: theme === 'dark' ? '#f1f5f9' : '#0f172a',
+    primaryColor: theme === 'dark' ? '#3b82f6' : '#2563eb',
+    modalBackground: theme === 'dark' ? '#1e293b' : '#ffffff',
+    borderColor: theme === 'dark' ? '#334155' : '#e2e8f0',
+    subtleBg: theme === 'dark' ? '#0f172a' : '#f8fafc',
   };
 
   const colorMap: Record<StatColor, { bg: string; fg: string }> = {
@@ -435,7 +434,7 @@ export default function Dashboard() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-6 md:mb-8">
           <Link href="/admin/users">
             <StatCard
-              label="Total Users"
+              label={t('dashboard.total_users', 'Total Users')}
               value={statsData.totalUsers}
               icon={<Users size={24} />}
               color="blue"
@@ -445,7 +444,7 @@ export default function Dashboard() {
                   style={{ color: '#10b981', fontWeight: 500 }}
                 >
                   <TrendingUp className="h-4 w-4 mr-1" />
-                  +{statsData.newUsersToday} today
+                  +{statsData.newUsersToday} {isAmharic ? 'ዛሬ' : 'today'}
                 </span>
               }
               themeStyles={themeStyles}
@@ -456,7 +455,7 @@ export default function Dashboard() {
 
           <Link href="/admin/users?status=active">
             <StatCard
-              label="Active Users"
+              label={t('dashboard.active_users', 'Active Users')}
               value={statsData.activeUsers}
               icon={<UserCheck size={24} />}
               color="green"
@@ -466,7 +465,7 @@ export default function Dashboard() {
                   style={{ color: '#ef4444', fontWeight: 500 }}
                 >
                   <UserX className="h-4 w-4 mr-1" />
-                  {statsData.inactiveUsers} inactive
+                  {statsData.inactiveUsers} {isAmharic ? 'ቦዘን' : 'inactive'}
                 </span>
               }
               themeStyles={themeStyles}
@@ -477,12 +476,12 @@ export default function Dashboard() {
 
           <Link href="/admin/menus">
             <StatCard
-              label="Manage Menus"
-              value="Open"
+              label={isAmharic ? 'የምናሌ አስተዳደር' : 'Manage Menus'}
+              value={isAmharic ? 'ክፈት' : 'Open'}
               icon={<Cog size={24} />}
               color="purple"
               footer={
-                <span className="opacity-75">Configure sidebar & roles</span>
+                <span className="opacity-75">{isAmharic ? 'ምናሌዎች እና ሚናዎችን አዋቅር' : 'Configure sidebar & roles'}</span>
               }
               themeStyles={themeStyles}
               theme={theme}
@@ -492,11 +491,11 @@ export default function Dashboard() {
 
           <Link href="/admin/security">
             <StatCard
-              label="Security"
-              value="Open"
+              label={isAmharic ? 'ደህንነት እና ክትትል' : 'Security'}
+              value={isAmharic ? 'ክፈት' : 'Open'}
               icon={<ShieldCheck size={24} />}
               color="yellow"
-              footer={<span className="opacity-75">Access & audit logs</span>}
+              footer={<span className="opacity-75">{isAmharic ? 'የመዳረሻ እና የኦዲት መዝገቦች' : 'Access & audit logs'}</span>}
               themeStyles={themeStyles}
               theme={theme}
               colorMap={colorMap}
@@ -552,19 +551,19 @@ export default function Dashboard() {
             }}
           >
             <div className="flex justify-between items-center mb-4">
-              <h2 className="text-lg md:text-xl font-bold">Recent Users</h2>
+              <h2 className="text-lg md:text-xl font-bold">{isAmharic ? 'የቅርብ ጊዜ ተጠቃሚዎች' : 'Recent Users'}</h2>
               <Link
                 href="/admin/users"
                 style={{ color: themeStyles.primaryColor }}
-                className="hover:opacity-80 text-xs md:text-sm"
+                className="hover:opacity-80 text-xs md:text-sm font-semibold"
               >
-                View all
+                {isAmharic ? 'ሁሉንም እይ' : 'View all'}
               </Link>
             </div>
 
             <div className="space-y-3">
               {recentUsers.length === 0 ? (
-                <p className="text-sm opacity-75">No users yet.</p>
+                <p className="text-sm opacity-75">{isAmharic ? 'ምንም ተጠቃሚ የለም' : 'No users yet.'}</p>
               ) : (
                 recentUsers.map((u) => (
                   <div
@@ -579,10 +578,7 @@ export default function Dashboard() {
                       <div
                         className="w-10 h-10 rounded-full flex items-center justify-center mr-3"
                         style={{
-                          background:
-                            theme === 'dark'
-                              ? 'rgba(0,255,255,0.1)'
-                              : 'rgba(0,123,255,0.1)',
+                          background: 'rgba(59,130,246,0.12)',
                         }}
                       >
                         <Users
@@ -595,21 +591,21 @@ export default function Dashboard() {
                         <div className="text-xs opacity-75">{u.email}</div>
                         <div className="flex items-center mt-1 gap-2">
                           <span
-                            className="px-2 py-1 text-xs rounded-full"
+                            className="px-2 py-0.5 text-xs rounded-full font-medium"
                             style={{
                               background: u.isActive
-                                ? 'rgba(16,185,129,0.1)'
-                                : 'rgba(239,68,68,0.1)',
+                                ? 'rgba(16,185,129,0.12)'
+                                : 'rgba(239,68,68,0.12)',
                               color: u.isActive ? '#10b981' : '#ef4444',
                             }}
                           >
-                            {u.isActive ? 'Active' : 'Inactive'}
+                            {u.isActive ? (isAmharic ? 'ንቁ' : 'Active') : (isAmharic ? 'ቦዘን' : 'Inactive')}
                           </span>
                           <span
-                            className="px-2 py-1 text-xs rounded-full capitalize"
+                            className="px-2 py-0.5 text-xs rounded-full capitalize"
                             style={{
-                              background: 'rgba(107,114,128,0.1)',
-                              color: theme === 'dark' ? '#9ca3af' : '#4b5563',
+                              background: theme === 'dark' ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)',
+                              color: theme === 'dark' ? '#cbd5e1' : '#475569',
                             }}
                           >
                             {u.role}
@@ -640,7 +636,7 @@ export default function Dashboard() {
             }}
           >
             <h2 className="text-lg md:text-xl font-bold mb-4">
-              Users by Role
+              {isAmharic ? 'ተጠቃሚዎች በሚና' : 'Users by Role'}
             </h2>
             <div className="space-y-3">
               {(statsData?.usersByRole ?? []).map((r) => (
@@ -662,12 +658,9 @@ export default function Dashboard() {
                     </span>
                   </div>
                   <span
-                    className="px-2 py-1 rounded-full text-xs font-semibold"
+                    className="px-2.5 py-1 rounded-full text-xs font-semibold"
                     style={{
-                      background:
-                        theme === 'dark'
-                          ? 'rgba(0,255,255,0.1)'
-                          : 'rgba(0,123,255,0.1)',
+                      background: 'rgba(59,130,246,0.12)',
                       color: themeStyles.primaryColor,
                     }}
                   >
@@ -692,7 +685,7 @@ export default function Dashboard() {
             }}
           >
             <h2 className="text-lg md:text-xl font-bold mb-4">
-              Quick Actions
+              {isAmharic ? 'ፈጣን እርምጃዎች' : 'Quick Actions'}
             </h2>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
               {content.quickActions.map((action, i) => (

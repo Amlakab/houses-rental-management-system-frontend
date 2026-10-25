@@ -12,6 +12,7 @@ import {
 } from '@mui/material';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTheme } from '@/lib/theme-context';
+import { useLanguage } from '@/lib/language-context';
 import {
   Home, Visibility, Edit, Delete, Add,
   Search, Refresh, CheckCircle, Cancel,
@@ -50,6 +51,7 @@ const statusIcons: Record<string, React.ReactElement> = {
 
 const AdminHousesPage = () => {
   const { theme } = useTheme();
+  const { t, isAmharic } = useLanguage();
   const isMobile = useMediaQuery('(max-width: 768px)');
   
   const [houses, setHouses] = useState<House[]>([]);
@@ -273,10 +275,10 @@ const AdminHousesPage = () => {
           <Box sx={{ mb: 4, display: 'flex', flexDirection: { xs: 'column', md: 'row' }, justifyContent: 'space-between', alignItems: { xs: 'flex-start', md: 'center' }, gap: 2 }}>
             <Box>
               <Typography variant={isMobile ? "h5" : "h4"} sx={{ fontWeight: 'bold', color: theme === 'dark' ? '#ccd6f6' : '#333333', mb: 1 }}>
-                House Management
+                {t('dashboard.house_management', 'House Management')}
               </Typography>
               <Typography variant="body2" color={theme === 'dark' ? '#a8b2d1' : '#666666'}>
-                Manage all properties, approve listings, and track performance
+                {isAmharic ? 'ሁሉንም ቤቶች ያስተዳድሩ፣ ማስታወቂያዎችን ያጽድቁ እና የሥራ አፈጻጸምን ይከታተሉ' : 'Manage all properties, approve listings, and track performance'}
               </Typography>
             </Box>
             <Button
@@ -284,12 +286,10 @@ const AdminHousesPage = () => {
               startIcon={<Add />}
               href="/admin/houses/create"
               sx={{
-                background: theme === 'dark' ? 'linear-gradient(135deg, #00ffff, #00b3b3)' : 'linear-gradient(135deg, #007bff, #0056b3)',
-                borderRadius: 2, px: 3, py: 1,
-                '&:hover': { background: theme === 'dark' ? 'linear-gradient(135deg, #00b3b3, #008080)' : 'linear-gradient(135deg, #0056b3, #004080)' }
+                borderRadius: 2, px: 3, py: 1, fontWeight: 700, textTransform: 'none'
               }}
             >
-              Add New Property
+              {t('action.add_property', 'Add New Property')}
             </Button>
           </Box>
         </motion.div>

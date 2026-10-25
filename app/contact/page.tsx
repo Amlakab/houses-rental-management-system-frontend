@@ -5,16 +5,19 @@ import { motion } from 'framer-motion';
 import Navbar from '@/components/ui/Navbar';
 import Footer from '@/components/ui/Footer';
 import { useTheme } from '@/lib/theme-context';
+import { useLanguage } from '@/lib/language-context';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import {
   FaMapMarker,
   FaPhone,
   FaEnvelope,
+  FaClock,
 } from 'react-icons/fa';
 
 export default function ContactPage() {
   const { theme } = useTheme();
+  const { t, isAmharic } = useLanguage();
   
   const BASE_URL = process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:3001/api';
   
@@ -22,7 +25,7 @@ export default function ContactPage() {
     phone: '',
     email: '',
     name: '',
-    subject: '',
+    subject: 'Real Estate Inquiry',
     message: ''
   });
   
@@ -40,7 +43,7 @@ export default function ContactPage() {
     setIsSubmitting(true);
     
     if (!formData.phone && !formData.email) {
-      toast.error('Please provide either a phone number or email address', {
+      toast.error(isAmharic ? 'እባክዎ ስልክ ቁጥር ወይም ኢሜይል ያስገቡ' : 'Please provide either a phone number or email address', {
         position: "top-right",
         autoClose: 3000,
         theme: theme === 'dark' ? 'dark' : 'light',
@@ -61,18 +64,17 @@ export default function ContactPage() {
       const result = await response.json();
 
       if (response.ok) {
-        toast.success('Message sent successfully! We will get back to you soon.', {
+        toast.success(isAmharic ? 'መልእክትዎ በተሳካ ሁኔታ ተልኳል! በቅርቡ እናገኝዎታለን።' : 'Message sent successfully! We will get back to you soon.', {
           position: "top-right",
           autoClose: 3000,
           theme: theme === 'dark' ? 'dark' : 'light',
         });
         
-        // Reset form
         setFormData({
           phone: '',
           email: '',
           name: '',
-          subject: '',
+          subject: 'Real Estate Inquiry',
           message: ''
         });
       } else {
@@ -83,8 +85,7 @@ export default function ContactPage() {
         });
       }
     } catch (error) {
-      console.error('Submission error:', error);
-      toast.error('Network error. Please check your connection and try again.', {
+      toast.error(isAmharic ? 'የኔትወርክ ችግር ተከስቷል። እባክዎ እንደገና ይሞክሩ።' : 'Network error. Please check your connection and try again.', {
         position: "top-right",
         autoClose: 3000,
         theme: theme === 'dark' ? 'dark' : 'light',
@@ -95,108 +96,93 @@ export default function ContactPage() {
   };
 
   return (
-    <div className={`min-h-screen transition-colors duration-300 ${
+    <div className={`min-h-screen transition-colors duration-200 ${
       theme === 'dark' 
-        ? 'bg-gradient-to-br from-[#0a192f] to-[#112240] text-white' 
-        : 'bg-background text-text-primary'
+        ? 'bg-[#0a192f] text-gray-100' 
+        : 'bg-[#f8fafc] text-gray-900'
     }`}>
       <Navbar />
       
-      {/* Toast Container */}
       <ToastContainer
         position="top-right"
         autoClose={3000}
-        hideProgressBar={false}
-        newestOnTop={false}
-        closeOnClick
-        rtl={false}
-        pauseOnFocusLoss
-        draggable
-        pauseOnHover
         theme={theme === 'dark' ? 'dark' : 'light'}
       />
       
       <div className="pt-16 sm:pt-20">
         <section className={`py-12 sm:py-16 px-4 ${
-          theme === 'dark' ? 'bg-transparent' : 'bg-background'
+          theme === 'dark' ? 'bg-[#0a192f]' : 'bg-[#f8fafc]'
         }`}>
           <div className="container mx-auto">
-            <h2 className={`text-2xl sm:text-3xl font-bold text-center mb-8 sm:mb-12 ${
-              theme === 'dark' ? 'text-primary' : 'text-primary'
-            }`}>
-              Contact Us
-            </h2>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 mb-8 sm:mb-12">
-              <motion.div
-                initial={{ y: 50, opacity: 0 }}
-                whileInView={{ y: 0, opacity: 1 }}
-                transition={{ duration: 1 }}
-                viewport={{ once: true }}
-                className="text-center"
-              >
-                <div className="inline-flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-primary/10 dark:bg-primary/20 mb-3 sm:mb-4">
-                  <FaMapMarker className="text-primary text-lg sm:text-xl" />
-                </div>
-                <h3 className={`text-base sm:text-lg font-semibold mb-1 sm:mb-2 ${
-                  theme === 'dark' ? 'text-white' : 'text-text-primary'
-                }`}>
-                  Location
-                </h3>
-                <p className={`text-sm sm:text-base ${theme === 'dark' ? 'text-gray-300' : 'text-text-secondary'}`}>
-                  Addis Abeba, Ethiopia
-                </p>
-              </motion.div>
-
-              <motion.div
-                initial={{ y: 50, opacity: 0 }}
-                whileInView={{ y: 0, opacity: 1 }}
-                transition={{ duration: 1 }}
-                viewport={{ once: true }}
-                className="text-center"
-              >
-                <div className="inline-flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-primary/10 dark:bg-primary/20 mb-3 sm:mb-4">
-                  <FaPhone className="text-primary text-lg sm:text-xl" />
-                </div>
-                <h3 className={`text-base sm:text-lg font-semibold mb-1 sm:mb-2 ${
-                  theme === 'dark' ? 'text-white' : 'text-text-primary'
-                }`}>
-                  Phone
-                </h3>
-                <p className={`text-sm sm:text-base ${theme === 'dark' ? 'text-gray-300' : 'text-text-secondary'}`}>
-                  +251 9 06 97 40 55
-                </p>
-              </motion.div>
-
-              <motion.div
-                initial={{ y: 50, opacity: 0 }}
-                whileInView={{ y: 0, opacity: 1 }}
-                transition={{ duration: 1 }}
-                viewport={{ once: true }}
-                className="text-center"
-              >
-                <div className="inline-flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-primary/10 dark:bg-primary/20 mb-3 sm:mb-4">
-                  <FaEnvelope className="text-primary text-lg sm:text-xl" />
-                </div>
-                <h3 className={`text-base sm:text-lg font-semibold mb-1 sm:mb-2 ${
-                  theme === 'dark' ? 'text-white' : 'text-text-primary'
-                }`}>
-                  Email
-                </h3>
-                <p className={`text-sm sm:text-base ${theme === 'dark' ? 'text-gray-300' : 'text-text-secondary'}`}>
-                  Zelalem@gmail.com
-                </p>
-              </motion.div>
+            <div className="text-center max-w-2xl mx-auto mb-10 sm:mb-14">
+              <span className="text-xs sm:text-sm font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wider block mb-2">
+                {isAmharic ? 'ያግኙን' : 'Get in Touch'}
+              </span>
+              <h1 className={`text-3xl sm:text-4xl md:text-5xl font-extrabold mb-3 ${
+                theme === 'dark' ? 'text-white' : 'text-gray-900'
+              }`}>
+                {t('contact.title', 'Contact Us')}
+              </h1>
+              <p className={`text-sm sm:text-base ${
+                theme === 'dark' ? 'text-gray-300' : 'text-gray-600'
+              }`}>
+                {t('contact.subtitle', 'Have questions? Get in touch with our expert real estate team today.')}
+              </p>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
-              <motion.div
-                initial={{ x: -100, opacity: 0 }}
-                whileInView={{ x: 0, opacity: 1 }}
-                transition={{ duration: 1 }}
-                viewport={{ once: true }}
-                className="rounded-xl overflow-hidden shadow-xl h-64 sm:h-80 lg:h-96"
-              >
+            {/* Contact Info Cards */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-12 sm:mb-16">
+              {[
+                { 
+                  icon: <FaMapMarker className="text-xl" />, 
+                  title: isAmharic ? 'አድራሻ' : 'Office Location', 
+                  desc: isAmharic ? 'አዲስ አበባ፣ ቦሌ፣ ኢትዮጵያ' : 'Bole, Addis Ababa, Ethiopia' 
+                },
+                { 
+                  icon: <FaPhone className="text-xl" />, 
+                  title: isAmharic ? 'ስልክ ቁጥር' : 'Phone', 
+                  desc: '+251 906 974 055' 
+                },
+                { 
+                  icon: <FaEnvelope className="text-xl" />, 
+                  title: isAmharic ? 'ኢሜይል' : 'Email', 
+                  desc: 'info@realestatepro.com' 
+                },
+                { 
+                  icon: <FaClock className="text-xl" />, 
+                  title: isAmharic ? 'የስራ ሰዓት' : 'Office Hours', 
+                  desc: isAmharic ? 'ሰኞ - አርብ፡ 2:30 - 11:30' : 'Mon - Fri: 8:30 AM - 5:30 PM' 
+                },
+              ].map((card, idx) => (
+                <div
+                  key={idx}
+                  className={`p-6 rounded-2xl border text-center transition-all ${
+                    theme === 'dark' ? 'bg-[#112240] border-slate-700' : 'bg-white border-gray-100 shadow-sm'
+                  }`}
+                >
+                  <div className={`w-12 h-12 rounded-xl flex items-center justify-center mx-auto mb-3.5 ${
+                    theme === 'dark' ? 'bg-blue-900/30 text-blue-400' : 'bg-blue-50 text-blue-600'
+                  }`}>
+                    {card.icon}
+                  </div>
+                  <h3 className={`text-base font-bold mb-1 ${
+                    theme === 'dark' ? 'text-white' : 'text-gray-900'
+                  }`}>
+                    {card.title}
+                  </h3>
+                  <p className={`text-xs sm:text-sm ${
+                    theme === 'dark' ? 'text-gray-300' : 'text-gray-600'
+                  }`}>
+                    {card.desc}
+                  </p>
+                </div>
+              ))}
+            </div>
+
+            {/* Map and Form Split */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-start">
+              {/* Google Map */}
+              <div className="rounded-3xl overflow-hidden shadow-xl border border-gray-200 dark:border-slate-800 h-72 sm:h-96 lg:h-[460px]">
                 <iframe
                   src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3940.869244319124!2d38.76321431536945!3d9.012326893541918!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x164b85f1a4b1f3b5%3A0x1c5b5b5b5b5b5b5b!2sAddis%20Ababa%2C%20Ethiopia!5e0!3m2!1sen!2set!4v1633080000000!5m2!1sen!2set"
                   width="100%"
@@ -205,44 +191,53 @@ export default function ContactPage() {
                   allowFullScreen
                   loading="lazy"
                   title="Location Map"
-                ></iframe>
-              </motion.div>
+                />
+              </div>
 
-              <motion.div
-                initial={{ x: 100, opacity: 0 }}
-                whileInView={{ x: 0, opacity: 1 }}
-                transition={{ duration: 1 }}
-                viewport={{ once: true }}
-              >
-                <h3 className={`text-xl sm:text-2xl font-bold mb-4 sm:mb-6 ${
-                  theme === 'dark' ? 'text-primary' : 'text-primary'
+              {/* Contact Form Card */}
+              <div className={`p-6 sm:p-8 rounded-3xl border ${
+                theme === 'dark' ? 'bg-[#112240] border-slate-700 shadow-xl' : 'bg-white border-gray-200 shadow-sm'
+              }`}>
+                <h3 className={`text-xl sm:text-2xl font-bold mb-2 ${
+                  theme === 'dark' ? 'text-white' : 'text-gray-900'
                 }`}>
-                  Send us a Message
+                  {t('contact.form_title', 'Send us a Message')}
                 </h3>
-                
-                <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                <p className={`text-xs sm:text-sm mb-6 ${
+                  theme === 'dark' ? 'text-gray-300' : 'text-gray-600'
+                }`}>
+                  {isAmharic 
+                    ? 'ጥያቄዎን ወይም አስተያየትዎን ይፃፉልን፤ ወኪሎቻችን በፍጥነት ምላሽ ይሰጡዎታል።' 
+                    : 'Fill out the form below and an agent will respond within 24 hours.'}
+                </p>
+
+                <form onSubmit={handleSubmit} className="space-y-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
+                      <label className="block text-xs font-semibold mb-1 text-gray-700 dark:text-gray-300">
+                        {isAmharic ? 'ሙሉ ስም *' : 'Full Name *'}
+                      </label>
                       <input
                         type="text"
-                        id="name"
                         name="name"
                         required
                         value={formData.name}
                         onChange={handleChange}
-                        className={`w-full px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg border text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-colors duration-300 ${
+                        className={`w-full px-4 py-2.5 rounded-xl border text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all ${
                           theme === 'dark' 
-                            ? 'bg-surface/50 border-border text-white placeholder-gray-400' 
-                            : 'bg-background border-border text-text-primary'
+                            ? 'bg-slate-800 border-slate-700 text-white placeholder-gray-400' 
+                            : 'bg-white border-gray-300 text-gray-900 placeholder-gray-400'
                         }`}
-                        placeholder="Full Name *"
+                        placeholder={isAmharic ? 'ሙሉ ስምዎን ያስገቡ' : 'Your name'}
                       />
                     </div>
 
                     <div>
+                      <label className="block text-xs font-semibold mb-1 text-gray-700 dark:text-gray-300">
+                        {isAmharic ? 'ኢሜይል ወይም ስልክ *' : 'Email or Phone *'}
+                      </label>
                       <input
                         type="text"
-                        id="contact"
                         name="contact"
                         value={formData.email || formData.phone}
                         onChange={(e) => {
@@ -253,100 +248,72 @@ export default function ContactPage() {
                             setFormData({...formData, phone: value, email: ''});
                           }
                         }}
-                        className={`w-full px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg border text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-colors duration-300 ${
+                        className={`w-full px-4 py-2.5 rounded-xl border text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all ${
                           theme === 'dark' 
-                            ? 'bg-surface/50 border-border text-white placeholder-gray-400' 
-                            : 'bg-background border-border text-text-primary'
+                            ? 'bg-slate-800 border-slate-700 text-white placeholder-gray-400' 
+                            : 'bg-white border-gray-300 text-gray-900 placeholder-gray-400'
                         }`}
-                        placeholder="Email or Phone *"
+                        placeholder={isAmharic ? '+251 9... ወይም info@...' : '+251... or email@...'}
                       />
                     </div>
                   </div>
 
                   <div>
+                    <label className="block text-xs font-semibold mb-1 text-gray-700 dark:text-gray-300">
+                      {isAmharic ? 'ርዕስ *' : 'Subject *'}
+                    </label>
                     <select
-                      id="subject"
                       name="subject"
                       required
                       value={formData.subject}
                       onChange={handleChange}
-                      className={`w-full px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg border text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-colors duration-300 ${
+                      className={`w-full px-4 py-2.5 rounded-xl border text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all ${
                         theme === 'dark' 
-                          ? 'bg-surface/50 border-border text-white' 
-                          : 'bg-background border-border text-text-primary'
+                          ? 'bg-slate-800 border-slate-700 text-white' 
+                          : 'bg-white border-gray-300 text-gray-900'
                       }`}
                     >
-                      <option value="">Select Subject *</option>
-                      <option value="technical-support">Technical Support</option>
-                      <option value="account-issues">Account Issues</option>
-                      <option value="payment-issues">Payment Issues</option>
-                      <option value="game-suggestions">Game Suggestions</option>
-                      <option value="partnership">Partnership Opportunities</option>
-                      <option value="other">Other</option>
+                      <option value="Real Estate Inquiry">{isAmharic ? 'የቤት ግዢ ወይም ኪራይ ጥያቄ' : 'Real Estate Inquiry'}</option>
+                      <option value="Property Viewing">{isAmharic ? 'ቤት የመጎብኘት ቀጠሮ' : 'Schedule Property Viewing'}</option>
+                      <option value="Selling Property">{isAmharic ? 'ቤት መሸጥ' : 'Selling Property'}</option>
+                      <option value="Investment Advice">{isAmharic ? 'የኢንቨስትመንት ምክር' : 'Investment Advice'}</option>
+                      <option value="Technical Support">{isAmharic ? 'ቴክኒካዊ ድጋፍ' : 'Technical Support'}</option>
+                      <option value="Partnership">{isAmharic ? 'የትብብር እድሎች' : 'Partnership Opportunities'}</option>
+                      <option value="Other">{isAmharic ? 'ሌላ' : 'Other'}</option>
                     </select>
                   </div>
 
                   <div>
+                    <label className="block text-xs font-semibold mb-1 text-gray-700 dark:text-gray-300">
+                      {isAmharic ? 'መልእክት *' : 'Message *'}
+                    </label>
                     <textarea
-                      id="message"
                       name="message"
                       required
                       rows={4}
                       value={formData.message}
                       onChange={handleChange}
-                      className={`w-full px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg border text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-colors duration-300 ${
+                      className={`w-full px-4 py-2.5 rounded-xl border text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all ${
                         theme === 'dark' 
-                          ? 'bg-surface/50 border-border text-white placeholder-gray-400' 
-                          : 'bg-background border-border text-text-primary'
+                          ? 'bg-slate-800 border-slate-700 text-white placeholder-gray-400' 
+                          : 'bg-white border-gray-300 text-gray-900 placeholder-gray-400'
                       }`}
-                      placeholder="Your Message *"
-                    ></textarea>
+                      placeholder={isAmharic ? 'መልእክትዎን እዚህ ያስገቡ...' : 'Your message...'}
+                    />
                   </div>
 
                   <button
                     type="submit"
                     disabled={isSubmitting}
-                    className={`w-full px-5 sm:px-6 py-2.5 sm:py-3 rounded-lg font-medium text-sm sm:text-base transition-colors duration-300 flex items-center justify-center ${
-                      theme === 'dark' 
-                        ? 'bg-primary hover:bg-secondary text-white' 
-                        : 'bg-primary hover:bg-secondary text-white'
-                    } disabled:opacity-50 disabled:cursor-not-allowed`}
+                    className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold text-sm sm:text-base shadow-md transition-all disabled:opacity-50"
                   >
-                    {isSubmitting ? (
-                      <>
-                        <svg className="animate-spin -ml-1 mr-2 h-4 w-4 sm:h-5 sm:w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                        </svg>
-                        Sending...
-                      </>
-                    ) : (
-                      'Send Message'
-                    )}
+                    {isSubmitting 
+                      ? (isAmharic ? 'በመላክ ላይ...' : 'Sending...') 
+                      : (isAmharic ? 'መልእክት ላክ' : 'Send Message')}
                   </button>
                 </form>
-              </motion.div>
+              </div>
             </div>
-
-            <motion.div
-              initial={{ y: 50, opacity: 0 }}
-              whileInView={{ y: 0, opacity: 1 }}
-              transition={{ duration: 1, delay: 0.2 }}
-              viewport={{ once: true }}
-              className={`mt-8 sm:mt-12 p-4 sm:p-6 rounded-xl ${
-                theme === 'dark' ? 'bg-surface/50 border border-border' : 'bg-gray-50 border'
-              }`}
-            >
-              <h3 className={`text-lg sm:text-xl font-bold mb-2 sm:mb-4 ${
-                theme === 'dark' ? 'text-primary' : 'text-primary'
-              }`}>
-                Response Time
-              </h3>
-              <p className={`text-sm sm:text-base ${theme === 'dark' ? 'text-gray-300' : 'text-text-secondary'}`}>
-                We typically respond to all inquiries within 24 hours. For urgent matters, 
-                please call our support line during business hours (9 AM - 6 PM GMT+3).
-              </p>
-            </motion.div>
           </div>
         </section>
       </div>

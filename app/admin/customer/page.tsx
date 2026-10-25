@@ -18,12 +18,14 @@ import {
   Home, CheckCircleOutline, AccessTime, InfoOutlined, Description
 } from '@mui/icons-material';
 import api from '@/app/utils/api';
+import { useLanguage } from '@/lib/language-context';
 import { Appointment, LeaseAgreement, PurchaseOffer, MaintenanceRequest, SavedSearch, House, RentalApplication } from '@/types/houses';
 import LeaseAgreementModal from '@/components/LeaseAgreementModal';
 import Link from 'next/link';
 
 export default function AdminCustomerPage() {
   const { theme } = useTheme();
+  const { t, isAmharic } = useLanguage();
   const [activeTab, setActiveTab] = useState(0);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -139,11 +141,11 @@ export default function AdminCustomerPage() {
   const isDark = theme === 'dark';
 
   const statCards = [
-    { title: 'My Viewings', count: appointments.length, icon: <CalendarMonth />, color: '#06b6d4', tabIndex: 0 },
-    { title: 'Rental Apps', count: applications.length, icon: <Description />, color: '#8b5cf6', tabIndex: 1 },
-    { title: 'Active Leases', count: leases.length, icon: <Article />, color: '#10b981', tabIndex: 2 },
-    { title: 'Purchase Offers', count: offers.length, icon: <LocalOffer />, color: '#f59e0b', tabIndex: 3 },
-    { title: 'Repair Tickets', count: maintenanceTickets.length, icon: <Build />, color: '#ef4444', tabIndex: 4 },
+    { title: isAmharic ? 'የእኔ ጉብኝቶች' : 'My Viewings', count: appointments.length, icon: <CalendarMonth />, color: '#06b6d4', tabIndex: 0 },
+    { title: isAmharic ? 'የኪራይ ማመልከቻዎች' : 'Rental Apps', count: applications.length, icon: <Description />, color: '#8b5cf6', tabIndex: 1 },
+    { title: isAmharic ? 'ንቁ ውሎች' : 'Active Leases', count: leases.length, icon: <Article />, color: '#10b981', tabIndex: 2 },
+    { title: isAmharic ? 'የግዢ ጥያቄዎች' : 'Purchase Offers', count: offers.length, icon: <LocalOffer />, color: '#f59e0b', tabIndex: 3 },
+    { title: isAmharic ? 'የጥገና ጥያቄዎች' : 'Repair Tickets', count: maintenanceTickets.length, icon: <Build />, color: '#ef4444', tabIndex: 4 },
   ];
 
   return (
@@ -153,21 +155,23 @@ export default function AdminCustomerPage() {
         <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.4 }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 0.5 }}>
             <Typography variant="h4" sx={{ fontWeight: 800, color: isDark ? '#ccd6f6' : '#0f172a' }}>
-              Customer Portal
+              {isAmharic ? 'የደንበኛ ፖርታል' : 'Customer Portal'}
             </Typography>
             <Chip
               size="small"
-              label="Real Estate Hub"
+              label={isAmharic ? 'ሪል እስቴት' : 'Real Estate Hub'}
               sx={{
-                bgcolor: isDark ? 'rgba(0, 255, 255, 0.15)' : 'rgba(6, 182, 212, 0.1)',
-                color: isDark ? '#00ffff' : '#0891b2',
+                bgcolor: isDark ? 'rgba(59, 130, 246, 0.15)' : 'rgba(37, 99, 235, 0.1)',
+                color: isDark ? '#3b82f6' : '#2563eb',
                 fontWeight: 700,
-                border: isDark ? '1px solid rgba(0, 255, 255, 0.3)' : '1px solid rgba(6, 182, 212, 0.3)'
+                border: isDark ? '1px solid rgba(59, 130, 246, 0.3)' : '1px solid rgba(37, 99, 235, 0.3)'
               }}
             />
           </Box>
           <Typography variant="body2" sx={{ color: isDark ? '#8892b0' : '#64748b' }}>
-            Manage your property viewings, active lease contracts, rent receipts, purchase bids, and maintenance repairs.
+            {isAmharic
+              ? 'የቤቶች ጉብኝት፣ የኪራይ ውል፣ ደረሰኝ፣ የግዢ ጥያቄዎች እና የጥገና ጥያቄዎችን በአንድ ቦታ ይከታተሉ።'
+              : 'Manage your property viewings, active lease contracts, rent receipts, purchase bids, and maintenance repairs.'}
           </Typography>
         </motion.div>
 
@@ -309,22 +313,22 @@ export default function AdminCustomerPage() {
               py: 2
             },
             '& .Mui-selected': {
-              color: isDark ? '#00ffff' : '#0284c7'
+              color: 'primary.main'
             },
             '& .MuiTabs-indicator': {
-              bgcolor: isDark ? '#00ffff' : '#0284c7',
+              bgcolor: 'primary.main',
               height: 3,
               borderRadius: '3px 3px 0 0'
             }
           }}
         >
-          <Tab icon={<CalendarMonth />} iconPosition="start" label={`My Viewings (${appointments.length})`} />
-          <Tab icon={<Description />} iconPosition="start" label={`Rental Applications (${applications.length})`} />
-          <Tab icon={<Article />} iconPosition="start" label={`Active Leases (${leases.length})`} />
-          <Tab icon={<LocalOffer />} iconPosition="start" label={`Purchase Offers (${offers.length})`} />
-          <Tab icon={<Build />} iconPosition="start" label={`Maintenance (${maintenanceTickets.length})`} />
-          <Tab icon={<Bookmark />} iconPosition="start" label={`Saved Searches (${savedSearches.length})`} />
-          <Tab icon={<Favorite />} iconPosition="start" label={`Favorites (${savedProperties.length})`} />
+          <Tab icon={<CalendarMonth />} iconPosition="start" label={`${isAmharic ? 'የእኔ ጉብኝቶች' : 'My Viewings'} (${appointments.length})`} />
+          <Tab icon={<Description />} iconPosition="start" label={`${isAmharic ? 'የኪራይ ማመልከቻዎች' : 'Rental Applications'} (${applications.length})`} />
+          <Tab icon={<Article />} iconPosition="start" label={`${isAmharic ? 'ንቁ የኪራይ ውሎች' : 'Active Leases'} (${leases.length})`} />
+          <Tab icon={<LocalOffer />} iconPosition="start" label={`${isAmharic ? 'የግዢ ጥያቄዎች' : 'Purchase Offers'} (${offers.length})`} />
+          <Tab icon={<Build />} iconPosition="start" label={`${isAmharic ? 'ጥገና' : 'Maintenance'} (${maintenanceTickets.length})`} />
+          <Tab icon={<Bookmark />} iconPosition="start" label={`${isAmharic ? 'የተቀመጡ ፍለጋዎች' : 'Saved Searches'} (${savedSearches.length})`} />
+          <Tab icon={<Favorite />} iconPosition="start" label={`${isAmharic ? 'ተወዳጅ ቤቶች' : 'Favorites'} (${savedProperties.length})`} />
         </Tabs>
       </Card>
 

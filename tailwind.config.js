@@ -1,6 +1,6 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
-  darkMode: 'class', // This enables class-based dark mode
+  darkMode: 'class', // Enables class-based dark mode
   content: [
     './pages/**/*.{js,ts,jsx,tsx,mdx}',
     './components/**/*.{js,ts,jsx,tsx,mdx}',
@@ -9,7 +9,7 @@ module.exports = {
   theme: {
     extend: {
       fontFamily: {
-        sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+        sans: ['Inter', 'Noto Sans Ethiopic', 'Nyala', 'Abyssinica SIL', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'sans-serif'],
         mono: ['JetBrains Mono', 'monospace'],
       },
       fontSize: {
@@ -25,17 +25,24 @@ module.exports = {
         '6xl': '4.5rem',    // 72px
       },
       colors: {
-        // Light mode colors
-        primary: '#2563EB',
+        primary: {
+          DEFAULT: '#2563EB',
+          50: '#eff6ff',
+          100: '#dbeafe',
+          200: '#bfdbfe',
+          500: '#2563EB',
+          600: '#1d4ed8',
+          700: '#1e40af',
+        },
         secondary: '#0EA5E9',
         accent: '#22C55E',
-        background: '#F8FAFC',
-        surface: '#FFFFFF',
-        border: '#E5E7EB',
+        background: 'var(--background)',
+        surface: 'var(--surface)',
+        border: 'var(--border)',
         text: {
-          primary: '#0F172A',
-          secondary: '#475569',
-          muted: '#94A3B8',
+          primary: 'var(--text-primary)',
+          secondary: 'var(--text-secondary)',
+          muted: 'var(--text-muted)',
         },
         success: '#16A34A',
         warning: '#F59E0B',
