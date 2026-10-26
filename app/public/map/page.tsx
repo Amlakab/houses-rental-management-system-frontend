@@ -77,7 +77,7 @@ export default function MapViewPage() {
     propertyType: '',
     isVerified: '',
     minPrice: 0,
-    maxPrice: 50000000,
+    maxPrice: 10000000000,
     minBedrooms: 0,
     minBathrooms: 0,
     sortBy: 'created_at',

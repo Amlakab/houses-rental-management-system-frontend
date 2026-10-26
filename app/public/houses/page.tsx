@@ -63,7 +63,7 @@ export default function PublicHousesPage() {
     propertyType: '',
     intendedPurpose: '',
     minPrice: 0,
-    maxPrice: 50000000,
+    maxPrice: 10000000000,
     minBedrooms: 0,
     minBathrooms: 0,
     isVerified: '',
