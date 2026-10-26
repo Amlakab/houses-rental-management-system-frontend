@@ -794,7 +794,7 @@ export default function AdminWorkflowManagementPage() {
                           >
                             Inspect Legal Agreement
                           </Button>
-                          <Button
+                          {/* <Button
                             variant="contained"
                             color="success"
                             startIcon={<AttachMoney />}
@@ -806,7 +806,7 @@ export default function AdminWorkflowManagementPage() {
                             sx={{ borderRadius: 2, textTransform: 'none' }}
                           >
                             Record Rent Payment
-                          </Button>
+                          </Button> */}
                         </Stack>
                       </CardContent>
                     </Card>

@@ -762,7 +762,7 @@ export default function LeaseAgreementModal({
                               py: 0.5
                             }}
                           >
-                            {copied ? (language === 'am' ? 'ተቀድቷል!' : 'Copied!') : (language === 'am' ? 'ቁጥሩን ቅዳ' : 'Copy Number')}
+                            {copied ? (language === 'am' ? 'ተቀድቷል!' : 'Copied!') : (language === 'am' ? 'ቅዳ' : 'Copy')}
                           </Button>
                         </Box>
                       </Box>
