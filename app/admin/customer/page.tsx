@@ -241,60 +241,97 @@ export default function AdminCustomerPage() {
       </Box>
 
       {/* ─── Metric Highlight Cards ─── */}
-      <Grid container spacing={2.5} sx={{ mb: 4 }}>
-        {statCards.map((stat, idx) => (
-          <Grid item xs={12} sm={6} md={3} key={idx}>
-            <motion.div
-              initial={{ opacity: 0, y: 15 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3, delay: idx * 0.08 }}
+<Box
+  sx={{
+    display: 'grid',
+    gridTemplateColumns: {
+      xs: '1fr',
+      sm: 'repeat(2, 1fr)',
+      md: 'repeat(3, 1fr)',
+      lg: 'repeat(5, 1fr)',
+    },
+    gap: 2.5,
+    mb: 4,
+  }}
+>
+  {statCards.map((stat, idx) => (
+    <motion.div
+      key={idx}
+      initial={{ opacity: 0, y: 15 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3, delay: idx * 0.08 }}
+    >
+      <Card
+        onClick={() => setActiveTab(stat.tabIndex)}
+        sx={{
+          cursor: 'pointer',
+          borderRadius: 3,
+          p: 0.5,
+          height: '100%',
+          transition: 'all 0.25s ease-in-out',
+          bgcolor: isDark ? '#0f172a80' : '#ffffff',
+          backdropFilter: isDark ? 'blur(10px)' : 'none',
+          border: isDark ? '1px solid rgba(0, 255, 255, 0.15)' : '1px solid #e2e8f0',
+          borderLeft: `5px solid ${stat.color}`,
+          boxShadow:
+            activeTab === stat.tabIndex
+              ? isDark
+                ? '0 0 15px rgba(0, 255, 255, 0.25)'
+                : '0 4px 12px rgba(6, 182, 212, 0.2)'
+              : 'none',
+          '&:hover': {
+            transform: 'translateY(-2px)',
+            borderColor: stat.color,
+          },
+        }}
+      >
+        <CardContent
+          sx={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            py: 2,
+          }}
+        >
+          <Box>
+            <Typography
+              variant="caption"
+              sx={{
+                color: isDark ? '#8892b0' : '#64748b',
+                fontWeight: 600,
+                textTransform: 'uppercase',
+                letterSpacing: 0.5,
+              }}
             >
-              <Card
-                onClick={() => setActiveTab(stat.tabIndex)}
-                sx={{
-                  cursor: 'pointer',
-                  borderRadius: 3,
-                  p: 0.5,
-                  transition: 'all 0.25s ease-in-out',
-                  bgcolor: isDark ? '#0f172a80' : '#ffffff',
-                  backdropFilter: isDark ? 'blur(10px)' : 'none',
-                  border: isDark ? '1px solid rgba(0, 255, 255, 0.15)' : '1px solid #e2e8f0',
-                  borderLeft: `5px solid ${stat.color}`,
-                  boxShadow: activeTab === stat.tabIndex
-                    ? (isDark ? '0 0 15px rgba(0, 255, 255, 0.25)' : '0 4px 12px rgba(6, 182, 212, 0.2)')
-                    : 'none',
-                  '&:hover': {
-                    transform: 'translateY(-2px)',
-                    borderColor: stat.color
-                  }
-                }}
-              >
-                <CardContent sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', py: 2 }}>
-                  <Box>
-                    <Typography variant="caption" sx={{ color: isDark ? '#8892b0' : '#64748b', fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.5 }}>
-                      {stat.title}
-                    </Typography>
-                    <Typography variant="h4" sx={{ fontWeight: 800, color: isDark ? '#ccd6f6' : '#0f172a', mt: 0.5 }}>
-                      {stat.count}
-                    </Typography>
-                  </Box>
-                  <Avatar
-                    sx={{
-                      bgcolor: isDark ? `${stat.color}20` : `${stat.color}15`,
-                      color: stat.color,
-                      width: 48,
-                      height: 48,
-                      border: `1px solid ${stat.color}40`
-                    }}
-                  >
-                    {stat.icon}
-                  </Avatar>
-                </CardContent>
-              </Card>
-            </motion.div>
-          </Grid>
-        ))}
-      </Grid>
+              {stat.title}
+            </Typography>
+            <Typography
+              variant="h4"
+              sx={{
+                fontWeight: 800,
+                color: isDark ? '#ccd6f6' : '#0f172a',
+                mt: 0.5,
+              }}
+            >
+              {stat.count}
+            </Typography>
+          </Box>
+          <Avatar
+            sx={{
+              bgcolor: isDark ? `${stat.color}20` : `${stat.color}15`,
+              color: stat.color,
+              width: 48,
+              height: 48,
+              border: `1px solid ${stat.color}40`,
+            }}
+          >
+            {stat.icon}
+          </Avatar>
+        </CardContent>
+      </Card>
+    </motion.div>
+  ))}
+</Box>
 
       {/* ─── Navigation Tabs ─── */}
       <Card
