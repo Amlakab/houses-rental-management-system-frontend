@@ -44,7 +44,7 @@ export default function PurchaseReceiptModal({
 
   if (!milestone) return null;
 
-  const houseObj = typeof offer.houseId === 'object' ? offer.houseId : null;
+  const houseObj = (typeof offer.houseId === 'object' && offer.houseId) ? offer.houseId : null;
   const houseTitle = houseObj?.title || 'Residential Property';
   const houseAddress = houseObj?.location?.address ? `${houseObj.location.address}, ${houseObj.location.city || ''}` : 'Addis Ababa, Ethiopia';
   const receiptNum = milestone.receiptNumber || `RCP-BUY-${Date.now().toString().slice(-7)}`;

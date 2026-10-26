@@ -35,6 +35,7 @@ interface Transaction {
   houseId?: {
     _id: string;
     title: string;
+    isDeleted?: boolean;
   };
   orderId?: {
     _id: string;
@@ -821,17 +822,19 @@ export default function CustomerPaymentsPage() {
                     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
                       <DetailRow
                         label={t('customer_orders.property_name', 'Property')}
-                        value={selectedTransaction.houseId.title}
+                        value={typeof selectedTransaction.houseId === 'object' && selectedTransaction.houseId ? selectedTransaction.houseId.title || 'Property' : 'Property'}
                         isDark={isDark}
                       />
-                      <Button
-                        size="small"
-                        variant="outlined"
-                        href={`/public/houses/${selectedTransaction.houseId._id}`}
-                        sx={{ mt: 1, alignSelf: 'flex-start', textTransform: 'none', borderRadius: 2 }}
-                      >
-                        {t('action.view_details', 'View Property')}
-                      </Button>
+                      {Boolean(typeof selectedTransaction.houseId === 'object' && selectedTransaction.houseId && selectedTransaction.houseId._id && !selectedTransaction.houseId.isDeleted) && (
+                        <Button
+                          size="small"
+                          variant="outlined"
+                          href={`/public/houses/${selectedTransaction.houseId._id}`}
+                          sx={{ mt: 1, alignSelf: 'flex-start', textTransform: 'none', borderRadius: 2 }}
+                        >
+                          {t('action.view_details', 'View Property')}
+                        </Button>
+                      )}
                     </Box>
                   </Box>
                 )}

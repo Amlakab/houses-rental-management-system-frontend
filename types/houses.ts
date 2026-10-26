@@ -220,6 +220,7 @@ export interface House {
   numReviews?: number;
   featured?: boolean;
   trendingScore?: number;
+  isDeleted?: boolean;
   created_at: string;
   updated_at: string;
 }

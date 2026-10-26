@@ -507,9 +507,9 @@ const ManagerOrdersPage = () => {
                   {isAmharic ? 'የንብረት መረጃ' : 'Property Information'}
                 </Typography>
                 <Box sx={{ p: 2, bgcolor: theme === 'dark' ? '#1e293b' : '#f8f9fa', borderRadius: 2, border: theme === 'dark' ? '1px solid #334155' : '1px solid #e2e8f0' }}>
-                  <Typography><strong>{isAmharic ? 'ቤት:' : 'Property:'}</strong> {(selectedOrder.houseId as House)?.title}</Typography>
-                  <Typography><strong>{isAmharic ? 'አድራሻ:' : 'Location:'}</strong> {(selectedOrder.houseId as House)?.location?.city}</Typography>
-                  <Typography><strong>{isAmharic ? 'ዋጋ:' : 'Price:'}</strong> {formatPrice((selectedOrder.houseId as House)?.pricing?.price || 0)}</Typography>
+                  <Typography><strong>{isAmharic ? 'ቤት:' : 'Property:'}</strong> {(selectedOrder.houseId as House)?.title || 'Property'}</Typography>
+                  <Typography><strong>{isAmharic ? 'አድራሻ:' : 'Location:'}</strong> {(selectedOrder.houseId as House)?.location?.city || 'N/A'}</Typography>
+                  <Typography><strong>{isAmharic ? 'ዋጋ:' : 'Price:'}</strong> {formatPrice((selectedOrder.houseId as House)?.pricing?.price || selectedOrder.totalAmount || 0)}</Typography>
                 </Box>
                 
                 {/* Timeline */}

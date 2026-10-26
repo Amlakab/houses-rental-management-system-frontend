@@ -558,7 +558,7 @@ export default function CustomerOrdersPage() {
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mb: 1 }}>
                         <LocationOn sx={{ fontSize: 15, color: isDark ? '#38bdf8' : '#2563eb' }} />
                         <Typography variant="body2" sx={{ color: isDark ? '#e2e8f0' : '#334155' }}>
-                          {(selectedOrder.houseId as House)?.location?.address}, {(selectedOrder.houseId as House)?.location?.city}
+                          {(selectedOrder.houseId as House)?.location?.address ? `${(selectedOrder.houseId as House).location.address}${(selectedOrder.houseId as House).location?.city ? `, ${(selectedOrder.houseId as House).location.city}` : ''}` : ((selectedOrder.houseId as House)?.location?.city || 'N/A')}
                         </Typography>
                       </Box>
                       
@@ -584,20 +584,22 @@ export default function CustomerOrdersPage() {
                         {formatPrice((selectedOrder.houseId as House)?.pricing?.price || selectedOrder.totalAmount)}
                       </Typography>
                       
-                      <Button
-                        size="small"
-                        variant="outlined"
-                        href={`/public/houses/${(selectedOrder.houseId as House)?._id}`}
-                        sx={{ 
-                          mt: 1,
-                          textTransform: 'none',
-                          borderRadius: 2,
-                          borderColor: isDark ? '#334155' : '#cbd5e1',
-                          color: isDark ? '#e2e8f0' : '#334155'
-                        }}
-                      >
-                        {t('action.view_details', 'View Property Details')}
-                      </Button>
+                      {Boolean((selectedOrder.houseId as House)?._id && !(selectedOrder.houseId as any)?.isDeleted) && (
+                        <Button
+                          size="small"
+                          variant="outlined"
+                          href={`/public/houses/${(selectedOrder.houseId as House)?._id}`}
+                          sx={{ 
+                            mt: 1,
+                            textTransform: 'none',
+                            borderRadius: 2,
+                            borderColor: isDark ? '#334155' : '#cbd5e1',
+                            color: isDark ? '#e2e8f0' : '#334155'
+                          }}
+                        >
+                          {t('action.view_details', 'View Property Details')}
+                        </Button>
+                      )}
                     </Box>
                   </Box>
                 </Box>

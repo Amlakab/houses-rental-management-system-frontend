@@ -80,7 +80,7 @@ export default function PurchaseMilestonePaymentModal({
   const [copied, setCopied] = useState(false);
   const [completedTx, setCompletedTx] = useState<any | null>(null);
 
-  const houseObj: any = offer && typeof offer.houseId === 'object' ? offer.houseId : null;
+  const houseObj: any = offer && typeof offer.houseId === 'object' && offer.houseId ? offer.houseId : null;
   const houseId = offer ? (houseObj?._id || offer.houseId) : null;
   const houseTitle = houseObj?.title || 'Property For Sale';
 

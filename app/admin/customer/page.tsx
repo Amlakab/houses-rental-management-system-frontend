@@ -448,89 +448,92 @@ export default function AdminCustomerPage() {
                 </Paper>
               ) : (
                 <Grid container spacing={3}>
-                  {appointments.map((app) => (
-                    <Grid item xs={12} md={6} key={app._id}>
-                      <Card
-                        sx={{
-                          borderRadius: 3,
-                          bgcolor: isDark ? '#0f172a80' : '#ffffff',
-                          border: isDark ? '1px solid rgba(0, 255, 255, 0.15)' : '1px solid #e2e8f0',
-                          backdropFilter: isDark ? 'blur(10px)' : 'none',
-                          transition: 'all 0.2s',
-                          '&:hover': {
-                            borderColor: isDark ? '#00ffff' : '#0284c7',
-                            transform: 'translateY(-2px)'
-                          }
-                        }}
-                      >
-                        <CardContent sx={{ p: 3 }}>
-                          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1.5 }}>
-                            <Chip
-                              size="small"
-                              label={app.status}
-                              color={app.status === 'CONFIRMED' ? 'success' : app.status === 'REQUESTED' ? 'warning' : 'default'}
-                              sx={{ fontWeight: 700 }}
-                            />
-                            <Chip
-                              size="small"
-                              label={app.visitType === 'IN_PERSON' ? 'In-Person Visit' : 'Virtual Live Tour'}
-                              sx={{
-                                bgcolor: isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.05)',
-                                color: isDark ? '#ccd6f6' : '#334155',
-                                fontWeight: 600
-                              }}
-                            />
-                          </Box>
-
-                          <Typography variant="h6" sx={{ fontWeight: 700, color: isDark ? '#ccd6f6' : '#0f172a', mb: 1 }}>
-                            {typeof app.houseId === 'object' ? app.houseId.title : 'Property Viewing'}
-                          </Typography>
-
-                          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, my: 2 }}>
-                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                              <CalendarMonth fontSize="small" sx={{ color: isDark ? '#00ffff' : '#0284c7' }} />
-                              <Typography variant="body2" sx={{ fontWeight: 600, color: isDark ? '#e2e8f0' : '#1e293b' }}>
-                                Date: {new Date(app.visitDate).toLocaleDateString()} ({app.timeSlot})
-                              </Typography>
+                  {appointments.map((app) => {
+                    const house = typeof app.houseId === 'object' && app.houseId ? app.houseId : null;
+                    return (
+                      <Grid item xs={12} md={6} key={app._id}>
+                        <Card
+                          sx={{
+                            borderRadius: 3,
+                            bgcolor: isDark ? '#0f172a80' : '#ffffff',
+                            border: isDark ? '1px solid rgba(0, 255, 255, 0.15)' : '1px solid #e2e8f0',
+                            backdropFilter: isDark ? 'blur(10px)' : 'none',
+                            transition: 'all 0.2s',
+                            '&:hover': {
+                              borderColor: isDark ? '#00ffff' : '#0284c7',
+                              transform: 'translateY(-2px)'
+                            }
+                          }}
+                        >
+                          <CardContent sx={{ p: 3 }}>
+                            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1.5 }}>
+                              <Chip
+                                size="small"
+                                label={app.status}
+                                color={app.status === 'CONFIRMED' ? 'success' : app.status === 'REQUESTED' ? 'warning' : 'default'}
+                                sx={{ fontWeight: 700 }}
+                              />
+                              <Chip
+                                size="small"
+                                label={app.visitType === 'IN_PERSON' ? 'In-Person Visit' : 'Virtual Live Tour'}
+                                sx={{
+                                  bgcolor: isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.05)',
+                                  color: isDark ? '#ccd6f6' : '#334155',
+                                  fontWeight: 600
+                                }}
+                              />
                             </Box>
-                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                              <Person fontSize="small" sx={{ color: isDark ? '#8892b0' : '#64748b' }} />
-                              <Typography variant="body2" sx={{ color: isDark ? '#8892b0' : '#64748b' }}>
-                                Host: {app.hostId?.name || 'Assigned Real Estate Agent'}
-                              </Typography>
-                            </Box>
-                          </Box>
 
-                          {app.notes && (
-                            <Box sx={{ bgcolor: isDark ? 'rgba(255, 255, 255, 0.04)' : '#f8fafc', p: 1.5, borderRadius: 2, mb: 2 }}>
-                              <Typography variant="body2" sx={{ color: isDark ? '#8892b0' : '#64748b', fontSize: 13 }}>
-                                Note: {app.notes}
-                              </Typography>
-                            </Box>
-                          )}
+                            <Typography variant="h6" sx={{ fontWeight: 700, color: isDark ? '#ccd6f6' : '#0f172a', mb: 1 }}>
+                              {house ? (house.title || 'Property Viewing') : 'Property Viewing'}
+                            </Typography>
 
-                          {typeof app.houseId === 'object' && (
-                            <Button
-                              component={Link}
-                              href={`/public/houses/${app.houseId._id}`}
-                              size="small"
-                              variant="outlined"
-                              fullWidth
-                              sx={{
-                                borderRadius: 2,
-                                textTransform: 'none',
-                                fontWeight: 600,
-                                borderColor: isDark ? 'rgba(0, 255, 255, 0.3)' : '#cbd5e1',
-                                color: isDark ? '#00ffff' : '#0284c7'
-                              }}
-                            >
-                              View Property Specifications
-                            </Button>
-                          )}
-                        </CardContent>
-                      </Card>
-                    </Grid>
-                  ))}
+                            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, my: 2 }}>
+                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                <CalendarMonth fontSize="small" sx={{ color: isDark ? '#00ffff' : '#0284c7' }} />
+                                <Typography variant="body2" sx={{ fontWeight: 600, color: isDark ? '#e2e8f0' : '#1e293b' }}>
+                                  Date: {new Date(app.visitDate).toLocaleDateString()} ({app.timeSlot})
+                                </Typography>
+                              </Box>
+                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                <Person fontSize="small" sx={{ color: isDark ? '#8892b0' : '#64748b' }} />
+                                <Typography variant="body2" sx={{ color: isDark ? '#8892b0' : '#64748b' }}>
+                                  Host: {app.hostId?.name || 'Assigned Real Estate Agent'}
+                                </Typography>
+                              </Box>
+                            </Box>
+
+                            {app.notes && (
+                              <Box sx={{ bgcolor: isDark ? 'rgba(255, 255, 255, 0.04)' : '#f8fafc', p: 1.5, borderRadius: 2, mb: 2 }}>
+                                <Typography variant="body2" sx={{ color: isDark ? '#8892b0' : '#64748b', fontSize: 13 }}>
+                                  Note: {app.notes}
+                                </Typography>
+                              </Box>
+                            )}
+
+                            {house && !house.isDeleted && (
+                              <Button
+                                component={Link}
+                                href={`/public/houses/${house._id}`}
+                                size="small"
+                                variant="outlined"
+                                fullWidth
+                                sx={{
+                                  borderRadius: 2,
+                                  textTransform: 'none',
+                                  fontWeight: 600,
+                                  borderColor: isDark ? 'rgba(0, 255, 255, 0.3)' : '#cbd5e1',
+                                  color: isDark ? '#00ffff' : '#0284c7'
+                                }}
+                              >
+                                View Property Specifications
+                              </Button>
+                            )}
+                          </CardContent>
+                        </Card>
+                      </Grid>
+                    );
+                  })}
                 </Grid>
               )}
             </motion.div>
@@ -580,105 +583,108 @@ export default function AdminCustomerPage() {
                 </Paper>
               ) : (
                 <Grid container spacing={3}>
-                  {applications.map((app) => (
-                    <Grid item xs={12} md={6} key={app._id}>
-                      <Card
-                        sx={{
-                          borderRadius: 3,
-                          bgcolor: isDark ? '#0f172a80' : '#ffffff',
-                          border: isDark ? '1px solid rgba(0, 255, 255, 0.15)' : '1px solid #e2e8f0',
-                          transition: 'all 0.2s',
-                          '&:hover': { borderColor: isDark ? '#00ffff' : '#0284c7' }
-                        }}
-                      >
-                        <CardContent>
-                          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
-                            <Box>
-                              <Typography variant="h6" sx={{ fontWeight: 700, color: isDark ? '#ccd6f6' : '#0f172a' }}>
-                                {typeof app.houseId === 'object' ? app.houseId.title : 'Rental Property'}
-                              </Typography>
-                              <Typography variant="caption" sx={{ color: isDark ? '#8892b0' : '#64748b' }}>
-                                Applied on: {new Date(app.created_at).toLocaleDateString()}
-                              </Typography>
+                  {applications.map((app) => {
+                    const house = typeof app.houseId === 'object' && app.houseId ? app.houseId : null;
+                    return (
+                      <Grid item xs={12} md={6} key={app._id}>
+                        <Card
+                          sx={{
+                            borderRadius: 3,
+                            bgcolor: isDark ? '#0f172a80' : '#ffffff',
+                            border: isDark ? '1px solid rgba(0, 255, 255, 0.15)' : '1px solid #e2e8f0',
+                            transition: 'all 0.2s',
+                            '&:hover': { borderColor: isDark ? '#00ffff' : '#0284c7' }
+                          }}
+                        >
+                          <CardContent>
+                            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
+                              <Box>
+                                <Typography variant="h6" sx={{ fontWeight: 700, color: isDark ? '#ccd6f6' : '#0f172a' }}>
+                                  {house ? (house.title || 'Rental Property') : 'Rental Property'}
+                                </Typography>
+                                <Typography variant="caption" sx={{ color: isDark ? '#8892b0' : '#64748b' }}>
+                                  Applied on: {new Date(app.created_at).toLocaleDateString()}
+                                </Typography>
+                              </Box>
+                              <Chip
+                                size="small"
+                                label={
+                                  app.status === 'APPROVED' ? 'Approved! Lease Ready' :
+                                  app.status === 'PENDING' ? 'Under Review' :
+                                  app.status === 'REJECTED' ? 'Declined' : app.status
+                                }
+                                color={
+                                  app.status === 'APPROVED' ? 'success' :
+                                  app.status === 'PENDING' ? 'warning' : 'error'
+                                }
+                                sx={{ fontWeight: 700 }}
+                              />
                             </Box>
-                            <Chip
-                              size="small"
-                              label={
-                                app.status === 'APPROVED' ? 'Approved! Lease Ready' :
-                                app.status === 'PENDING' ? 'Under Review' :
-                                app.status === 'REJECTED' ? 'Declined' : app.status
-                              }
-                              color={
-                                app.status === 'APPROVED' ? 'success' :
-                                app.status === 'PENDING' ? 'warning' : 'error'
-                              }
-                              sx={{ fontWeight: 700 }}
-                            />
-                          </Box>
 
-                          <Divider sx={{ my: 1.5, borderColor: isDark ? 'rgba(255, 255, 255, 0.08)' : '#e2e8f0' }} />
+                            <Divider sx={{ my: 1.5, borderColor: isDark ? 'rgba(255, 255, 255, 0.08)' : '#e2e8f0' }} />
 
-                          <Grid container spacing={1.5} sx={{ mb: 2 }}>
-                            <Grid item xs={6}>
-                              <Typography variant="caption" sx={{ color: isDark ? '#8892b0' : '#64748b' }}>Move-In Date</Typography>
-                              <Typography variant="body2" sx={{ fontWeight: 600, color: isDark ? '#ccd6f6' : '#0f172a' }}>
-                                {new Date(app.preferredMoveInDate).toLocaleDateString()}
-                              </Typography>
+                            <Grid container spacing={1.5} sx={{ mb: 2 }}>
+                              <Grid item xs={6}>
+                                <Typography variant="caption" sx={{ color: isDark ? '#8892b0' : '#64748b' }}>Move-In Date</Typography>
+                                <Typography variant="body2" sx={{ fontWeight: 600, color: isDark ? '#ccd6f6' : '#0f172a' }}>
+                                  {new Date(app.preferredMoveInDate).toLocaleDateString()}
+                                </Typography>
+                              </Grid>
+                              <Grid item xs={6}>
+                                <Typography variant="caption" sx={{ color: isDark ? '#8892b0' : '#64748b' }}>Stated Monthly Income</Typography>
+                                <Typography variant="body2" sx={{ fontWeight: 600, color: '#8b5cf6' }}>
+                                  ETB {app.monthlyIncome?.toLocaleString()}
+                                </Typography>
+                              </Grid>
+                              <Grid item xs={6}>
+                                <Typography variant="caption" sx={{ color: isDark ? '#8892b0' : '#64748b' }}>Occupants</Typography>
+                                <Typography variant="body2" sx={{ fontWeight: 600, color: isDark ? '#ccd6f6' : '#0f172a' }}>
+                                  {app.numberOfOccupants} Person(s)
+                                </Typography>
+                              </Grid>
+                              <Grid item xs={6}>
+                                <Typography variant="caption" sx={{ color: isDark ? '#8892b0' : '#64748b' }}>Occupation</Typography>
+                                <Typography variant="body2" sx={{ fontWeight: 600, color: isDark ? '#ccd6f6' : '#0f172a' }}>
+                                  {app.occupation}
+                                </Typography>
+                              </Grid>
                             </Grid>
-                            <Grid item xs={6}>
-                              <Typography variant="caption" sx={{ color: isDark ? '#8892b0' : '#64748b' }}>Stated Monthly Income</Typography>
-                              <Typography variant="body2" sx={{ fontWeight: 600, color: '#8b5cf6' }}>
-                                ETB {app.monthlyIncome?.toLocaleString()}
-                              </Typography>
-                            </Grid>
-                            <Grid item xs={6}>
-                              <Typography variant="caption" sx={{ color: isDark ? '#8892b0' : '#64748b' }}>Occupants</Typography>
-                              <Typography variant="body2" sx={{ fontWeight: 600, color: isDark ? '#ccd6f6' : '#0f172a' }}>
-                                {app.numberOfOccupants} Person(s)
-                              </Typography>
-                            </Grid>
-                            <Grid item xs={6}>
-                              <Typography variant="caption" sx={{ color: isDark ? '#8892b0' : '#64748b' }}>Occupation</Typography>
-                              <Typography variant="body2" sx={{ fontWeight: 600, color: isDark ? '#ccd6f6' : '#0f172a' }}>
-                                {app.occupation}
-                              </Typography>
-                            </Grid>
-                          </Grid>
 
-                          {app.adminNotes && (
-                            <Box sx={{ p: 1.5, borderRadius: 2, bgcolor: isDark ? 'rgba(16, 185, 129, 0.1)' : '#f0fdf4', mb: 2, borderLeft: '3px solid #10b981' }}>
-                              <Typography variant="caption" sx={{ fontWeight: 700, color: '#10b981' }}>Manager Feedback:</Typography>
-                              <Typography variant="body2" sx={{ color: isDark ? '#ccd6f6' : '#334155' }}>{app.adminNotes}</Typography>
-                            </Box>
-                          )}
+                            {app.adminNotes && (
+                              <Box sx={{ p: 1.5, borderRadius: 2, bgcolor: isDark ? 'rgba(16, 185, 129, 0.1)' : '#f0fdf4', mb: 2, borderLeft: '3px solid #10b981' }}>
+                                <Typography variant="caption" sx={{ fontWeight: 700, color: '#10b981' }}>Manager Feedback:</Typography>
+                                <Typography variant="body2" sx={{ color: isDark ? '#ccd6f6' : '#334155' }}>{app.adminNotes}</Typography>
+                              </Box>
+                            )}
 
-                          {app.status === 'APPROVED' ? (
-                            <Button
-                              variant="contained"
-                              color="success"
-                              fullWidth
-                              onClick={() => setActiveTab(2)}
-                              startIcon={<Article />}
-                              sx={{ textTransform: 'none', fontWeight: 700, borderRadius: 2 }}
-                            >
-                              Review & Sign Lease Contract
-                            </Button>
-                          ) : typeof app.houseId === 'object' ? (
-                            <Button
-                              component={Link}
-                              href={`/public/houses/${app.houseId._id}`}
-                              variant="outlined"
-                              size="small"
-                              fullWidth
-                              sx={{ textTransform: 'none', borderRadius: 2 }}
-                            >
-                              View Property Details
-                            </Button>
-                          ) : null}
-                        </CardContent>
-                      </Card>
-                    </Grid>
-                  ))}
+                            {app.status === 'APPROVED' ? (
+                              <Button
+                                variant="contained"
+                                color="success"
+                                fullWidth
+                                onClick={() => setActiveTab(2)}
+                                startIcon={<Article />}
+                                sx={{ textTransform: 'none', fontWeight: 700, borderRadius: 2 }}
+                              >
+                                Review & Sign Lease Contract
+                              </Button>
+                            ) : house && !house.isDeleted ? (
+                              <Button
+                                component={Link}
+                                href={`/public/houses/${house._id}`}
+                                variant="outlined"
+                                size="small"
+                                fullWidth
+                                sx={{ textTransform: 'none', borderRadius: 2 }}
+                              >
+                                View Property Details
+                              </Button>
+                            ) : null}
+                          </CardContent>
+                        </Card>
+                      </Grid>
+                    );
+                  })}
                 </Grid>
               )}
             </motion.div>
@@ -738,7 +744,7 @@ export default function AdminCustomerPage() {
                               />
                             </Box>
                             <Typography variant="body2" sx={{ color: isDark ? '#8892b0' : '#64748b' }}>
-                              Property: {typeof lease.houseId === 'object' ? lease.houseId.title : 'Rental Unit'}
+                              Property: {(typeof lease.houseId === 'object' && lease.houseId) ? (lease.houseId.title || 'Rental Unit') : 'Rental Unit'}
                             </Typography>
                           </Box>
 
@@ -841,7 +847,7 @@ export default function AdminCustomerPage() {
                           <Box>
                             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
                               <Typography variant="h6" sx={{ fontWeight: 700, color: isDark ? '#ccd6f6' : '#0f172a' }}>
-                                {typeof offer.houseId === 'object' ? offer.houseId.title : 'Purchase Bid'}
+                                {(typeof offer.houseId === 'object' && offer.houseId) ? (offer.houseId.title || 'Purchase Bid') : 'Purchase Bid'}
                               </Typography>
                               <Chip
                                 size="small"

@@ -230,7 +230,7 @@ export default function LeaseAgreementModal({
     setLoadingAccounts(true);
 
     try {
-      const houseObj: any = typeof lease.houseId === 'object' ? lease.houseId : null;
+      const houseObj: any = (typeof lease.houseId === 'object' && lease.houseId) ? lease.houseId : null;
       const agentId = houseObj?.agentId?._id || houseObj?.agentId || lease.agentId;
 
       let fetchedAccounts: any[] = [];

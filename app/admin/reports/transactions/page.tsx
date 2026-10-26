@@ -1132,7 +1132,7 @@ const TransactionReportsPage = () => {
                         {t('reports.property', 'Property')}
                       </Typography>
                       <Typography variant="body2" sx={{ color: themeStyles.textColor, fontWeight: 600 }}>
-                        {selectedTransaction.houseId.title}
+                        {typeof selectedTransaction.houseId === 'object' && selectedTransaction.houseId ? selectedTransaction.houseId.title || 'Property' : 'Property'}
                       </Typography>
                     </Paper>
                   )}

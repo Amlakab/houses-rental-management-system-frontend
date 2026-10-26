@@ -514,7 +514,7 @@ export default function AdminWorkflowManagementPage() {
                           </Box>
 
                           <Typography variant="h6" sx={{ fontWeight: 700, color: isDark ? '#f1f5f9' : '#0f172a', mb: 1 }}>
-                            {typeof app.houseId === 'object' ? app.houseId.title : 'Property Viewing'}
+                            {(typeof app.houseId === 'object' && app.houseId) ? (app.houseId.title || 'Property Viewing') : 'Property Viewing'}
                           </Typography>
 
                           <Stack spacing={0.8} sx={{ my: 2 }}>
@@ -637,7 +637,7 @@ export default function AdminWorkflowManagementPage() {
                               />
                             </Box>
                             <Typography variant="body2" sx={{ color: isDark ? '#94a3b8' : '#64748b' }}>
-                              Property: {typeof app.houseId === 'object' ? app.houseId.title : 'Rental Listing'}
+                              Property: {(typeof app.houseId === 'object' && app.houseId) ? (app.houseId.title || 'Rental Listing') : 'Rental Listing'}
                             </Typography>
                             <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', mt: 0.5 }}>
                               <Typography variant="caption" sx={{ display: 'flex', alignItems: 'center', gap: 0.5, color: isDark ? '#ccd6f6' : '#334155' }}>
@@ -781,7 +781,7 @@ export default function AdminWorkflowManagementPage() {
                               />
                             </Box>
                             <Typography variant="body2" sx={{ color: isDark ? '#94a3b8' : '#64748b' }}>
-                              Property: {typeof lease.houseId === 'object' ? lease.houseId.title : 'Rental Apartment'}
+                              Property: {(typeof lease.houseId === 'object' && lease.houseId) ? (lease.houseId.title || 'Rental Apartment') : 'Rental Apartment'}
                             </Typography>
                             <Typography variant="body2" sx={{ color: isDark ? '#f1f5f9' : '#0f172a', fontWeight: 600 }}>
                               Tenant: {lease.tenantName} ({lease.tenantPhone})
@@ -892,7 +892,7 @@ export default function AdminWorkflowManagementPage() {
                           <Box>
                             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
                               <Typography variant="h6" sx={{ fontWeight: 800, color: isDark ? '#f1f5f9' : '#0f172a' }}>
-                                {typeof offer.houseId === 'object' ? offer.houseId.title : 'Purchase Negotiation'}
+                                {(typeof offer.houseId === 'object' && offer.houseId) ? (offer.houseId.title || 'Purchase Negotiation') : 'Purchase Negotiation'}
                               </Typography>
                               <Chip
                                 size="small"
@@ -1172,7 +1172,7 @@ export default function AdminWorkflowManagementPage() {
                       </Typography>
 
                       <Typography variant="caption" sx={{ color: isDark ? '#94a3b8' : '#64748b' }}>
-                        Property: {typeof ticket.houseId === 'object' ? ticket.houseId.title : 'Rental Unit'} • Tenant: {ticket.tenantName} ({ticket.tenantPhone})
+                        Property: {(typeof ticket.houseId === 'object' && ticket.houseId) ? (ticket.houseId.title || 'Rental Unit') : 'Rental Unit'} • Tenant: {ticket.tenantName} ({ticket.tenantPhone})
                       </Typography>
 
                       {ticket.assignedTechnician && (
@@ -1236,7 +1236,7 @@ export default function AdminWorkflowManagementPage() {
                       </Box>
 
                       <Typography variant="h6" sx={{ fontWeight: 700, color: isDark ? '#f1f5f9' : '#0f172a', mt: 1 }}>
-                        Target: {typeof report.houseId === 'object' ? report.houseId.title : 'Reported House Listing'}
+                        Target: {(typeof report.houseId === 'object' && report.houseId) ? (report.houseId.title || 'Reported House Listing') : 'Reported House Listing'}
                       </Typography>
 
                       <Typography variant="body2" sx={{ color: isDark ? '#94a3b8' : '#64748b', my: 1 }}>
@@ -1625,7 +1625,7 @@ export default function AdminWorkflowManagementPage() {
                 Applicant: {selectedApp.fullName}
               </Typography>
               <Typography variant="body2" sx={{ color: isDark ? '#94a3b8' : '#64748b' }}>
-                Property: {typeof selectedApp.houseId === 'object' ? selectedApp.houseId.title : 'Property'}
+                Property: {(typeof selectedApp.houseId === 'object' && selectedApp.houseId) ? (selectedApp.houseId.title || 'Property') : 'Property'}
               </Typography>
               <Typography variant="body2" sx={{ color: isDark ? '#94a3b8' : '#64748b' }}>
                 Income: ETB {selectedApp.monthlyIncome?.toLocaleString()} • Move-in: {new Date(selectedApp.preferredMoveInDate).toLocaleDateString()}
