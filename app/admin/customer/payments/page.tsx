@@ -16,7 +16,7 @@ import {
   HourglassEmpty, Receipt, AttachMoney,
   Home, Refresh,
   Phone, Close, Search,
-  ArrowUpward, ArrowDownward, AccountBalance, AccessTime
+  ArrowUpward, ArrowDownward, AccountBalance
 } from '@mui/icons-material';
 import api from '@/app/utils/api';
 import { format } from 'date-fns';
@@ -86,12 +86,59 @@ const methodIcons: Record<string, React.ReactElement> = {
   cash: <AttachMoney fontSize="small" />
 };
 
+/* Reusable responsive detail row */
+interface DetailRowProps {
+  label: string;
+  value: React.ReactNode;
+  isDark: boolean;
+  mono?: boolean;
+  valueColor?: string;
+}
+
+function DetailRow({ label, value, isDark, mono, valueColor }: DetailRowProps) {
+  return (
+    <Box
+      sx={{
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'flex-start',
+        gap: 2,
+        pb: 1,
+        borderBottom: `1px solid ${isDark ? '#1e293b' : '#f1f5f9'}`,
+        flexWrap: 'wrap'
+      }}
+    >
+      <Typography
+        variant="body2"
+        sx={{ color: isDark ? '#94a3b8' : '#64748b', flexShrink: 0 }}
+      >
+        {label}
+      </Typography>
+      <Typography
+        variant="body2"
+        sx={{
+          fontWeight: 600,
+          textAlign: 'right',
+          flex: '1 1 auto',
+          minWidth: 0,
+          wordBreak: 'break-word',
+          overflowWrap: 'anywhere',
+          fontFamily: mono ? 'monospace' : undefined,
+          color: valueColor || undefined
+        }}
+      >
+        {value}
+      </Typography>
+    </Box>
+  );
+}
+
 export default function CustomerPaymentsPage() {
   const { theme } = useTheme();
   const { t, isAmharic } = useLanguage();
   const isMobile = useMediaQuery('(max-width: 768px)');
   const isDark = theme === 'dark';
-  
+
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -107,11 +154,11 @@ export default function CustomerPaymentsPage() {
       setLoading(true);
       const userStr = localStorage.getItem('user');
       const user = userStr ? JSON.parse(userStr) : null;
-      
+
       if (!user || !user._id) {
         throw new Error('Please login to view transactions');
       }
-      
+
       const response = await api.get(`/transactions/user/${user._id}?page=1&limit=50`);
       setTransactions(response.data.data || []);
     } catch (err: any) {
@@ -155,8 +202,7 @@ export default function CustomerPaymentsPage() {
 
   const getFilteredTransactions = () => {
     let filtered = transactions;
-    
-    // Filter by tab
+
     if (selectedTab === 1) {
       filtered = filtered.filter(t => t.class === 'rent' || t.type === 'rent' || t.metadata?.leaseId);
     } else if (selectedTab === 2) {
@@ -168,17 +214,16 @@ export default function CustomerPaymentsPage() {
     } else if (selectedTab === 5) {
       filtered = filtered.filter(t => t.status === 'completed' || t.status === 'confirmed' || t.status === 'approved');
     }
-    
-    // Filter by search
+
     if (searchTerm) {
-      filtered = filtered.filter(t => 
+      filtered = filtered.filter(t =>
         t.reference.toLowerCase().includes(searchTerm.toLowerCase()) ||
         (t.description || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
         (t.transactionId || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
         (t.houseId?.title || '').toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
-    
+
     return filtered;
   };
 
@@ -245,7 +290,7 @@ export default function CustomerPaymentsPage() {
           className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3"
         >
           <div>
-            <Typography variant={isMobile ? "h5" : "h4"} sx={{ fontWeight: 800, color: isDark ? '#f1f5f9' : '#0f172a', letterSpacing: '-0.02em', mb: 0.5 }}>
+            <Typography variant={isMobile ? 'h5' : 'h4'} sx={{ fontWeight: 800, color: isDark ? '#f1f5f9' : '#0f172a', letterSpacing: '-0.02em', mb: 0.5 }}>
               {t('customer_payments.title', 'My Payments')}
             </Typography>
             <Typography variant="body2" sx={{ color: isDark ? '#94a3b8' : '#64748b' }}>
@@ -271,7 +316,7 @@ export default function CustomerPaymentsPage() {
             {t('action.refresh', 'Refresh')}
           </Button>
         </motion.div>
-        
+
         {/* Statistics Cards */}
         <motion.div
           initial={{ opacity: 0, y: 15 }}
@@ -280,9 +325,9 @@ export default function CustomerPaymentsPage() {
         >
           <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', lg: 'repeat(4, 1fr)' }, gap: 2, mb: 4 }}>
             {statCards.map((stat, index) => (
-              <Card 
-                key={index} 
-                sx={{ 
+              <Card
+                key={index}
+                sx={{
                   borderRadius: 3,
                   borderLeft: `4px solid ${stat.color}`,
                   bgcolor: isDark ? '#112240' : '#ffffff',
@@ -299,16 +344,25 @@ export default function CustomerPaymentsPage() {
                 }}
               >
                 <CardContent sx={{ p: { xs: 2, sm: 2.5 } }}>
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <Box>
-                      <Typography variant="h5" sx={{ fontWeight: 800, color: isDark ? '#f1f5f9' : '#0f172a' }}>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 1 }}>
+                    <Box sx={{ minWidth: 0 }}>
+                      <Typography
+                        variant="h5"
+                        sx={{
+                          fontWeight: 800,
+                          color: isDark ? '#f1f5f9' : '#0f172a',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          whiteSpace: 'nowrap'
+                        }}
+                      >
                         {stat.value}
                       </Typography>
                       <Typography variant="caption" sx={{ color: isDark ? '#94a3b8' : '#64748b', fontWeight: 600 }}>
                         {stat.title}
                       </Typography>
                     </Box>
-                    <Box sx={{ color: stat.color, p: 1.2, borderRadius: 2.5, bgcolor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)' }}>
+                    <Box sx={{ color: stat.color, p: 1.2, borderRadius: 2.5, bgcolor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)', flexShrink: 0 }}>
                       {stat.icon}
                     </Box>
                   </Box>
@@ -317,12 +371,12 @@ export default function CustomerPaymentsPage() {
             ))}
           </Box>
         </motion.div>
-        
+
         {/* Search and Tabs */}
-        <Card 
-          sx={{ 
-            mb: 3, 
-            borderRadius: 3, 
+        <Card
+          sx={{
+            mb: 3,
+            borderRadius: 3,
             bgcolor: isDark ? '#112240' : '#ffffff',
             border: `1px solid ${isDark ? '#233554' : '#e2e8f0'}`,
             boxShadow: 'none'
@@ -335,8 +389,8 @@ export default function CustomerPaymentsPage() {
                 placeholder={t('customer_payments.search_placeholder', 'Search by reference, amount, or phone...')}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                sx={{ 
-                  flex: 1, 
+                sx={{
+                  flex: 1,
                   maxWidth: { md: 450 },
                   '& .MuiOutlinedInput-root': {
                     bgcolor: isDark ? '#1e293b' : '#f8fafc',
@@ -353,7 +407,7 @@ export default function CustomerPaymentsPage() {
                 }}
               />
             </Box>
-            
+
             <Box sx={{ borderBottom: 1, borderColor: isDark ? '#233554' : '#e2e8f0', overflowX: 'auto' }}>
               <Tabs
                 value={selectedTab}
@@ -361,15 +415,18 @@ export default function CustomerPaymentsPage() {
                 variant="scrollable"
                 scrollButtons="auto"
                 sx={{
-                  '& .MuiTab-root': { 
+                  '& .MuiTab-root': {
                     color: isDark ? '#94a3b8' : '#64748b',
                     fontWeight: 600,
                     textTransform: 'none',
-                    fontSize: { xs: '0.85rem', sm: '0.95rem' }
+                    fontSize: { xs: '0.8rem', sm: '0.95rem' },
+                    minHeight: { xs: 42, sm: 48 },
+                    px: { xs: 1.5, sm: 2 },
+                    whiteSpace: 'nowrap'
                   },
-                  '& .Mui-selected': { 
+                  '& .Mui-selected': {
                     color: isDark ? '#38bdf8 !important' : '#2563eb !important',
-                    fontWeight: 700 
+                    fontWeight: 700
                   },
                   '& .MuiTabs-indicator': {
                     backgroundColor: isDark ? '#38bdf8' : '#2563eb',
@@ -385,19 +442,19 @@ export default function CustomerPaymentsPage() {
             </Box>
           </CardContent>
         </Card>
-        
+
         {/* Transactions List */}
         {loading ? (
           <Box sx={{ display: 'flex', justifyContent: 'center', py: 8 }}>
             <CircularProgress size={48} sx={{ color: isDark ? '#38bdf8' : '#2563eb' }} />
           </Box>
         ) : filteredTransactions.length === 0 ? (
-          <Card 
-            sx={{ 
-              textAlign: 'center', 
-              py: 8, 
+          <Card
+            sx={{
+              textAlign: 'center',
+              py: 8,
               px: 3,
-              borderRadius: 3, 
+              borderRadius: 3,
               bgcolor: isDark ? '#112240' : '#ffffff',
               border: `1px solid ${isDark ? '#233554' : '#e2e8f0'}`
             }}
@@ -420,14 +477,14 @@ export default function CustomerPaymentsPage() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.3, delay: index * 0.04 }}
                 >
-                  <Card 
-                    sx={{ 
+                  <Card
+                    sx={{
                       borderRadius: 3,
                       bgcolor: isDark ? '#112240' : '#ffffff',
                       border: `1px solid ${isDark ? '#233554' : '#e2e8f0'}`,
                       boxShadow: isDark ? '0 4px 15px rgba(0,0,0,0.2)' : '0 2px 8px rgba(15,23,42,0.04)',
                       transition: 'transform 0.2s ease, border-color 0.2s ease',
-                      '&:hover': { 
+                      '&:hover': {
                         transform: 'translateY(-2px)',
                         borderColor: isDark ? '#38bdf8' : '#2563eb'
                       },
@@ -437,33 +494,65 @@ export default function CustomerPaymentsPage() {
                   >
                     <CardContent sx={{ p: { xs: 2, sm: 3 } }}>
                       <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, justifyContent: 'space-between', alignItems: { xs: 'flex-start', md: 'center' }, gap: 2 }}>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flex: 2, minWidth: 0 }}>
-                          <Avatar sx={{ 
-                            bgcolor: `${getTransactionTypeColor(transaction.type, transaction)}20`, 
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flex: 2, minWidth: 0, width: { xs: '100%', md: 'auto' } }}>
+                          <Avatar sx={{
+                            bgcolor: `${getTransactionTypeColor(transaction.type, transaction)}20`,
                             color: getTransactionTypeColor(transaction.type, transaction),
                             width: 44,
-                            height: 44
+                            height: 44,
+                            flexShrink: 0
                           }}>
                             {transaction.class === 'rent' || transaction.metadata?.leaseId ? <Receipt /> :
-                             transaction.type === 'property_purchase' ? <Home /> : 
-                             transaction.type === 'deposit' ? <ArrowDownward /> : <ArrowUpward />}
+                              transaction.type === 'property_purchase' ? <Home /> :
+                                transaction.type === 'deposit' ? <ArrowDownward /> : <ArrowUpward />}
                           </Avatar>
-                          <Box sx={{ minWidth: 0 }}>
-                            <Typography variant="subtitle1" sx={{ fontWeight: 700, color: isDark ? '#f1f5f9' : '#0f172a', lineHeight: 1.3 }}>
+                          <Box sx={{ minWidth: 0, flex: 1 }}>
+                            <Typography
+                              variant="subtitle1"
+                              sx={{
+                                fontWeight: 700,
+                                color: isDark ? '#f1f5f9' : '#0f172a',
+                                lineHeight: 1.3,
+                                overflow: 'hidden',
+                                textOverflow: 'ellipsis',
+                                display: '-webkit-box',
+                                WebkitLineClamp: 2,
+                                WebkitBoxOrient: 'vertical'
+                              }}
+                            >
                               {transaction.class === 'rent' || transaction.metadata?.leaseId
                                 ? `${transaction.houseId?.title || 'Rental Property'} • ${isAmharic ? 'የኪራይ ክፍያ' : 'Rent Payment'}${transaction.metadata?.installmentNumber ? ` (#${transaction.metadata.installmentNumber})` : ''}`
-                                : transaction.type === 'property_purchase' 
+                                : transaction.type === 'property_purchase'
                                   ? transaction.houseId?.title || t('customer_payments.property_purchase', 'Property Purchase')
                                   : getTransactionTypeLabel(transaction.type, transaction)}
                             </Typography>
-                            <Typography variant="caption" sx={{ color: isDark ? '#94a3b8' : '#64748b', display: 'block', mt: 0.3 }}>
+                            <Typography
+                              variant="caption"
+                              sx={{
+                                color: isDark ? '#94a3b8' : '#64748b',
+                                display: 'block',
+                                mt: 0.3,
+                                overflow: 'hidden',
+                                textOverflow: 'ellipsis',
+                                whiteSpace: 'nowrap'
+                              }}
+                            >
                               {t('customer_payments.ref', 'Ref')}: {transaction.reference}
                               {transaction.transactionId ? ` • TxID: ${transaction.transactionId}` : ''}
                             </Typography>
                           </Box>
                         </Box>
-                        
-                        <Box sx={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 1.5 }}>
+
+                        <Box
+                          sx={{
+                            display: 'flex',
+                            flexWrap: 'wrap',
+                            alignItems: 'center',
+                            gap: 1.5,
+                            width: { xs: '100%', md: 'auto' },
+                            justifyContent: { xs: 'space-between', md: 'flex-end' }
+                          }}
+                        >
                           <Typography variant="h6" sx={{ fontWeight: 800, color: getTransactionTypeColor(transaction.type, transaction) }}>
                             {formatPrice(transaction.amount)}
                           </Typography>
@@ -471,7 +560,7 @@ export default function CustomerPaymentsPage() {
                             label={getMethodLabel(transaction.method)}
                             size="small"
                             icon={methodIcons[transaction.method]}
-                            sx={{ 
+                            sx={{
                               bgcolor: isDark ? '#1e293b' : '#f1f5f9',
                               color: isDark ? '#e2e8f0' : '#475569',
                               fontWeight: 600,
@@ -479,8 +568,17 @@ export default function CustomerPaymentsPage() {
                             }}
                           />
                         </Box>
-                        
-                        <Box sx={{ textAlign: { xs: 'left', md: 'right' } }}>
+
+                        <Box
+                          sx={{
+                            textAlign: { xs: 'left', md: 'right' },
+                            width: { xs: '100%', md: 'auto' },
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: { xs: 'space-between', md: 'flex-end' },
+                            gap: 1
+                          }}
+                        >
                           <Chip
                             label={t(`status.${transaction.status.toLowerCase()}`, transaction.status)}
                             size="small"
@@ -488,14 +586,26 @@ export default function CustomerPaymentsPage() {
                             color={statusColors[transaction.status]}
                             sx={{ fontWeight: 700, borderRadius: 1.5 }}
                           />
-                          <Typography variant="caption" display="block" sx={{ color: isDark ? '#94a3b8' : '#64748b', mt: 0.5 }}>
+                          <Typography variant="caption" sx={{ color: isDark ? '#94a3b8' : '#64748b' }}>
                             {formatDate(transaction.createdAt)}
                           </Typography>
                         </Box>
                       </Box>
-                      
+
                       {transaction.description && (
-                        <Typography variant="caption" display="block" sx={{ color: isDark ? '#cbd5e1' : '#64748b', mt: 1.5, p: 1, bgcolor: isDark ? '#1e293b' : '#f8fafc', borderRadius: 1.5 }}>
+                        <Typography
+                          variant="caption"
+                          display="block"
+                          sx={{
+                            color: isDark ? '#cbd5e1' : '#64748b',
+                            mt: 1.5,
+                            p: 1,
+                            bgcolor: isDark ? '#1e293b' : '#f8fafc',
+                            borderRadius: 1.5,
+                            wordBreak: 'break-word',
+                            overflowWrap: 'anywhere'
+                          }}
+                        >
                           {transaction.description}
                         </Typography>
                       )}
@@ -506,7 +616,7 @@ export default function CustomerPaymentsPage() {
             </AnimatePresence>
           </Box>
         )}
-        
+
         {/* Transaction Details Dialog */}
         <Dialog
           open={openViewDialog}
@@ -514,149 +624,206 @@ export default function CustomerPaymentsPage() {
           maxWidth="md"
           fullWidth
           fullScreen={isMobile}
-          PaperProps={{ 
-            sx: { 
-              borderRadius: isMobile ? 0 : 3, 
+          PaperProps={{
+            sx: {
+              borderRadius: isMobile ? 0 : 3,
               bgcolor: isDark ? '#112240' : '#ffffff',
               color: isDark ? '#f1f5f9' : '#0f172a',
               border: `1px solid ${isDark ? '#233554' : '#e2e8f0'}`,
-              maxHeight: '92vh' 
-            } 
+              maxHeight: '92vh'
+            }
           }}
         >
           {selectedTransaction && (
             <>
-              <DialogTitle sx={{ 
-                borderBottom: `1px solid ${isDark ? '#233554' : '#e2e8f0'}`,
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                py: 2,
-                px: { xs: 2, sm: 3 }
-              }}>
-                <Box>
-                  <Typography variant="h6" sx={{ fontWeight: 800, color: isDark ? '#f1f5f9' : '#0f172a' }}>
+              <DialogTitle
+                sx={{
+                  borderBottom: `1px solid ${isDark ? '#233554' : '#e2e8f0'}`,
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'flex-start',
+                  gap: 1,
+                  py: 2,
+                  px: { xs: 2, sm: 3 }
+                }}
+              >
+                <Box sx={{ minWidth: 0, flex: 1 }}>
+                  <Typography
+                    variant="h6"
+                    sx={{
+                      fontWeight: 800,
+                      color: isDark ? '#f1f5f9' : '#0f172a',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap'
+                    }}
+                  >
                     {t('customer_payments.view_receipt', 'Payment Details')}
                   </Typography>
-                  <Typography variant="caption" sx={{ color: isDark ? '#94a3b8' : '#64748b' }}>
+                  <Typography
+                    variant="caption"
+                    sx={{
+                      color: isDark ? '#94a3b8' : '#64748b',
+                      display: 'block',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap'
+                    }}
+                  >
                     {t('customer_payments.ref', 'Reference')}: {selectedTransaction.reference}
                   </Typography>
                 </Box>
-                <IconButton onClick={() => setOpenViewDialog(false)} sx={{ color: isDark ? '#94a3b8' : '#64748b' }}>
+                <IconButton
+                  onClick={() => setOpenViewDialog(false)}
+                  sx={{ color: isDark ? '#94a3b8' : '#64748b', flexShrink: 0 }}
+                  size="small"
+                >
                   <Close />
                 </IconButton>
               </DialogTitle>
-              
+
               <DialogContent dividers sx={{ p: 0, borderColor: isDark ? '#233554' : '#e2e8f0' }}>
                 {/* Status Header */}
-                <Box sx={{ 
-                  p: { xs: 2, sm: 3 }, 
-                  bgcolor: isDark ? 'rgba(30, 41, 59, 0.5)' : '#f8fafc',
-                  borderBottom: `1px solid ${isDark ? '#233554' : '#e2e8f0'}`
-                }}>
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 2 }}>
-                    <Box>
-                      <Typography variant="caption" sx={{ color: isDark ? '#94a3b8' : '#64748b', fontWeight: 600 }}>
-                        {t('customer_payments.status', 'Status')}
-                      </Typography>
-                      <Box sx={{ mt: 0.5 }}>
-                        <Chip
-                          label={t(`status.${selectedTransaction.status.toLowerCase()}`, selectedTransaction.status)}
-                          icon={statusIcons[selectedTransaction.status]}
-                          color={statusColors[selectedTransaction.status]}
-                          sx={{ fontWeight: 700 }}
-                        />
-                      </Box>
-                    </Box>
-                    <Box>
-                      <Typography variant="caption" sx={{ color: isDark ? '#94a3b8' : '#64748b', fontWeight: 600 }}>
-                        {t('customer_payments.date', 'Date')}
-                      </Typography>
-                      <Typography variant="body2" sx={{ fontWeight: 600, color: isDark ? '#f1f5f9' : '#0f172a' }}>
-                        {formatDate(selectedTransaction.createdAt)}
-                      </Typography>
-                    </Box>
-                    <Box>
-                      <Typography variant="caption" sx={{ color: isDark ? '#94a3b8' : '#64748b', fontWeight: 600 }}>
-                        {t('customer_payments.method', 'Method')}
-                      </Typography>
-                      <Box sx={{ mt: 0.5 }}>
-                        <Chip 
-                          label={getMethodLabel(selectedTransaction.method)} 
-                          size="small" 
-                          icon={methodIcons[selectedTransaction.method]}
-                        />
-                      </Box>
+                <Box
+                  sx={{
+                    display: 'grid',
+                    gridTemplateColumns: { xs: '1fr', sm: 'repeat(3, 1fr)' },
+                    gap: 2,
+                    p: { xs: 2, sm: 3 },
+                    bgcolor: isDark ? 'rgba(30, 41, 59, 0.5)' : '#f8fafc',
+                    borderBottom: `1px solid ${isDark ? '#233554' : '#e2e8f0'}`
+                  }}
+                >
+                  <Box>
+                    <Typography variant="caption" sx={{ color: isDark ? '#94a3b8' : '#64748b', fontWeight: 600 }}>
+                      {t('customer_payments.status', 'Status')}
+                    </Typography>
+                    <Box sx={{ mt: 0.5 }}>
+                      <Chip
+                        label={t(`status.${selectedTransaction.status.toLowerCase()}`, selectedTransaction.status)}
+                        icon={statusIcons[selectedTransaction.status]}
+                        color={statusColors[selectedTransaction.status]}
+                        sx={{ fontWeight: 700 }}
+                      />
                     </Box>
                   </Box>
-                  {selectedTransaction.status === 'pending' && (
-                    <LinearProgress sx={{ mt: 2, borderRadius: 1 }} />
-                  )}
+                  <Box>
+                    <Typography variant="caption" sx={{ color: isDark ? '#94a3b8' : '#64748b', fontWeight: 600 }}>
+                      {t('customer_payments.date', 'Date')}
+                    </Typography>
+                    <Typography variant="body2" sx={{ fontWeight: 600, color: isDark ? '#f1f5f9' : '#0f172a', mt: 0.5 }}>
+                      {formatDate(selectedTransaction.createdAt)}
+                    </Typography>
+                  </Box>
+                  <Box>
+                    <Typography variant="caption" sx={{ color: isDark ? '#94a3b8' : '#64748b', fontWeight: 600 }}>
+                      {t('customer_payments.method', 'Method')}
+                    </Typography>
+                    <Box sx={{ mt: 0.5 }}>
+                      <Chip
+                        label={getMethodLabel(selectedTransaction.method)}
+                        size="small"
+                        icon={methodIcons[selectedTransaction.method]}
+                      />
+                    </Box>
+                  </Box>
                 </Box>
-                
+
+                {selectedTransaction.status === 'pending' && (
+                  <Box sx={{ px: { xs: 2, sm: 3 }, py: 1.5, borderBottom: `1px solid ${isDark ? '#233554' : '#e2e8f0'}` }}>
+                    <LinearProgress sx={{ borderRadius: 1 }} />
+                  </Box>
+                )}
+
                 {/* Amount Section */}
-                <Box sx={{ p: 3, textAlign: 'center', borderBottom: `1px solid ${isDark ? '#233554' : '#e2e8f0'}`, bgcolor: isDark ? 'rgba(56, 189, 248, 0.05)' : 'rgba(37, 99, 235, 0.03)' }}>
-                  <Typography variant="caption" sx={{ color: isDark ? '#94a3b8' : '#64748b' }}>{t('customer_orders.price', 'Amount')}</Typography>
-                  <Typography variant="h3" sx={{ fontWeight: 800, color: getTransactionTypeColor(selectedTransaction.type), my: 0.5 }}>
+                <Box
+                  sx={{
+                    p: { xs: 2, sm: 3 },
+                    textAlign: 'center',
+                    borderBottom: `1px solid ${isDark ? '#233554' : '#e2e8f0'}`,
+                    bgcolor: isDark ? 'rgba(56, 189, 248, 0.05)' : 'rgba(37, 99, 235, 0.03)'
+                  }}
+                >
+                  <Typography variant="caption" sx={{ color: isDark ? '#94a3b8' : '#64748b' }}>
+                    {t('customer_orders.price', 'Amount')}
+                  </Typography>
+                  <Typography
+                    variant="h3"
+                    sx={{
+                      fontWeight: 800,
+                      color: getTransactionTypeColor(selectedTransaction.type),
+                      my: 0.5,
+                      fontSize: { xs: '1.75rem', sm: '3rem' },
+                      wordBreak: 'break-word'
+                    }}
+                  >
                     {formatPrice(selectedTransaction.amount)}
                   </Typography>
                   {selectedTransaction.amountInString && (
-                    <Typography variant="caption" sx={{ color: isDark ? '#94a3b8' : '#64748b' }}>
+                    <Typography variant="caption" sx={{ color: isDark ? '#94a3b8' : '#64748b', wordBreak: 'break-word' }}>
                       {selectedTransaction.amountInString}
                     </Typography>
                   )}
                 </Box>
-                
+
                 {/* Transaction Details */}
                 <Box sx={{ p: { xs: 2, sm: 3 }, borderBottom: `1px solid ${isDark ? '#233554' : '#e2e8f0'}` }}>
                   <Typography variant="subtitle1" sx={{ fontWeight: 700, color: isDark ? '#38bdf8' : '#2563eb', mb: 2 }}>
                     {isAmharic ? 'የክፍያ መረጃ' : 'Transaction Information'}
                   </Typography>
-                  
+
                   <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', pb: 1, borderBottom: `1px solid ${isDark ? '#1e293b' : '#f1f5f9'}` }}>
-                      <Typography variant="body2" sx={{ color: isDark ? '#94a3b8' : '#64748b' }}>{t('customer_payments.type', 'Transaction Type')}</Typography>
-                      <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                        {getTransactionTypeLabel(selectedTransaction.type, selectedTransaction)}
-                      </Typography>
-                    </Box>
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', pb: 1, borderBottom: `1px solid ${isDark ? '#1e293b' : '#f1f5f9'}` }}>
-                      <Typography variant="body2" sx={{ color: isDark ? '#94a3b8' : '#64748b' }}>{t('customer_payments.ref', 'Reference Number')}</Typography>
-                      <Typography variant="body2" sx={{ fontFamily: 'monospace', fontWeight: 600 }}>{selectedTransaction.reference}</Typography>
-                    </Box>
+                    <DetailRow
+                      label={t('customer_payments.type', 'Transaction Type')}
+                      value={getTransactionTypeLabel(selectedTransaction.type, selectedTransaction)}
+                      isDark={isDark}
+                    />
+                    <DetailRow
+                      label={t('customer_payments.ref', 'Reference Number')}
+                      value={selectedTransaction.reference}
+                      isDark={isDark}
+                      mono
+                    />
                     {selectedTransaction.transactionId && (
-                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', pb: 1, borderBottom: `1px solid ${isDark ? '#1e293b' : '#f1f5f9'}` }}>
-                        <Typography variant="body2" sx={{ color: isDark ? '#94a3b8' : '#64748b' }}>Transaction ID</Typography>
-                        <Typography variant="body2" sx={{ fontFamily: 'monospace' }}>{selectedTransaction.transactionId}</Typography>
-                      </Box>
+                      <DetailRow
+                        label="Transaction ID"
+                        value={selectedTransaction.transactionId}
+                        isDark={isDark}
+                        mono
+                      />
                     )}
                     {selectedTransaction.metadata?.receiptNumber && (
-                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', pb: 1, borderBottom: `1px solid ${isDark ? '#1e293b' : '#f1f5f9'}` }}>
-                        <Typography variant="body2" sx={{ color: isDark ? '#94a3b8' : '#64748b' }}>Official Receipt #</Typography>
-                        <Typography variant="body2" sx={{ fontFamily: 'monospace', color: '#10b981', fontWeight: 700 }}>{selectedTransaction.metadata.receiptNumber}</Typography>
-                      </Box>
+                      <DetailRow
+                        label="Official Receipt #"
+                        value={selectedTransaction.metadata.receiptNumber}
+                        isDark={isDark}
+                        mono
+                        valueColor="#10b981"
+                      />
                     )}
                     {selectedTransaction.description && (
-                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', pb: 1, borderBottom: `1px solid ${isDark ? '#1e293b' : '#f1f5f9'}` }}>
-                        <Typography variant="body2" sx={{ color: isDark ? '#94a3b8' : '#64748b' }}>{t('house_form.desc', 'Description')}</Typography>
-                        <Typography variant="body2" sx={{ textAlign: 'right', maxWidth: '60%' }}>{selectedTransaction.description}</Typography>
-                      </Box>
+                      <DetailRow
+                        label={t('house_form.desc', 'Description')}
+                        value={selectedTransaction.description}
+                        isDark={isDark}
+                      />
                     )}
                   </Box>
                 </Box>
-                
+
                 {/* Property Details */}
                 {(selectedTransaction.type === 'property_purchase' || selectedTransaction.class === 'rent' || selectedTransaction.metadata?.leaseId) && selectedTransaction.houseId && (
                   <Box sx={{ p: { xs: 2, sm: 3 }, borderBottom: `1px solid ${isDark ? '#233554' : '#e2e8f0'}` }}>
                     <Typography variant="subtitle1" sx={{ fontWeight: 700, color: isDark ? '#38bdf8' : '#2563eb', mb: 2 }}>
                       {t('messages.property_info', 'Property Details')}
                     </Typography>
-                    
+
                     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
-                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', pb: 1, borderBottom: `1px solid ${isDark ? '#1e293b' : '#f1f5f9'}` }}>
-                        <Typography variant="body2" sx={{ color: isDark ? '#94a3b8' : '#64748b' }}>{t('customer_orders.property_name', 'Property')}</Typography>
-                        <Typography variant="body2" sx={{ fontWeight: 600 }}>{selectedTransaction.houseId.title}</Typography>
-                      </Box>
+                      <DetailRow
+                        label={t('customer_orders.property_name', 'Property')}
+                        value={selectedTransaction.houseId.title}
+                        isDark={isDark}
+                      />
                       <Button
                         size="small"
                         variant="outlined"
@@ -668,62 +835,80 @@ export default function CustomerPaymentsPage() {
                     </Box>
                   </Box>
                 )}
-                
+
                 {/* Sender/Receiver details */}
-                <Box sx={{ p: { xs: 2, sm: 3 }, borderBottom: `1px solid ${isDark ? '#233554' : '#e2e8f0'}` }}>
-                  <Typography variant="subtitle1" sx={{ fontWeight: 700, color: isDark ? '#38bdf8' : '#2563eb', mb: 2 }}>
-                    {isAmharic ? 'የላኪና ተቀባይ መረጃ' : 'Party Information'}
-                  </Typography>
-                  
-                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
-                    {selectedTransaction.senderName && (
-                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', pb: 1, borderBottom: `1px solid ${isDark ? '#1e293b' : '#f1f5f9'}` }}>
-                        <Typography variant="body2" sx={{ color: isDark ? '#94a3b8' : '#64748b' }}>{isAmharic ? 'የላኪ ስም' : 'Sender Name'}</Typography>
-                        <Typography variant="body2" sx={{ fontWeight: 600 }}>{selectedTransaction.senderName}</Typography>
-                      </Box>
-                    )}
-                    {selectedTransaction.senderPhone && (
-                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', pb: 1, borderBottom: `1px solid ${isDark ? '#1e293b' : '#f1f5f9'}` }}>
-                        <Typography variant="body2" sx={{ color: isDark ? '#94a3b8' : '#64748b' }}>{isAmharic ? 'የላኪ ስልክ / ሂሳብ' : 'Sender Phone / Account'}</Typography>
-                        <Typography variant="body2">{selectedTransaction.senderPhone}</Typography>
-                      </Box>
-                    )}
-                    {selectedTransaction.receiverPhone && (
-                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', pb: 1, borderBottom: `1px solid ${isDark ? '#1e293b' : '#f1f5f9'}` }}>
-                        <Typography variant="body2" sx={{ color: isDark ? '#94a3b8' : '#64748b' }}>{isAmharic ? 'የተቀባይ ስልክ / ሂሳብ' : 'Receiver Account'}</Typography>
-                        <Typography variant="body2">{selectedTransaction.receiverPhone}</Typography>
-                      </Box>
-                    )}
+                {(selectedTransaction.senderName || selectedTransaction.senderPhone || selectedTransaction.receiverPhone) && (
+                  <Box sx={{ p: { xs: 2, sm: 3 }, borderBottom: `1px solid ${isDark ? '#233554' : '#e2e8f0'}` }}>
+                    <Typography variant="subtitle1" sx={{ fontWeight: 700, color: isDark ? '#38bdf8' : '#2563eb', mb: 2 }}>
+                      {isAmharic ? 'የላኪና ተቀባይ መረጃ' : 'Party Information'}
+                    </Typography>
+
+                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+                      {selectedTransaction.senderName && (
+                        <DetailRow
+                          label={isAmharic ? 'የላኪ ስም' : 'Sender Name'}
+                          value={selectedTransaction.senderName}
+                          isDark={isDark}
+                        />
+                      )}
+                      {selectedTransaction.senderPhone && (
+                        <DetailRow
+                          label={isAmharic ? 'የላኪ ስልክ / ሂሳብ' : 'Sender Phone / Account'}
+                          value={selectedTransaction.senderPhone}
+                          isDark={isDark}
+                        />
+                      )}
+                      {selectedTransaction.receiverPhone && (
+                        <DetailRow
+                          label={isAmharic ? 'የተቀባይ ስልክ / ሂሳብ' : 'Receiver Account'}
+                          value={selectedTransaction.receiverPhone}
+                          isDark={isDark}
+                        />
+                      )}
+                    </Box>
                   </Box>
-                </Box>
-                
+                )}
+
                 {/* Timeline */}
                 {(selectedTransaction.approvedAt || selectedTransaction.completedAt) && (
                   <Box sx={{ p: { xs: 2, sm: 3 } }}>
                     <Typography variant="subtitle1" sx={{ fontWeight: 700, color: isDark ? '#38bdf8' : '#2563eb', mb: 2 }}>
                       {t('orders.timeline', 'Timeline')}
                     </Typography>
-                    
+
                     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
                       {selectedTransaction.approvedAt && (
-                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                          <Typography variant="body2" sx={{ color: isDark ? '#94a3b8' : '#64748b' }}>{t('status.approved', 'Approved')}</Typography>
-                          <Typography variant="body2">{formatDate(selectedTransaction.approvedAt)}</Typography>
-                        </Box>
+                        <DetailRow
+                          label={t('status.approved', 'Approved')}
+                          value={formatDate(selectedTransaction.approvedAt)}
+                          isDark={isDark}
+                        />
                       )}
                       {selectedTransaction.completedAt && (
-                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                          <Typography variant="body2" sx={{ color: isDark ? '#94a3b8' : '#64748b' }}>{t('status.completed', 'Completed')}</Typography>
-                          <Typography variant="body2">{formatDate(selectedTransaction.completedAt)}</Typography>
-                        </Box>
+                        <DetailRow
+                          label={t('status.completed', 'Completed')}
+                          value={formatDate(selectedTransaction.completedAt)}
+                          isDark={isDark}
+                        />
                       )}
                     </Box>
                   </Box>
                 )}
               </DialogContent>
-              
-              <DialogActions sx={{ p: { xs: 2, sm: 3 }, gap: 1.5, borderTop: `1px solid ${isDark ? '#233554' : '#e2e8f0'}` }}>
-                <Button onClick={() => setOpenViewDialog(false)} sx={{ textTransform: 'none', color: isDark ? '#94a3b8' : '#64748b' }}>
+
+              <DialogActions
+                sx={{
+                  p: { xs: 2, sm: 3 },
+                  gap: 1.5,
+                  borderTop: `1px solid ${isDark ? '#233554' : '#e2e8f0'}`,
+                  flexDirection: { xs: 'column-reverse', sm: 'row' },
+                  '& > *': { width: { xs: '100%', sm: 'auto' }, m: '0 !important' }
+                }}
+              >
+                <Button
+                  onClick={() => setOpenViewDialog(false)}
+                  sx={{ textTransform: 'none', color: isDark ? '#94a3b8' : '#64748b' }}
+                >
                   {t('action.close', 'Close')}
                 </Button>
                 {selectedTransaction.type === 'property_purchase' && (
@@ -749,7 +934,7 @@ export default function CustomerPaymentsPage() {
             </>
           )}
         </Dialog>
-        
+
         <Snackbar open={!!error} autoHideDuration={6000} onClose={() => setError('')} anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}>
           <Alert severity="error" onClose={() => setError('')}>{error}</Alert>
         </Snackbar>
