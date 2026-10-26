@@ -26,10 +26,12 @@ interface Transaction {
   reference: string;
   amount: number;
   amountInString?: string;
-  type: 'deposit' | 'withdrawal' | 'property_purchase' | 'winning';
+  type: string;
+  class?: string;
   status: 'pending' | 'approved' | 'completed' | 'confirmed' | 'failed';
-  method: 'telebirr' | 'cbe' | 'cash';
+  method: string;
   description: string;
+  metadata?: any;
   houseId?: {
     _id: string;
     title: string;
@@ -156,13 +158,15 @@ export default function CustomerPaymentsPage() {
     
     // Filter by tab
     if (selectedTab === 1) {
-      filtered = filtered.filter(t => t.type === 'property_purchase');
+      filtered = filtered.filter(t => t.class === 'rent' || t.type === 'rent' || t.metadata?.leaseId);
     } else if (selectedTab === 2) {
-      filtered = filtered.filter(t => t.type === 'deposit');
+      filtered = filtered.filter(t => t.type === 'property_purchase' && t.class !== 'rent' && !t.metadata?.leaseId);
     } else if (selectedTab === 3) {
-      filtered = filtered.filter(t => t.status === 'pending');
+      filtered = filtered.filter(t => t.type === 'deposit');
     } else if (selectedTab === 4) {
-      filtered = filtered.filter(t => t.status === 'completed' || t.status === 'confirmed');
+      filtered = filtered.filter(t => t.status === 'pending');
+    } else if (selectedTab === 5) {
+      filtered = filtered.filter(t => t.status === 'completed' || t.status === 'confirmed' || t.status === 'approved');
     }
     
     // Filter by search
@@ -170,6 +174,7 @@ export default function CustomerPaymentsPage() {
       filtered = filtered.filter(t => 
         t.reference.toLowerCase().includes(searchTerm.toLowerCase()) ||
         (t.description || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (t.transactionId || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
         (t.houseId?.title || '').toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
@@ -179,10 +184,11 @@ export default function CustomerPaymentsPage() {
 
   const tabs = [
     t('customer_payments.title', 'All Payments'),
+    isAmharic ? 'የኪራይ ክፍያዎች' : 'Rent Payments',
     t('customer_payments.property_purchase', 'Property Purchases'),
     t('customer_payments.deposit', 'Deposits'),
-    t('status.pending', 'Pending'),
-    t('status.completed', 'Completed')
+    isAmharic ? 'በግምገማ ላይ (Pending)' : 'Under Review / Pending',
+    isAmharic ? 'የተረጋገጡ (Approved)' : 'Approved & Completed'
   ];
 
   const statCards = [
@@ -194,7 +200,10 @@ export default function CustomerPaymentsPage() {
 
   const filteredTransactions = getFilteredTransactions();
 
-  const getTransactionTypeColor = (type: string) => {
+  const getTransactionTypeColor = (type: string, tx?: Transaction) => {
+    if (tx?.class === 'rent' || tx?.metadata?.leaseId || type === 'rent' || type === 'rent_payment') {
+      return '#10b981';
+    }
     switch (type) {
       case 'property_purchase': return '#38bdf8';
       case 'deposit': return '#22c55e';
@@ -203,7 +212,10 @@ export default function CustomerPaymentsPage() {
     }
   };
 
-  const getTransactionTypeLabel = (type: string) => {
+  const getTransactionTypeLabel = (type: string, tx?: Transaction) => {
+    if (tx?.class === 'rent' || tx?.metadata?.leaseId || type === 'rent' || type === 'rent_payment') {
+      return isAmharic ? 'የኪራይ ክፍያ' : 'Rent Payment';
+    }
     switch (type) {
       case 'property_purchase': return t('customer_payments.property_purchase', 'Property Purchase');
       case 'deposit': return t('customer_payments.deposit', 'Deposit');
@@ -213,11 +225,12 @@ export default function CustomerPaymentsPage() {
   };
 
   const getMethodLabel = (method: string) => {
-    switch (method) {
+    if (!method) return '-';
+    switch (method.toLowerCase()) {
       case 'telebirr': return t('customer_payments.telebirr', 'Telebirr');
       case 'cbe': return t('customer_payments.cbe', 'CBE Bank Transfer');
       case 'cash': return t('customer_payments.cash', 'Cash / In-Person');
-      default: return method;
+      default: return method.toUpperCase();
     }
   };
 
@@ -426,28 +439,32 @@ export default function CustomerPaymentsPage() {
                       <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, justifyContent: 'space-between', alignItems: { xs: 'flex-start', md: 'center' }, gap: 2 }}>
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flex: 2, minWidth: 0 }}>
                           <Avatar sx={{ 
-                            bgcolor: `${getTransactionTypeColor(transaction.type)}20`, 
-                            color: getTransactionTypeColor(transaction.type),
+                            bgcolor: `${getTransactionTypeColor(transaction.type, transaction)}20`, 
+                            color: getTransactionTypeColor(transaction.type, transaction),
                             width: 44,
                             height: 44
                           }}>
-                            {transaction.type === 'property_purchase' ? <Home /> : 
+                            {transaction.class === 'rent' || transaction.metadata?.leaseId ? <Receipt /> :
+                             transaction.type === 'property_purchase' ? <Home /> : 
                              transaction.type === 'deposit' ? <ArrowDownward /> : <ArrowUpward />}
                           </Avatar>
                           <Box sx={{ minWidth: 0 }}>
                             <Typography variant="subtitle1" sx={{ fontWeight: 700, color: isDark ? '#f1f5f9' : '#0f172a', lineHeight: 1.3 }}>
-                              {transaction.type === 'property_purchase' 
-                                ? transaction.houseId?.title || t('customer_payments.property_purchase', 'Property Purchase')
-                                : getTransactionTypeLabel(transaction.type)}
+                              {transaction.class === 'rent' || transaction.metadata?.leaseId
+                                ? `${transaction.houseId?.title || 'Rental Property'} • ${isAmharic ? 'የኪራይ ክፍያ' : 'Rent Payment'}${transaction.metadata?.installmentNumber ? ` (#${transaction.metadata.installmentNumber})` : ''}`
+                                : transaction.type === 'property_purchase' 
+                                  ? transaction.houseId?.title || t('customer_payments.property_purchase', 'Property Purchase')
+                                  : getTransactionTypeLabel(transaction.type, transaction)}
                             </Typography>
                             <Typography variant="caption" sx={{ color: isDark ? '#94a3b8' : '#64748b', display: 'block', mt: 0.3 }}>
                               {t('customer_payments.ref', 'Ref')}: {transaction.reference}
+                              {transaction.transactionId ? ` • TxID: ${transaction.transactionId}` : ''}
                             </Typography>
                           </Box>
                         </Box>
                         
                         <Box sx={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 1.5 }}>
-                          <Typography variant="h6" sx={{ fontWeight: 800, color: getTransactionTypeColor(transaction.type) }}>
+                          <Typography variant="h6" sx={{ fontWeight: 800, color: getTransactionTypeColor(transaction.type, transaction) }}>
                             {formatPrice(transaction.amount)}
                           </Typography>
                           <Chip
@@ -600,7 +617,7 @@ export default function CustomerPaymentsPage() {
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', pb: 1, borderBottom: `1px solid ${isDark ? '#1e293b' : '#f1f5f9'}` }}>
                       <Typography variant="body2" sx={{ color: isDark ? '#94a3b8' : '#64748b' }}>{t('customer_payments.type', 'Transaction Type')}</Typography>
                       <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                        {getTransactionTypeLabel(selectedTransaction.type)}
+                        {getTransactionTypeLabel(selectedTransaction.type, selectedTransaction)}
                       </Typography>
                     </Box>
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', pb: 1, borderBottom: `1px solid ${isDark ? '#1e293b' : '#f1f5f9'}` }}>
@@ -613,6 +630,12 @@ export default function CustomerPaymentsPage() {
                         <Typography variant="body2" sx={{ fontFamily: 'monospace' }}>{selectedTransaction.transactionId}</Typography>
                       </Box>
                     )}
+                    {selectedTransaction.metadata?.receiptNumber && (
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', pb: 1, borderBottom: `1px solid ${isDark ? '#1e293b' : '#f1f5f9'}` }}>
+                        <Typography variant="body2" sx={{ color: isDark ? '#94a3b8' : '#64748b' }}>Official Receipt #</Typography>
+                        <Typography variant="body2" sx={{ fontFamily: 'monospace', color: '#10b981', fontWeight: 700 }}>{selectedTransaction.metadata.receiptNumber}</Typography>
+                      </Box>
+                    )}
                     {selectedTransaction.description && (
                       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', pb: 1, borderBottom: `1px solid ${isDark ? '#1e293b' : '#f1f5f9'}` }}>
                         <Typography variant="body2" sx={{ color: isDark ? '#94a3b8' : '#64748b' }}>{t('house_form.desc', 'Description')}</Typography>
@@ -623,7 +646,7 @@ export default function CustomerPaymentsPage() {
                 </Box>
                 
                 {/* Property Details */}
-                {selectedTransaction.type === 'property_purchase' && selectedTransaction.houseId && (
+                {(selectedTransaction.type === 'property_purchase' || selectedTransaction.class === 'rent' || selectedTransaction.metadata?.leaseId) && selectedTransaction.houseId && (
                   <Box sx={{ p: { xs: 2, sm: 3 }, borderBottom: `1px solid ${isDark ? '#233554' : '#e2e8f0'}` }}>
                     <Typography variant="subtitle1" sx={{ fontWeight: 700, color: isDark ? '#38bdf8' : '#2563eb', mb: 2 }}>
                       {t('messages.property_info', 'Property Details')}

@@ -266,6 +266,7 @@ export interface LeaseAgreement {
   tenantEmail: string;
   tenantPhone: string;
   landlordId: any;
+  agentId?: any;
   startDate: string;
   endDate: string;
   rentAmount: number;
@@ -281,7 +282,7 @@ export interface LeaseAgreement {
     installmentNumber: number;
     dueDate: string;
     amount: number;
-    status: 'PENDING' | 'PAID' | 'OVERDUE' | 'PARTIAL';
+    status: 'PENDING' | 'PAID' | 'OVERDUE' | 'PARTIAL' | 'UNDER_REVIEW';
     paidAmount?: number;
     paidDate?: string;
     receiptNumber?: string;

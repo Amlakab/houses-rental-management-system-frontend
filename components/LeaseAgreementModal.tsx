@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Dialog,
   DialogTitle,
@@ -20,7 +20,9 @@ import {
   Divider,
   IconButton,
   Alert,
-  CircularProgress
+  CircularProgress,
+  TextField,
+  Tooltip
 } from '@mui/material';
 import {
   Article,
@@ -30,7 +32,12 @@ import {
   HourglassEmpty,
   Warning,
   Security,
-  Draw
+  Draw,
+  Payment as PaymentIcon,
+  ContentCopy,
+  Check,
+  AccountBalance,
+  PhoneAndroid
 } from '@mui/icons-material';
 import { useTheme } from '@/lib/theme-context';
 import { useLanguage } from '@/lib/language-context';
@@ -61,6 +68,25 @@ export default function LeaseAgreementModal({
   const [success, setSuccess] = useState('');
   const [selectedReceipt, setSelectedReceipt] = useState<any | null>(null);
 
+  // Local schedule state so payments update immediately on screen
+  const [schedule, setSchedule] = useState(lease.paymentSchedule || []);
+  useEffect(() => {
+    setSchedule(lease.paymentSchedule || []);
+  }, [lease]);
+
+  // Pay Dialog State
+  const [payModalOpen, setPayModalOpen] = useState(false);
+  const [selectedInstallment, setSelectedInstallment] = useState<any | null>(null);
+  const [agentAccounts, setAgentAccounts] = useState<any[]>([]);
+  const [loadingAccounts, setLoadingAccounts] = useState(false);
+  const [selectedAccount, setSelectedAccount] = useState<any | null>(null);
+  const [transactionId, setTransactionId] = useState('');
+  const [senderPhone, setSenderPhone] = useState(lease.tenantPhone || '');
+  const [submittingPayment, setSubmittingPayment] = useState(false);
+  const [payError, setPayError] = useState('');
+  const [paySuccess, setPaySuccess] = useState('');
+  const [copied, setCopied] = useState(false);
+
   const handleSign = async () => {
     try {
       setSigning(true);
@@ -81,6 +107,115 @@ export default function LeaseAgreementModal({
 
   const handlePrint = () => {
     window.print();
+  };
+
+  // Open Pay Modal and fetch matching accountant accounts
+  const handleOpenPay = async (installment: any) => {
+    setSelectedInstallment(installment);
+    setPayModalOpen(true);
+    setPayError('');
+    setPaySuccess('');
+    setTransactionId('');
+    setSenderPhone(lease.tenantPhone || '');
+    setCopied(false);
+    setLoadingAccounts(true);
+
+    try {
+      const houseObj: any = typeof lease.houseId === 'object' ? lease.houseId : null;
+      const agentId = houseObj?.agentId?._id || houseObj?.agentId || lease.agentId;
+
+      let fetchedAccounts: any[] = [];
+
+      // 1. Try fetching accounts for this lease (resolves house agentId)
+      try {
+        const res = await api.get(`/accountants/for-lease/${lease._id}`);
+        if (res.data?.success && Array.isArray(res.data?.data) && res.data.data.length > 0) {
+          fetchedAccounts = res.data.data;
+        }
+      } catch (err) {
+        console.log('Falling back to agentId lookup:', err);
+      }
+
+      // 2. Fallback to direct agentId matching
+      if (fetchedAccounts.length === 0 && agentId) {
+        try {
+          const resAgent = await api.get(`/accountants/agent/${agentId}`);
+          if (resAgent.data?.success && Array.isArray(resAgent.data?.data)) {
+            fetchedAccounts = resAgent.data.data;
+          }
+        } catch (err2) {
+          console.log('Error fetching agent accounts:', err2);
+        }
+      }
+
+      setAgentAccounts(fetchedAccounts);
+      if (fetchedAccounts.length > 0) {
+        setSelectedAccount(fetchedAccounts[0]);
+      } else {
+        setSelectedAccount(null);
+      }
+    } catch (err: any) {
+      setPayError(err?.response?.data?.message || (language === 'am' ? 'የአካውንታንት ሂሳቦችን ማምጣት አልተቻለም' : 'Failed to load accountant accounts'));
+    } finally {
+      setLoadingAccounts(false);
+    }
+  };
+
+  const handleCopyAccount = (accountNum: string) => {
+    if (!accountNum) return;
+    navigator.clipboard.writeText(accountNum);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  const handleSubmitPayment = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedInstallment) return;
+
+    if (!transactionId.trim()) {
+      setPayError(language === 'am' ? 'እባክዎ የትራንዛክሽን መለያ ቁጥር (Transaction ID) ያስገቡ' : 'Please provide the Transaction ID');
+      return;
+    }
+
+    try {
+      setSubmittingPayment(true);
+      setPayError('');
+
+      await api.post(`/workflows/leases/${lease._id}/submit-payment`, {
+        installmentNumber: selectedInstallment.installmentNumber,
+        transactionId: transactionId.trim(),
+        method: selectedAccount?.bankCode?.toLowerCase() || 'cbe',
+        bankName: selectedAccount?.bankName || 'Bank',
+        accountNumber: selectedAccount?.accountNumber || '',
+        accountHolderName: selectedAccount?.accountHolderName || '',
+        senderPhone: senderPhone.trim()
+      });
+
+      setPaySuccess(
+        language === 'am'
+          ? 'ክፍያዎ በተሳካ ሁኔታ ተልኳል! ሁኔታው "በግምገማ ላይ" ሆኗል፤ አከራዩ/ወኪሉ ካረጋገጠ በኋላ ይፋዊ ደረሰኝ ይሰጥዎታል።'
+          : 'Payment submitted successfully! Status changed to Under Review. Once approved by the owner/agent, your official receipt will be issued.'
+      );
+
+      // Update local schedule state
+      setSchedule(prev => prev.map(item =>
+        item.installmentNumber === selectedInstallment.installmentNumber
+          ? { ...item, status: 'UNDER_REVIEW', transactionReference: transactionId.trim() }
+          : item
+      ));
+
+      onSuccess?.();
+
+      setTimeout(() => {
+        setPayModalOpen(false);
+        setPaySuccess('');
+        setSelectedInstallment(null);
+      }, 2000);
+    } catch (err: any) {
+      setPayError(err?.response?.data?.message || (language === 'am' ? 'ክፍያውን ማስገባት አልተቻለም' : 'Failed to submit payment'));
+    } finally {
+      setSubmittingPayment(false);
+    }
   };
 
   return (
@@ -238,7 +373,7 @@ export default function LeaseAgreementModal({
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {lease.paymentSchedule.map((p, idx) => (
+                  {schedule.map((p, idx) => (
                     <TableRow key={idx} sx={{ borderBottom: `1px solid ${isDark ? '#233554' : '#e2e8f0'}` }}>
                       <TableCell sx={{ color: isDark ? '#f1f5f9' : '#0f172a' }}>
                         {language === 'am' ? `ክፍያ #${p.installmentNumber}` : `Installment #${p.installmentNumber}`}
@@ -252,8 +387,8 @@ export default function LeaseAgreementModal({
                       <TableCell>
                         <Chip
                           size="small"
-                          label={p.status}
-                          color={p.status === 'PAID' ? 'success' : p.status === 'OVERDUE' ? 'error' : 'warning'}
+                          label={p.status === 'UNDER_REVIEW' ? (language === 'am' ? 'በግምገማ ላይ' : 'UNDER REVIEW') : p.status}
+                          color={p.status === 'PAID' ? 'success' : p.status === 'UNDER_REVIEW' ? 'info' : p.status === 'OVERDUE' ? 'error' : 'warning'}
                           sx={{ fontWeight: 600, fontSize: 11 }}
                         />
                       </TableCell>
@@ -273,6 +408,40 @@ export default function LeaseAgreementModal({
                             }}
                           >
                             {language === 'am' ? 'ደረሰኝ' : 'Receipt'} #{p.receiptNumber || 'RCP-101'}
+                          </Button>
+                        )}
+                        {p.status === 'UNDER_REVIEW' && (
+                          <Chip
+                            size="small"
+                            icon={<HourglassEmpty sx={{ fontSize: '13px !important' }} />}
+                            label={language === 'am' ? 'በግምገማ ላይ' : 'Under Review'}
+                            color="info"
+                            variant="outlined"
+                            sx={{ fontWeight: 600, fontSize: 11 }}
+                          />
+                        )}
+                        {(p.status === 'PENDING' || p.status === 'OVERDUE') && (
+                          <Button
+                            size="small"
+                            variant="contained"
+                            color="primary"
+                            startIcon={<PaymentIcon sx={{ fontSize: 14 }} />}
+                            onClick={() => handleOpenPay(p)}
+                            sx={{
+                              textTransform: 'none',
+                              py: 0.3,
+                              px: 1.5,
+                              fontSize: 12,
+                              fontWeight: 700,
+                              borderRadius: '6px',
+                              boxShadow: 'none',
+                              bgcolor: isDark ? '#0284c7' : '#2563eb',
+                              '&:hover': {
+                                bgcolor: isDark ? '#0369a1' : '#1d4ed8'
+                              }
+                            }}
+                          >
+                            {language === 'am' ? 'ክፈል' : 'Pay'}
                           </Button>
                         )}
                       </TableCell>
@@ -387,6 +556,291 @@ export default function LeaseAgreementModal({
                 }}
               >
                 {language === 'am' ? 'ደረሰኙን አትም / አስቀምጥ' : 'Print / Save Receipt'}
+              </Button>
+            </DialogActions>
+          </Dialog>
+        )}
+
+        {/* ─── Tenant Rent Payment Dialog ─── */}
+        {payModalOpen && selectedInstallment && (
+          <Dialog
+            open={payModalOpen}
+            onClose={() => !submittingPayment && setPayModalOpen(false)}
+            maxWidth="sm"
+            fullWidth
+            PaperProps={{
+              sx: {
+                borderRadius: 3,
+                bgcolor: isDark ? '#112240' : '#ffffff',
+                border: `1px solid ${isDark ? '#233554' : '#e2e8f0'}`,
+                color: isDark ? '#f1f5f9' : '#0f172a',
+                p: { xs: 1, sm: 2 }
+              }
+            }}
+          >
+            <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', pb: 1 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <PaymentIcon sx={{ color: isDark ? '#38bdf8' : '#2563eb', fontSize: 28 }} />
+                <Box>
+                  <Typography variant="h6" sx={{ fontWeight: 800, color: isDark ? '#f1f5f9' : '#0f172a', lineHeight: 1.2 }}>
+                    {language === 'am' ? 'የኪራይ ክፍያ መክፈያ' : 'Pay Rent Installment'}
+                  </Typography>
+                  <Typography variant="caption" sx={{ color: isDark ? '#94a3b8' : '#64748b' }}>
+                    {language === 'am'
+                      ? `ክፍያ #${selectedInstallment.installmentNumber} • ውል #${lease.agreementNumber}`
+                      : `Installment #${selectedInstallment.installmentNumber} • Lease #${lease.agreementNumber}`}
+                  </Typography>
+                </Box>
+              </Box>
+              <IconButton size="small" onClick={() => setPayModalOpen(false)} disabled={submittingPayment} sx={{ color: isDark ? '#94a3b8' : '#64748b' }}>
+                <Close />
+              </IconButton>
+            </DialogTitle>
+
+            <DialogContent sx={{ pt: 2 }}>
+              {payError && (
+                <Alert severity="error" sx={{ mb: 2, borderRadius: 2 }} onClose={() => setPayError('')}>
+                  {payError}
+                </Alert>
+              )}
+
+              {paySuccess && (
+                <Alert severity="success" sx={{ mb: 2, borderRadius: 2 }}>
+                  {paySuccess}
+                </Alert>
+              )}
+
+              {/* Installment Summary Banner */}
+              <Box
+                sx={{
+                  p: 2,
+                  mb: 3,
+                  borderRadius: 2.5,
+                  bgcolor: isDark ? '#0a192f' : '#f8fafc',
+                  border: `1px solid ${isDark ? '#233554' : '#e2e8f0'}`,
+                  display: 'flex',
+                  flexDirection: { xs: 'column', sm: 'row' },
+                  justifyContent: 'space-between',
+                  alignItems: { xs: 'flex-start', sm: 'center' },
+                  gap: 1.5
+                }}
+              >
+                <Box>
+                  <Typography variant="caption" sx={{ color: isDark ? '#94a3b8' : '#64748b', textTransform: 'uppercase', fontWeight: 700, letterSpacing: 0.5 }}>
+                    {language === 'am' ? 'የሚከፈል መጠን' : 'Amount Due'}
+                  </Typography>
+                  <Typography variant="h5" sx={{ fontWeight: 800, color: isDark ? '#38bdf8' : '#2563eb' }}>
+                    ETB {selectedInstallment.amount.toLocaleString()}
+                  </Typography>
+                </Box>
+                <Box sx={{ textAlign: { sm: 'right' } }}>
+                  <Typography variant="caption" sx={{ color: isDark ? '#94a3b8' : '#64748b' }}>
+                    {language === 'am' ? 'የሚከፈልበት ቀን' : 'Due Date'}
+                  </Typography>
+                  <Typography variant="body2" sx={{ fontWeight: 600, color: isDark ? '#f1f5f9' : '#0f172a' }}>
+                    {new Date(selectedInstallment.dueDate).toLocaleDateString(language === 'am' ? 'am-ET' : 'en-US')}
+                  </Typography>
+                </Box>
+              </Box>
+
+              {/* Loading state for accountant accounts */}
+              {loadingAccounts ? (
+                <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', py: 4, gap: 1.5 }}>
+                  <CircularProgress size={32} sx={{ color: isDark ? '#38bdf8' : '#2563eb' }} />
+                  <Typography variant="body2" sx={{ color: isDark ? '#94a3b8' : '#64748b' }}>
+                    {language === 'am' ? 'የአካውንታንት የክፍያ ሂሳቦችን በማምጣት ላይ...' : 'Fetching property agent payment accounts...'}
+                  </Typography>
+                </Box>
+              ) : agentAccounts.length === 0 ? (
+                <Alert severity="warning" sx={{ mb: 2, borderRadius: 2 }}>
+                  {language === 'am'
+                    ? 'ለዚህ ንብረት ወኪል የተመዘገበ የባንክ/ዋሌት ሂሳብ አልተገኘም። እባክዎ አከራዩን/ወኪሉን ያነጋግሩ።'
+                    : 'No active bank/wallet account found for this property agent. Please contact your property manager/agent.'}
+                </Alert>
+              ) : (
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
+                  {/* Bank / Wallet Selection */}
+                  <Box>
+                    <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1, color: isDark ? '#f1f5f9' : '#0f172a' }}>
+                      {language === 'am' ? 'የክፍያ ባንክ / ዋሌት ይምረጡ' : 'Select Destination Bank / Wallet'}
+                    </Typography>
+                    <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)' }, gap: 1.5 }}>
+                      {agentAccounts.map((acc, index) => {
+                        const isSelected = selectedAccount?._id === acc._id;
+                        return (
+                          <Box
+                            key={acc._id || index}
+                            onClick={() => setSelectedAccount(acc)}
+                            sx={{
+                              p: 1.5,
+                              borderRadius: 2,
+                              cursor: 'pointer',
+                              border: `2px solid ${isSelected ? (isDark ? '#38bdf8' : '#2563eb') : isDark ? '#233554' : '#e2e8f0'}`,
+                              bgcolor: isSelected ? (isDark ? 'rgba(56, 189, 248, 0.12)' : 'rgba(37, 99, 235, 0.05)') : isDark ? '#0a192f' : '#ffffff',
+                              transition: 'all 0.2s ease',
+                              '&:hover': {
+                                borderColor: isDark ? '#38bdf8' : '#2563eb',
+                                transform: 'translateY(-1px)'
+                              }
+                            }}
+                          >
+                            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.5 }}>
+                              <Typography variant="body2" sx={{ fontWeight: 700, color: isDark ? '#f1f5f9' : '#0f172a' }}>
+                                {acc.bankName}
+                              </Typography>
+                              <Chip
+                                size="small"
+                                label={acc.type === 'wallet' ? 'Wallet' : 'Bank'}
+                                sx={{
+                                  fontSize: 10,
+                                  height: 20,
+                                  fontWeight: 700,
+                                  bgcolor: acc.type === 'wallet' ? '#f59e0b20' : '#10b98120',
+                                  color: acc.type === 'wallet' ? '#f59e0b' : '#10b981'
+                                }}
+                              />
+                            </Box>
+                            <Typography variant="caption" sx={{ color: isDark ? '#94a3b8' : '#64748b' }}>
+                              {acc.bankCode}
+                            </Typography>
+                          </Box>
+                        );
+                      })}
+                    </Box>
+                  </Box>
+
+                  {/* Selected Account Details with Copy Button */}
+                  {selectedAccount && (
+                    <Box
+                      sx={{
+                        p: 2,
+                        borderRadius: 2.5,
+                        bgcolor: isDark ? '#1e293b' : '#f0f9ff',
+                        border: `1px solid ${isDark ? '#334155' : '#bae6fd'}`
+                      }}
+                    >
+                      <Typography variant="caption" sx={{ color: isDark ? '#38bdf8' : '#0284c7', fontWeight: 700, textTransform: 'uppercase' }}>
+                        {language === 'am' ? 'የተመረጠው የባንክ ሂሳብ ዝርዝር' : 'Selected Deposit Account Details'}
+                      </Typography>
+                      <Box sx={{ mt: 1, display: 'flex', flexDirection: 'column', gap: 0.8 }}>
+                        <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                          <Typography variant="caption" sx={{ color: isDark ? '#94a3b8' : '#64748b' }}>
+                            {language === 'am' ? 'ባንክ / ተቋም፡' : 'Bank / Institution:'}
+                          </Typography>
+                          <Typography variant="body2" sx={{ fontWeight: 600, color: isDark ? '#f1f5f9' : '#0f172a' }}>
+                            {selectedAccount.bankName} ({selectedAccount.bankCode})
+                          </Typography>
+                        </Box>
+                        <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                          <Typography variant="caption" sx={{ color: isDark ? '#94a3b8' : '#64748b' }}>
+                            {language === 'am' ? 'የሂሳብ ባለቤት ስም፡' : 'Account Holder Name:'}
+                          </Typography>
+                          <Typography variant="body2" sx={{ fontWeight: 600, color: isDark ? '#f1f5f9' : '#0f172a' }}>
+                            {selectedAccount.accountHolderName}
+                          </Typography>
+                        </Box>
+                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', pt: 0.5, borderTop: `1px dashed ${isDark ? '#334155' : '#cbd5e1'}` }}>
+                          <Box>
+                            <Typography variant="caption" sx={{ color: isDark ? '#94a3b8' : '#64748b' }}>
+                              {language === 'am' ? 'የሂሳብ ቁጥር፡' : 'Account / Phone Number:'}
+                            </Typography>
+                            <Typography variant="h6" sx={{ fontWeight: 800, color: isDark ? '#38bdf8' : '#2563eb', letterSpacing: 1 }}>
+                              {selectedAccount.accountNumber}
+                            </Typography>
+                          </Box>
+                          <Button
+                            size="small"
+                            variant="outlined"
+                            startIcon={copied ? <Check fontSize="small" /> : <ContentCopy fontSize="small" />}
+                            onClick={() => handleCopyAccount(selectedAccount.accountNumber)}
+                            sx={{
+                              textTransform: 'none',
+                              borderRadius: 2,
+                              borderColor: copied ? '#10b981' : isDark ? '#38bdf8' : '#2563eb',
+                              color: copied ? '#10b981' : isDark ? '#38bdf8' : '#2563eb',
+                              fontSize: 12,
+                              py: 0.5
+                            }}
+                          >
+                            {copied ? (language === 'am' ? 'ተቀድቷል!' : 'Copied!') : (language === 'am' ? 'ቁጥሩን ቅዳ' : 'Copy Number')}
+                          </Button>
+                        </Box>
+                      </Box>
+                      <Typography variant="caption" sx={{ display: 'block', mt: 1.5, color: isDark ? '#94a3b8' : '#64748b', fontStyle: 'italic' }}>
+                        {language === 'am'
+                          ? `* እባክዎ በትክክል ETB ${selectedInstallment.amount.toLocaleString()} ወደዚህ የባንክ ሂሳብ ያስተላልፉ። ከዚያም የተሰጠዎትን የትራንዛክሽን መለያ ቁጥር (Transaction ID) ከታች ያስገቡ።`
+                          : `* Please transfer exactly ETB ${selectedInstallment.amount.toLocaleString()} to this account, then enter your Transaction Reference ID below.`}
+                      </Typography>
+                    </Box>
+                  )}
+
+                  {/* Form Inputs */}
+                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                    <TextField
+                      required
+                      fullWidth
+                      size="small"
+                      label={language === 'am' ? 'የትራንዛክሽን መለያ ቁጥር (Transaction ID) *' : 'Transaction Reference ID *'}
+                      placeholder="e.g. FT260819ABCD or TXN-984321..."
+                      value={transactionId}
+                      onChange={(e) => setTransactionId(e.target.value)}
+                      helperText={language === 'am' ? 'ከባንክ ወይም ከቴሌብር ደረሰኝ ላይ የተገኘውን መለያ ቁጥር ያስገቡ' : 'Transaction reference generated by your bank / mobile banking app'}
+                      sx={{
+                        '& .MuiOutlinedInput-root': {
+                          bgcolor: isDark ? '#0a192f' : '#ffffff',
+                          color: isDark ? '#f1f5f9' : '#0f172a',
+                          borderRadius: 2
+                        }
+                      }}
+                    />
+
+                    <TextField
+                      fullWidth
+                      size="small"
+                      label={language === 'am' ? 'የከፋዩ ስልክ ቁጥር' : 'Sender Phone Number'}
+                      placeholder="0911223344"
+                      value={senderPhone}
+                      onChange={(e) => setSenderPhone(e.target.value)}
+                      sx={{
+                        '& .MuiOutlinedInput-root': {
+                          bgcolor: isDark ? '#0a192f' : '#ffffff',
+                          color: isDark ? '#f1f5f9' : '#0f172a',
+                          borderRadius: 2
+                        }
+                      }}
+                    />
+                  </Box>
+                </Box>
+              )}
+            </DialogContent>
+
+            <DialogActions sx={{ p: 2.5, borderTop: `1px solid ${isDark ? '#233554' : '#e2e8f0'}` }}>
+              <Button
+                onClick={() => setPayModalOpen(false)}
+                disabled={submittingPayment}
+                sx={{ color: isDark ? '#94a3b8' : '#64748b', textTransform: 'none' }}
+              >
+                {t('action.cancel', 'Cancel')}
+              </Button>
+              <Button
+                variant="contained"
+                onClick={handleSubmitPayment}
+                disabled={submittingPayment || loadingAccounts || agentAccounts.length === 0}
+                startIcon={submittingPayment ? <CircularProgress size={18} color="inherit" /> : <PaymentIcon />}
+                sx={{
+                  bgcolor: isDark ? '#38bdf8' : '#2563eb',
+                  borderRadius: 2,
+                  px: 3,
+                  fontWeight: 700,
+                  textTransform: 'none',
+                  '&:hover': {
+                    bgcolor: isDark ? '#0284c7' : '#1d4ed8'
+                  }
+                }}
+              >
+                {submittingPayment
+                  ? (language === 'am' ? 'በማስገባት ላይ...' : 'Submitting...')
+                  : (language === 'am' ? 'ክፍያውን አረጋግጥና ላክ' : 'Submit Payment')}
               </Button>
             </DialogActions>
           </Dialog>
