@@ -384,163 +384,6 @@ export default function Home() {
           </button>
         </section>
 
-        {/* About Section */}
-        <section className={`py-12 sm:py-16 px-4 ${theme === 'dark' ? 'bg-[#0a192f]' : 'bg-white'}`}>
-          <div className="container mx-auto">
-            <div className="flex flex-col lg:flex-row gap-8 lg:gap-14 items-center">
-              <motion.div
-                initial={{ x: -40, opacity: 0 }}
-                whileInView={{ x: 0, opacity: 1 }}
-                transition={{ duration: 0.6 }}
-                viewport={{ once: true }}
-                className="relative h-64 sm:h-80 md:h-96 w-full lg:w-1/2 rounded-2xl overflow-hidden shadow-xl border border-gray-200 dark:border-slate-800"
-              >
-                <Image
-                  src={images.about}
-                  alt="About Real Estate Pro"
-                  fill
-                  className="object-cover"
-                  sizes="(max-width: 768px) 100vw, 50vw"
-                />
-              </motion.div>
-              <motion.div
-                initial={{ x: 40, opacity: 0 }}
-                whileInView={{ x: 0, opacity: 1 }}
-                transition={{ duration: 0.6 }}
-                viewport={{ once: true }}
-                className="lg:w-1/2"
-              >
-                <span className="text-xs sm:text-sm font-bold text-blue-600 dark:text-blue-400 tracking-wider uppercase block mb-2">
-                  {t('nav.about', 'About Us')}
-                </span>
-                <h2 className={`text-2xl sm:text-3xl md:text-4xl font-extrabold mb-4 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
-                  {t('home.about_title', 'Your Trusted Real Estate Partner')}
-                </h2>
-                <p className={`mb-4 text-sm sm:text-base leading-relaxed ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
-                  {t('home.about_p1', 'With over 15 years of trusted experience in Ethiopia, we have connected thousands of families and investors with exceptional properties and secure investments.')}
-                </p>
-                <p className={`mb-6 text-sm sm:text-base leading-relaxed ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
-                  {t('home.about_p2', 'Our mission is to provide transparent, modern, and reliable property management and house sales services.')}
-                </p>
-                <Link
-                  href="/about"
-                  className="inline-flex items-center px-5 sm:px-6 py-2.5 sm:py-3 bg-blue-50 dark:bg-blue-900/30 hover:bg-blue-100 dark:hover:bg-blue-900/50 text-blue-600 dark:text-blue-400 rounded-xl font-bold transition-all text-sm sm:text-base"
-                >
-                  {t('action.learn_more', 'Learn More About Us')}
-                  <span className="ml-2">→</span>
-                </Link>
-              </motion.div>
-            </div>
-          </div>
-        </section>
-
-        {/* Services Section */}
-        <section className={`py-12 sm:py-16 px-4 ${theme === 'dark' ? 'bg-[#112240]/60' : 'bg-slate-50'}`}>
-          <div className="container mx-auto">
-            <motion.div
-              initial={{ y: 30, opacity: 0 }}
-              whileInView={{ y: 0, opacity: 1 }}
-              transition={{ duration: 0.5 }}
-              viewport={{ once: true }}
-              className="text-center mb-8 sm:mb-12"
-            >
-              <h2 className={`text-2xl sm:text-3xl md:text-4xl font-extrabold mb-3 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
-                {t('home.services_title', 'Our Services')}
-              </h2>
-              <p className={`text-sm sm:text-base md:text-lg ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'} max-w-2xl mx-auto px-4`}>
-                {t('home.services_subtitle', 'Comprehensive real estate services tailored to your unique requirements')}
-              </p>
-            </motion.div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6">
-              {[
-                { 
-                  icon: <FaSearch className="text-xl sm:text-2xl" />, 
-                  title: isAmharic ? 'የቤት ፍለጋ' : 'Property Search', 
-                  description: isAmharic ? 'በዘመናዊ የፍለጋ ዘዴዎቻችን አማካኝነት ትክክለኛውን ቤት በፍጥነት ያግኙ።' : 'Find your perfect property with our advanced search tools and expert guidance.', 
-                  color: 'from-blue-500 to-blue-700' 
-                },
-                { 
-                  icon: <FaChartLine className="text-xl sm:text-2xl" />, 
-                  title: isAmharic ? 'የገበያ ትንተና' : 'Market Analysis', 
-                  description: isAmharic ? 'ትክክለኛውን የቤት ዋጋ እና የገበያ ሁኔታ የተመለከተ ዝርዝር ትንታኔ ያግኙ።' : 'Get detailed market insights and property value assessments.', 
-                  color: 'from-green-500 to-green-700' 
-                },
-                { 
-                  icon: <FaFileContract className="text-xl sm:text-2xl" />, 
-                  title: isAmharic ? 'የህግ ድጋፍ' : 'Legal Support', 
-                  description: isAmharic ? 'ለሁሉም የቤት ግዢ እና ሽያጭ ውሎች አስተማማኝ የህግ ድጋፍ እንሰጣለን።' : 'Full legal assistance for property transactions.', 
-                  color: 'from-purple-500 to-purple-700' 
-                },
-                { 
-                  icon: <FaHandHoldingUsd className="text-xl sm:text-2xl" />, 
-                  title: isAmharic ? 'የኢንቨስትመንት ምክር' : 'Investment Advice', 
-                  description: isAmharic ? 'አዋጭ እና ተመራጭ የሪል እስቴት ኢንቨስትመንት ስልቶች።' : 'Smart investment strategies to maximize returns.', 
-                  color: 'from-orange-500 to-orange-700' 
-                },
-                { 
-                  icon: <FaKey className="text-xl sm:text-2xl" />, 
-                  title: isAmharic ? 'የንብረት አስተዳደር' : 'Property Management', 
-                  description: isAmharic ? 'የኪራይ ቤቶች እና ሕንፃዎች የተሟላ አስተዳደር አገልግሎት።' : 'Complete property management services.', 
-                  color: 'from-red-500 to-red-700' 
-                },
-                { 
-                  icon: <FaHandshake className="text-xl sm:text-2xl" />, 
-                  title: isAmharic ? 'ነፃ የምክር አገልግሎት' : 'Free Consultation', 
-                  description: isAmharic ? 'ከባለሙያዎቻችን ጋር ነፃ የምክር ጊዜ ይውሰዱ።' : 'Free consultation with experienced real estate professionals.', 
-                  color: 'from-teal-500 to-teal-700' 
-                },
-              ].map((service, index) => (
-                <motion.div
-                  key={index}
-                  initial={{ y: 20, opacity: 0 }}
-                  whileInView={{ y: 0, opacity: 1 }}
-                  transition={{ duration: 0.4, delay: index * 0.08 }}
-                  viewport={{ once: true }}
-                  className={`p-6 rounded-2xl ${
-                    theme === 'dark' ? 'bg-[#112240] border border-slate-700' : 'bg-white border border-gray-100 shadow-sm'
-                  } hover:shadow-md transition-all text-center`}
-                >
-                  <div className={`inline-flex items-center justify-center w-12 h-12 sm:w-14 sm:h-14 rounded-2xl mb-4 bg-gradient-to-r ${service.color} text-white shadow-md`}>
-                    {service.icon}
-                  </div>
-                  <h3 className={`text-base sm:text-lg font-bold mb-2 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>{service.title}</h3>
-                  <p className={`text-xs sm:text-sm leading-relaxed ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>{service.description}</p>
-                </motion.div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* Property Types Section */}
-        <section className={`py-12 sm:py-16 px-4 ${theme === 'dark' ? 'bg-[#0a192f]' : 'bg-white'}`}>
-          <div className="container mx-auto">
-            <h2 className={`text-2xl sm:text-3xl font-extrabold text-center mb-8 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
-              {t('property.types', 'Property Types')}
-            </h2>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 sm:gap-5">
-              {propertyTypes.map((type) => (
-                <Link
-                  key={type.value}
-                  href={`/public/houses?propertyType=${type.value}`}
-                  className={`flex flex-col items-center justify-center p-4 sm:p-6 rounded-2xl border transition-all text-center ${
-                    theme === 'dark'
-                      ? 'bg-[#112240] border-slate-700 hover:border-blue-400 text-white'
-                      : 'bg-white border-gray-200 hover:border-blue-500 text-gray-800 shadow-sm'
-                  } hover:scale-105`}
-                >
-                  <div className={`w-12 h-12 rounded-xl flex items-center justify-center mb-3 ${
-                    theme === 'dark' ? 'bg-blue-900/30 text-blue-400' : 'bg-blue-50 text-blue-600'
-                  }`}>
-                    <span className="text-2xl">{type.icon}</span>
-                  </div>
-                  <span className="text-xs sm:text-sm font-bold">{type.label}</span>
-                </Link>
-              ))}
-            </div>
-          </div>
-        </section>
-
         {/* Featured Properties Section */}
         <section className={`py-12 sm:py-16 px-4 ${theme === 'dark' ? 'bg-[#112240]/60' : 'bg-slate-50'}`}>
           <div className="container mx-auto">
@@ -676,6 +519,163 @@ export default function Home() {
                 })}
               </div>
             )}
+          </div>
+        </section>
+
+        {/* Property Types Section */}
+        <section className={`py-12 sm:py-16 px-4 ${theme === 'dark' ? 'bg-[#0a192f]' : 'bg-white'}`}>
+          <div className="container mx-auto">
+            <h2 className={`text-2xl sm:text-3xl font-extrabold text-center mb-8 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+              {t('property.types', 'Property Types')}
+            </h2>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 sm:gap-5">
+              {propertyTypes.map((type) => (
+                <Link
+                  key={type.value}
+                  href={`/public/houses?propertyType=${type.value}`}
+                  className={`flex flex-col items-center justify-center p-4 sm:p-6 rounded-2xl border transition-all text-center ${
+                    theme === 'dark'
+                      ? 'bg-[#112240] border-slate-700 hover:border-blue-400 text-white'
+                      : 'bg-white border-gray-200 hover:border-blue-500 text-gray-800 shadow-sm'
+                  } hover:scale-105`}
+                >
+                  <div className={`w-12 h-12 rounded-xl flex items-center justify-center mb-3 ${
+                    theme === 'dark' ? 'bg-blue-900/30 text-blue-400' : 'bg-blue-50 text-blue-600'
+                  }`}>
+                    <span className="text-2xl">{type.icon}</span>
+                  </div>
+                  <span className="text-xs sm:text-sm font-bold">{type.label}</span>
+                </Link>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* About Section */}
+        <section className={`py-12 sm:py-16 px-4 ${theme === 'dark' ? 'bg-[#0a192f]' : 'bg-white'}`}>
+          <div className="container mx-auto">
+            <div className="flex flex-col lg:flex-row gap-8 lg:gap-14 items-center">
+              <motion.div
+                initial={{ x: -40, opacity: 0 }}
+                whileInView={{ x: 0, opacity: 1 }}
+                transition={{ duration: 0.6 }}
+                viewport={{ once: true }}
+                className="relative h-64 sm:h-80 md:h-96 w-full lg:w-1/2 rounded-2xl overflow-hidden shadow-xl border border-gray-200 dark:border-slate-800"
+              >
+                <Image
+                  src={images.about}
+                  alt="About Real Estate Pro"
+                  fill
+                  className="object-cover"
+                  sizes="(max-width: 768px) 100vw, 50vw"
+                />
+              </motion.div>
+              <motion.div
+                initial={{ x: 40, opacity: 0 }}
+                whileInView={{ x: 0, opacity: 1 }}
+                transition={{ duration: 0.6 }}
+                viewport={{ once: true }}
+                className="lg:w-1/2"
+              >
+                <span className="text-xs sm:text-sm font-bold text-blue-600 dark:text-blue-400 tracking-wider uppercase block mb-2">
+                  {t('nav.about', 'About Us')}
+                </span>
+                <h2 className={`text-2xl sm:text-3xl md:text-4xl font-extrabold mb-4 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+                  {t('home.about_title', 'Your Trusted Real Estate Partner')}
+                </h2>
+                <p className={`mb-4 text-sm sm:text-base leading-relaxed ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
+                  {t('home.about_p1', 'With over 15 years of trusted experience in Ethiopia, we have connected thousands of families and investors with exceptional properties and secure investments.')}
+                </p>
+                <p className={`mb-6 text-sm sm:text-base leading-relaxed ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
+                  {t('home.about_p2', 'Our mission is to provide transparent, modern, and reliable property management and house sales services.')}
+                </p>
+                <Link
+                  href="/about"
+                  className="inline-flex items-center px-5 sm:px-6 py-2.5 sm:py-3 bg-blue-50 dark:bg-blue-900/30 hover:bg-blue-100 dark:hover:bg-blue-900/50 text-blue-600 dark:text-blue-400 rounded-xl font-bold transition-all text-sm sm:text-base"
+                >
+                  {t('action.learn_more', 'Learn More About Us')}
+                  <span className="ml-2">→</span>
+                </Link>
+              </motion.div>
+            </div>
+          </div>
+        </section>
+
+        {/* Services Section */}
+        <section className={`py-12 sm:py-16 px-4 ${theme === 'dark' ? 'bg-[#112240]/60' : 'bg-slate-50'}`}>
+          <div className="container mx-auto">
+            <motion.div
+              initial={{ y: 30, opacity: 0 }}
+              whileInView={{ y: 0, opacity: 1 }}
+              transition={{ duration: 0.5 }}
+              viewport={{ once: true }}
+              className="text-center mb-8 sm:mb-12"
+            >
+              <h2 className={`text-2xl sm:text-3xl md:text-4xl font-extrabold mb-3 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+                {t('home.services_title', 'Our Services')}
+              </h2>
+              <p className={`text-sm sm:text-base md:text-lg ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'} max-w-2xl mx-auto px-4`}>
+                {t('home.services_subtitle', 'Comprehensive real estate services tailored to your unique requirements')}
+              </p>
+            </motion.div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6">
+              {[
+                { 
+                  icon: <FaSearch className="text-xl sm:text-2xl" />, 
+                  title: isAmharic ? 'የቤት ፍለጋ' : 'Property Search', 
+                  description: isAmharic ? 'በዘመናዊ የፍለጋ ዘዴዎቻችን አማካኝነት ትክክለኛውን ቤት በፍጥነት ያግኙ።' : 'Find your perfect property with our advanced search tools and expert guidance.', 
+                  color: 'from-blue-500 to-blue-700' 
+                },
+                { 
+                  icon: <FaChartLine className="text-xl sm:text-2xl" />, 
+                  title: isAmharic ? 'የገበያ ትንተና' : 'Market Analysis', 
+                  description: isAmharic ? 'ትክክለኛውን የቤት ዋጋ እና የገበያ ሁኔታ የተመለከተ ዝርዝር ትንታኔ ያግኙ።' : 'Get detailed market insights and property value assessments.', 
+                  color: 'from-green-500 to-green-700' 
+                },
+                { 
+                  icon: <FaFileContract className="text-xl sm:text-2xl" />, 
+                  title: isAmharic ? 'የህግ ድጋፍ' : 'Legal Support', 
+                  description: isAmharic ? 'ለሁሉም የቤት ግዢ እና ሽያጭ ውሎች አስተማማኝ የህግ ድጋፍ እንሰጣለን።' : 'Full legal assistance for property transactions.', 
+                  color: 'from-purple-500 to-purple-700' 
+                },
+                { 
+                  icon: <FaHandHoldingUsd className="text-xl sm:text-2xl" />, 
+                  title: isAmharic ? 'የኢንቨስትመንት ምክር' : 'Investment Advice', 
+                  description: isAmharic ? 'አዋጭ እና ተመራጭ የሪል እስቴት ኢንቨስትመንት ስልቶች።' : 'Smart investment strategies to maximize returns.', 
+                  color: 'from-orange-500 to-orange-700' 
+                },
+                { 
+                  icon: <FaKey className="text-xl sm:text-2xl" />, 
+                  title: isAmharic ? 'የንብረት አስተዳደር' : 'Property Management', 
+                  description: isAmharic ? 'የኪራይ ቤቶች እና ሕንፃዎች የተሟላ አስተዳደር አገልግሎት።' : 'Complete property management services.', 
+                  color: 'from-red-500 to-red-700' 
+                },
+                { 
+                  icon: <FaHandshake className="text-xl sm:text-2xl" />, 
+                  title: isAmharic ? 'ነፃ የምክር አገልግሎት' : 'Free Consultation', 
+                  description: isAmharic ? 'ከባለሙያዎቻችን ጋር ነፃ የምክር ጊዜ ይውሰዱ።' : 'Free consultation with experienced real estate professionals.', 
+                  color: 'from-teal-500 to-teal-700' 
+                },
+              ].map((service, index) => (
+                <motion.div
+                  key={index}
+                  initial={{ y: 20, opacity: 0 }}
+                  whileInView={{ y: 0, opacity: 1 }}
+                  transition={{ duration: 0.4, delay: index * 0.08 }}
+                  viewport={{ once: true }}
+                  className={`p-6 rounded-2xl ${
+                    theme === 'dark' ? 'bg-[#112240] border border-slate-700' : 'bg-white border border-gray-100 shadow-sm'
+                  } hover:shadow-md transition-all text-center`}
+                >
+                  <div className={`inline-flex items-center justify-center w-12 h-12 sm:w-14 sm:h-14 rounded-2xl mb-4 bg-gradient-to-r ${service.color} text-white shadow-md`}>
+                    {service.icon}
+                  </div>
+                  <h3 className={`text-base sm:text-lg font-bold mb-2 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>{service.title}</h3>
+                  <p className={`text-xs sm:text-sm leading-relaxed ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>{service.description}</p>
+                </motion.div>
+              ))}
+            </div>
           </div>
         </section>
 
