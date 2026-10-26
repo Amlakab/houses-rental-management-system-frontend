@@ -21,11 +21,13 @@ import api from '@/app/utils/api';
 import { useLanguage } from '@/lib/language-context';
 import { Appointment, LeaseAgreement, PurchaseOffer, MaintenanceRequest, SavedSearch, House, RentalApplication } from '@/types/houses';
 import LeaseAgreementModal from '@/components/LeaseAgreementModal';
+import PurchaseMilestonePaymentModal from '@/components/PurchaseMilestonePaymentModal';
+import PurchaseReceiptModal from '@/components/PurchaseReceiptModal';
 import Link from 'next/link';
 
 export default function AdminCustomerPage() {
   const { theme } = useTheme();
-  const { t, isAmharic } = useLanguage();
+  const { t, isAmharic, language } = useLanguage();
   const [activeTab, setActiveTab] = useState(0);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -41,6 +43,12 @@ export default function AdminCustomerPage() {
 
   // Selected Lease for full Agreement & Receipt Modal
   const [selectedLease, setSelectedLease] = useState<LeaseAgreement | null>(null);
+
+  // Purchase Milestone Payment & Receipt states
+  const [payingOffer, setPayingOffer] = useState<PurchaseOffer | null>(null);
+  const [payingMilestone, setPayingMilestone] = useState<any | null>(null);
+  const [receiptOffer, setReceiptOffer] = useState<PurchaseOffer | null>(null);
+  const [receiptMilestone, setReceiptMilestone] = useState<any | null>(null);
 
   // New Maintenance Ticket Modal
   const [maintenanceModalOpen, setMaintenanceModalOpen] = useState(false);
@@ -853,32 +861,159 @@ export default function AdminCustomerPage() {
                           ))}
                         </Stack>
 
-                        {/* Milestones Preview */}
+                        {/* Milestones & Escrow Payments */}
                         {offer.milestones && offer.milestones.length > 0 && (
                           <>
-                            <Typography variant="subtitle2" sx={{ fontWeight: 700, color: isDark ? '#ccd6f6' : '#0f172a', mb: 1 }}>
-                              Payment Milestones & Deposit Escrow
-                            </Typography>
-                            <Grid container spacing={1.5}>
-                              {offer.milestones.map((m, idx) => (
-                                <Grid item xs={12} sm={4} key={idx}>
-                                  <Paper
-                                    elevation={0}
-                                    sx={{
-                                      p: 1.5,
-                                      bgcolor: isDark ? 'rgba(255, 255, 255, 0.04)' : '#f8fafc',
-                                      borderRadius: 2,
-                                      border: isDark ? '1px solid rgba(255, 255, 255, 0.05)' : '1px solid #e2e8f0'
-                                    }}
-                                  >
-                                    <Typography variant="caption" sx={{ color: isDark ? '#8892b0' : '#64748b' }}>{m.title}</Typography>
-                                    <Typography variant="body1" sx={{ fontWeight: 700, color: '#10b981' }}>
-                                      ETB {m.amount.toLocaleString()}
-                                    </Typography>
-                                    <Chip size="small" label={m.status} sx={{ mt: 0.5, fontSize: 10 }} />
-                                  </Paper>
-                                </Grid>
-                              ))}
+                            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1.5, mt: 2 }}>
+                              <Typography variant="subtitle2" sx={{ fontWeight: 800, color: isDark ? '#ccd6f6' : '#0f172a' }}>
+                                {language === 'am' ? 'የክፍያ ምዕራፎች እና የኢስክሮው ተቀማጭ' : 'Purchase Payment Milestones & Escrow Records'}
+                              </Typography>
+                              {offer.status === 'COMPLETED_SALE' && (
+                                <Chip
+                                  size="small"
+                                  color="success"
+                                  label={language === 'am' ? 'ሙሉ ሽያጩ ተጠናቋል ✓' : 'Sale Fully Completed ✓'}
+                                  sx={{ fontWeight: 800 }}
+                                />
+                              )}
+                            </Box>
+
+                            <Grid container spacing={2}>
+                              {offer.milestones.map((m: any, idx: number) => {
+                                const isPaid = m.status === 'PAID' || m.status === 'VERIFIED';
+                                const isUnderReview = m.status === 'UNDER_REVIEW';
+                                const isPending = m.status === 'PENDING';
+                                const canPay = isPending && offer.status !== 'OFFER_REJECTED' && offer.status !== 'CANCELLED';
+
+                                return (
+                                  <Grid item xs={12} sm={4} key={m._id || m.id || idx}>
+                                    <Paper
+                                      elevation={0}
+                                      sx={{
+                                        p: 2,
+                                        bgcolor: isPaid
+                                          ? (isDark ? 'rgba(16, 185, 129, 0.08)' : '#f0fdf4')
+                                          : isUnderReview
+                                          ? (isDark ? 'rgba(245, 158, 11, 0.08)' : '#fffbeb')
+                                          : (isDark ? 'rgba(255, 255, 255, 0.04)' : '#f8fafc'),
+                                        borderRadius: 2.5,
+                                        border: `1.5px solid ${
+                                          isPaid
+                                            ? '#10b981'
+                                            : isUnderReview
+                                            ? '#f59e0b'
+                                            : isDark ? 'rgba(255, 255, 255, 0.08)' : '#e2e8f0'
+                                        }`,
+                                        display: 'flex',
+                                        flexDirection: 'column',
+                                        justifyContent: 'space-between',
+                                        height: '100%'
+                                      }}
+                                    >
+                                      <Box>
+                                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 0.5 }}>
+                                          <Typography variant="caption" sx={{ color: isDark ? '#8892b0' : '#64748b', fontWeight: 600 }}>
+                                            {m.title}
+                                          </Typography>
+                                          <Chip
+                                            size="small"
+                                            label={
+                                              isPaid
+                                                ? (language === 'am' ? 'ተከፍሏል ✓' : 'PAID ✓')
+                                                : isUnderReview
+                                                ? (language === 'am' ? 'በግምገማ ላይ' : 'UNDER REVIEW')
+                                                : (language === 'am' ? 'ይጠበቃል' : 'PENDING')
+                                            }
+                                            color={isPaid ? 'success' : isUnderReview ? 'warning' : 'default'}
+                                            sx={{ height: 20, fontSize: 10, fontWeight: 700 }}
+                                          />
+                                        </Box>
+
+                                        <Typography variant="h6" sx={{ fontWeight: 800, color: '#10b981', mt: 0.5 }}>
+                                          ETB {m.amount.toLocaleString()}
+                                        </Typography>
+
+                                        <Typography variant="caption" sx={{ color: isDark ? '#94a3b8' : '#64748b', display: 'block', mt: 0.5 }}>
+                                          {language === 'am' ? 'የሚከፈልበት ቀን፡' : 'Due Date:'} {new Date(m.dueDate).toLocaleDateString()}
+                                        </Typography>
+
+                                        {isUnderReview && (
+                                          <Typography variant="caption" sx={{ color: '#f59e0b', fontWeight: 600, display: 'block', mt: 0.5 }}>
+                                            {language === 'am' ? 'ማረጋገጫ ይጠበቃል (Ref:' : 'Ref:'} {m.transactionReference || 'Pending'}{language === 'am' ? ')' : ''}
+                                          </Typography>
+                                        )}
+                                      </Box>
+
+                                      <Box sx={{ mt: 2 }}>
+                                        {canPay && (
+                                          <Button
+                                            fullWidth
+                                            size="small"
+                                            variant="contained"
+                                            startIcon={<PaymentIcon />}
+                                            onClick={() => {
+                                              setPayingOffer(offer);
+                                              setPayingMilestone(m);
+                                            }}
+                                            sx={{
+                                              background: 'linear-gradient(135deg, #10b981, #059669)',
+                                              borderRadius: 2,
+                                              textTransform: 'none',
+                                              fontWeight: 700,
+                                              fontSize: 12,
+                                              py: 0.7
+                                            }}
+                                          >
+                                            {language === 'am' ? 'ክፍያ ፈጽም' : 'Make Payment'}
+                                          </Button>
+                                        )}
+
+                                        {isPaid && (
+                                          <Button
+                                            fullWidth
+                                            size="small"
+                                            variant="outlined"
+                                            color="success"
+                                            startIcon={<Receipt />}
+                                            onClick={() => {
+                                              setReceiptOffer(offer);
+                                              setReceiptMilestone(m);
+                                            }}
+                                            sx={{
+                                              borderRadius: 2,
+                                              textTransform: 'none',
+                                              fontWeight: 700,
+                                              fontSize: 12,
+                                              py: 0.7
+                                            }}
+                                          >
+                                            {language === 'am' ? 'ደረሰኝ ተመልከት' : 'View Official Receipt'}
+                                          </Button>
+                                        )}
+
+                                        {isUnderReview && (
+                                          <Button
+                                            fullWidth
+                                            size="small"
+                                            disabled
+                                            sx={{
+                                              bgcolor: isDark ? 'rgba(245, 158, 11, 0.1)' : 'rgba(245, 158, 11, 0.1)',
+                                              color: '#f59e0b',
+                                              borderRadius: 2,
+                                              textTransform: 'none',
+                                              fontWeight: 700,
+                                              fontSize: 12,
+                                              py: 0.7
+                                            }}
+                                          >
+                                            {language === 'am' ? 'በግምገማ ላይ ነው...' : 'Awaiting Seller Approval...'}
+                                          </Button>
+                                        )}
+                                      </Box>
+                                    </Paper>
+                                  </Grid>
+                                );
+                              })}
                             </Grid>
                           </>
                         )}
@@ -1157,6 +1292,33 @@ export default function AdminCustomerPage() {
           lease={selectedLease}
           isTenant={true}
           onSuccess={() => fetchDashboardData(false)}
+        />
+      )}
+
+      {/* ─── Purchase Milestone Payment Modal ─── */}
+      {payingOffer && payingMilestone && (
+        <PurchaseMilestonePaymentModal
+          open={Boolean(payingMilestone)}
+          onClose={() => {
+            setPayingOffer(null);
+            setPayingMilestone(null);
+          }}
+          offer={payingOffer}
+          milestone={payingMilestone}
+          onSuccess={() => fetchDashboardData(false)}
+        />
+      )}
+
+      {/* ─── Purchase Official Sales Receipt Modal ─── */}
+      {receiptOffer && receiptMilestone && (
+        <PurchaseReceiptModal
+          open={Boolean(receiptMilestone)}
+          onClose={() => {
+            setReceiptOffer(null);
+            setReceiptMilestone(null);
+          }}
+          offer={receiptOffer}
+          milestone={receiptMilestone}
         />
       )}
 

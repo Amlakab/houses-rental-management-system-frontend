@@ -277,7 +277,22 @@ export interface LeaseAgreement {
   signedByLandlord: boolean;
   tenantSignedAt?: string;
   landlordSignedAt?: string;
-  status: 'DRAFT' | 'ACTIVE' | 'PENDING_SIGNATURE' | 'RENEWED' | 'TERMINATED' | 'EXPIRED';
+  status: 'DRAFT' | 'ACTIVE' | 'PENDING_SIGNATURE' | 'TERMINATION_REQUESTED' | 'TERMINATED' | 'RENEWED' | 'EXPIRED';
+  terminationRequest?: {
+    requestedBy: any;
+    requestedByRole: 'tenant' | 'landlord' | 'agent' | 'admin';
+    requestDate: string;
+    effectiveDate?: string;
+    reason: string;
+    status: 'PENDING' | 'APPROVED' | 'REJECTED' | 'CANCELLED';
+    responseNotes?: string;
+    respondedAt?: string;
+    respondedBy?: any;
+  };
+  terminationReason?: string;
+  terminatedAt?: string;
+  terminatedBy?: any;
+  moveOutDate?: string;
   paymentSchedule: Array<{
     installmentNumber: number;
     dueDate: string;
@@ -299,13 +314,14 @@ export interface PurchaseOffer {
   buyerEmail: string;
   buyerPhone: string;
   sellerId: any;
+  agentId?: any;
   initialOfferAmount: number;
   currentOfferAmount: number;
   askingPriceAtOffer: number;
   earnestDepositAmount: number;
   proposedClosingDate?: string;
   financingType: 'CASH' | 'BANK_MORTGAGE' | 'INSTALLMENT_PLAN' | 'OTHER';
-  status: 'INQUIRY' | 'OFFER_SUBMITTED' | 'UNDER_NEGOTIATION' | 'OFFER_ACCEPTED' | 'OFFER_REJECTED' | 'COMPLETED_SALE';
+  status: 'INQUIRY' | 'OFFER_SUBMITTED' | 'UNDER_NEGOTIATION' | 'OFFER_ACCEPTED' | 'OFFER_REJECTED' | 'RESERVATION_DEPOSIT_PAID' | 'SALE_AGREEMENT_SIGNED' | 'PAYMENT_MILESTONES_ACTIVE' | 'COMPLETED_SALE' | 'CANCELLED';
   contingencies: string[];
   negotiationTimeline: Array<{
     senderId: any;
@@ -316,14 +332,22 @@ export interface PurchaseOffer {
   }>;
   milestones: Array<{
     _id?: string;
+    id?: string;
     title: string;
     amount: number;
     percentage: number;
     dueDate: string;
-    status: 'PENDING' | 'PAID' | 'VERIFIED';
+    status: 'PENDING' | 'UNDER_REVIEW' | 'PAID' | 'VERIFIED';
     paidAt?: string;
+    paidAmount?: number;
     transactionReference?: string;
+    receiptNumber?: string;
+    method?: string;
+    proofDocumentUrl?: string;
   }>;
+  saleAgreementDocUrl?: string;
+  deedTransferDate?: string;
+  completedAt?: string;
   createdAt: string;
 }
 

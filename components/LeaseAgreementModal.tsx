@@ -22,7 +22,13 @@ import {
   Alert,
   CircularProgress,
   TextField,
-  Tooltip
+  Tooltip,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  FormControlLabel,
+  Checkbox
 } from '@mui/material';
 import {
   Article,
@@ -37,10 +43,14 @@ import {
   ContentCopy,
   Check,
   AccountBalance,
-  PhoneAndroid
+  PhoneAndroid,
+  Cancel,
+  ReportProblem,
+  EventBusy
 } from '@mui/icons-material';
 import { useTheme } from '@/lib/theme-context';
 import { useLanguage } from '@/lib/language-context';
+import { useAuth } from '@/lib/auth';
 import { LeaseAgreement } from '@/types/houses';
 import api from '@/app/utils/api';
 
@@ -61,8 +71,10 @@ export default function LeaseAgreementModal({
 }: LeaseAgreementModalProps) {
   const { theme } = useTheme();
   const { t, language } = useLanguage();
+  const { user } = useAuth();
   const isDark = theme === 'dark';
 
+  const [localLease, setLocalLease] = useState<LeaseAgreement>(lease);
   const [signing, setSigning] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -71,8 +83,23 @@ export default function LeaseAgreementModal({
   // Local schedule state so payments update immediately on screen
   const [schedule, setSchedule] = useState(lease.paymentSchedule || []);
   useEffect(() => {
+    setLocalLease(lease);
     setSchedule(lease.paymentSchedule || []);
   }, [lease]);
+
+  // Stop / Termination State
+  const [stopModalOpen, setStopModalOpen] = useState(false);
+  const [stopReasonType, setStopReasonType] = useState('Relocation / Moving Out');
+  const [stopReasonText, setStopReasonText] = useState('');
+  const [stopEffectiveDate, setStopEffectiveDate] = useState('');
+  const [stopImmediate, setStopImmediate] = useState(false);
+  const [submittingStop, setSubmittingStop] = useState(false);
+
+  // Respond to Termination State
+  const [responseModalOpen, setResponseModalOpen] = useState(false);
+  const [responseAction, setResponseAction] = useState<'APPROVE' | 'REJECT'>('APPROVE');
+  const [responseNotes, setResponseNotes] = useState('');
+  const [submittingResponse, setSubmittingResponse] = useState(false);
 
   // Pay Dialog State
   const [payModalOpen, setPayModalOpen] = useState(false);
@@ -87,21 +114,103 @@ export default function LeaseAgreementModal({
   const [paySuccess, setPaySuccess] = useState('');
   const [copied, setCopied] = useState(false);
 
+  // Role resolution
+  const userId = user?._id;
+  const userRole = (user?.role as string) || '';
+  const isAdmin = userRole === 'admin';
+  const isTenantUser = isTenant || localLease.tenantId?._id === userId || localLease.tenantId === userId || userRole === 'customer';
+  const isLandlordOrAgent = isAdmin || userRole === 'manager' || userRole === 'owner' || userRole === 'agent' || localLease.landlordId?._id === userId || localLease.agentId?._id === userId;
+
   const handleSign = async () => {
     try {
       setSigning(true);
       setError('');
-      await api.patch(`/workflows/leases/${lease._id}/sign`, {});
+      const res = await api.patch(`/workflows/leases/${localLease._id}/sign`, {});
+      if (res.data?.data) {
+        setLocalLease(res.data.data);
+      }
       setSuccess(language === 'am' ? 'የኪራይ ውሉ በዲጂታል ተፈርሞ በይፋ ስራ ላይ ውሏል!' : 'Lease Agreement digitally signed and officially activated!');
       setTimeout(() => {
         onSuccess?.();
-        onClose();
         setSuccess('');
       }, 1500);
     } catch (err: any) {
       setError(err.response?.data?.message || (language === 'am' ? 'ውሉን መፈረም አልተቻለም።' : 'Failed to sign lease agreement.'));
     } finally {
       setSigning(false);
+    }
+  };
+
+  const handleRequestStop = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const finalReason = stopReasonText.trim()
+      ? `${stopReasonType}: ${stopReasonText.trim()}`
+      : stopReasonType;
+
+    try {
+      setSubmittingStop(true);
+      setError('');
+      const res = await api.post(`/workflows/leases/${localLease._id}/request-termination`, {
+        reason: finalReason,
+        effectiveDate: stopEffectiveDate || undefined,
+        immediate: stopImmediate
+      });
+
+      if (res.data?.success) {
+        setLocalLease(res.data.data);
+        setSuccess(
+          stopImmediate
+            ? (language === 'am' ? 'የኪራይ ውሉ ወዲያውኑ ተቋርጧል! ቤቱ ለሌላ ኪራይ ዝግጁ ሆኗል።' : 'Lease stopped immediately and house is now Available for other rent!')
+            : (language === 'am' ? 'የውል ማቋረጫ ጥያቄ በተሳካ ሁኔታ ገብቷል፤ ማረጋገጫ ይጠበቃል።' : 'Termination request submitted successfully! Awaiting counterparty approval.')
+        );
+        setStopModalOpen(false);
+        onSuccess?.();
+      }
+    } catch (err: any) {
+      setError(err.response?.data?.message || (language === 'am' ? 'የማቋረጫ ጥያቄ ማቅረብ አልተቻለም' : 'Failed to request lease termination'));
+    } finally {
+      setSubmittingStop(false);
+    }
+  };
+
+  const handleRespondStop = async () => {
+    try {
+      setSubmittingResponse(true);
+      setError('');
+      const res = await api.post(`/workflows/leases/${localLease._id}/respond-termination`, {
+        action: responseAction,
+        notes: responseNotes
+      });
+
+      if (res.data?.success) {
+        setLocalLease(res.data.data);
+        setSuccess(
+          responseAction === 'APPROVE'
+            ? (language === 'am' ? 'የውል ማቋረጫው ጸድቋል! ቤቱ ለሌላ ኪራይ ክፍት (Available) ሆኗል።' : 'Lease stopped and terminated! House is now Available for other rent.')
+            : (language === 'am' ? 'የውል ማቋረጫ ጥያቄው ውድቅ ተደርጓል፤ ውሉ እንደቀጠለ ነው።' : 'Termination request rejected. Lease agreement remains active.')
+        );
+        setResponseModalOpen(false);
+        setResponseNotes('');
+        onSuccess?.();
+      }
+    } catch (err: any) {
+      setError(err.response?.data?.message || 'Failed to respond to termination request');
+    } finally {
+      setSubmittingResponse(false);
+    }
+  };
+
+  const handleCancelStop = async () => {
+    try {
+      setError('');
+      const res = await api.post(`/workflows/leases/${localLease._id}/cancel-termination`, {});
+      if (res.data?.success) {
+        setLocalLease(res.data.data);
+        setSuccess(language === 'am' ? 'የማቋረጫ ጥያቄው ተሰርዟል፤ ውሉ እንደቀጠለ ነው።' : 'Termination request cancelled. Lease remains active.');
+        onSuccess?.();
+      }
+    } catch (err: any) {
+      setError(err.response?.data?.message || 'Failed to cancel termination request');
     }
   };
 
@@ -242,7 +351,7 @@ export default function LeaseAgreementModal({
               {t('lease.title', 'Digital Residential Lease Agreement')}
             </Typography>
             <Typography variant="body2" sx={{ color: isDark ? '#94a3b8' : '#64748b' }}>
-              {language === 'am' ? 'የውል ቁጥር' : 'Agreement Ref'} #{lease.agreementNumber} • {t('common.status', 'Status')}: {lease.status}
+              {language === 'am' ? 'የውል ቁጥር' : 'Agreement Ref'} #{localLease.agreementNumber} • {t('common.status', 'Status')}: {localLease.status}
             </Typography>
           </Box>
         </Box>
@@ -254,6 +363,127 @@ export default function LeaseAgreementModal({
       <DialogContent dividers sx={{ py: 3, borderColor: isDark ? '#233554' : '#e2e8f0' }}>
         {error && <Alert severity="error" sx={{ mb: 2, borderRadius: 2 }}>{error}</Alert>}
         {success && <Alert severity="success" sx={{ mb: 2, borderRadius: 2 }}>{success}</Alert>}
+
+        {/* ─── TERMINATION NOTICE BANNER (WHEN STOP REQUESTED OR TERMINATED) ─── */}
+        {localLease.status === 'TERMINATION_REQUESTED' && (
+          <Paper
+            elevation={0}
+            sx={{
+              p: 2.5,
+              mb: 3,
+              borderRadius: 2.5,
+              bgcolor: isDark ? 'rgba(245, 158, 11, 0.12)' : '#fffbeb',
+              border: `1.5px solid ${isDark ? '#f59e0b' : '#f59e0b'}`,
+              color: isDark ? '#f1f5f9' : '#0f172a'
+            }}
+          >
+            <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: 2 }}>
+              <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1.5 }}>
+                <ReportProblem sx={{ color: '#f59e0b', fontSize: 30, mt: 0.3 }} />
+                <Box>
+                  <Typography variant="subtitle1" sx={{ fontWeight: 800, color: isDark ? '#fbbf24' : '#b45309' }}>
+                    {language === 'am' ? 'የኪራይ ውል ማቋረጫ ጥያቄ ቀርቧል' : 'Lease Agreement Stop Request Pending'}
+                  </Typography>
+                  <Typography variant="body2" sx={{ mt: 0.5 }}>
+                    <strong>{language === 'am' ? 'ያቀረበው፡' : 'Requested By:'}</strong>{' '}
+                    {localLease.terminationRequest?.requestedByRole === 'tenant'
+                      ? (language === 'am' ? 'ተከራይ (Tenant)' : `Tenant (${localLease.tenantName})`)
+                      : (language === 'am' ? 'አከራይ / ደላላ (Landlord / Agent)' : 'Landlord / Property Manager')}
+                  </Typography>
+                  <Typography variant="body2">
+                    <strong>{language === 'am' ? 'ምክንያት፡' : 'Reason:'}</strong> {localLease.terminationRequest?.reason || 'Early termination requested'}
+                  </Typography>
+                  {localLease.terminationRequest?.effectiveDate && (
+                    <Typography variant="body2">
+                      <strong>{language === 'am' ? 'የመልቀቂያ ቀን፡' : 'Effective Move-out Date:'}</strong>{' '}
+                      {new Date(localLease.terminationRequest.effectiveDate).toLocaleDateString(language === 'am' ? 'am-ET' : 'en-US')}
+                    </Typography>
+                  )}
+                </Box>
+              </Box>
+
+              {/* Action buttons on termination request */}
+              <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', alignSelf: 'center' }}>
+                {/* If current user can respond */}
+                {(isLandlordOrAgent || (isTenantUser && localLease.terminationRequest?.requestedByRole !== 'tenant') || isAdmin) && (
+                  <>
+                    <Button
+                      variant="contained"
+                      color="success"
+                      size="small"
+                      startIcon={<CheckCircle />}
+                      onClick={() => {
+                        setResponseAction('APPROVE');
+                        setResponseNotes('');
+                        setResponseModalOpen(true);
+                      }}
+                      sx={{ fontWeight: 700, borderRadius: 2, textTransform: 'none' }}
+                    >
+                      {language === 'am' ? 'ማቋረጫውን አጽድቅ (ቤቱን ክፍት አድርግ)' : 'Approve Stop (Release House)'}
+                    </Button>
+                    <Button
+                      variant="outlined"
+                      color="error"
+                      size="small"
+                      startIcon={<Cancel />}
+                      onClick={() => {
+                        setResponseAction('REJECT');
+                        setResponseNotes('');
+                        setResponseModalOpen(true);
+                      }}
+                      sx={{ fontWeight: 700, borderRadius: 2, textTransform: 'none' }}
+                    >
+                      {language === 'am' ? 'ውድቅ አድርግ' : 'Reject Stop Request'}
+                    </Button>
+                  </>
+                )}
+
+                {/* If current user is requester, allow cancel */}
+                {(localLease.terminationRequest?.requestedBy === userId || localLease.terminationRequest?.requestedBy?._id === userId || isAdmin) && (
+                  <Button
+                    variant="outlined"
+                    size="small"
+                    onClick={handleCancelStop}
+                    sx={{ color: isDark ? '#94a3b8' : '#64748b', borderColor: isDark ? '#233554' : '#cbd5e1', borderRadius: 2, textTransform: 'none' }}
+                  >
+                    {language === 'am' ? 'ጥያቄውን ሰርዝ' : 'Cancel Request'}
+                  </Button>
+                )}
+              </Box>
+            </Box>
+          </Paper>
+        )}
+
+        {localLease.status === 'TERMINATED' && (
+          <Paper
+            elevation={0}
+            sx={{
+              p: 2.5,
+              mb: 3,
+              borderRadius: 2.5,
+              bgcolor: isDark ? 'rgba(16, 185, 129, 0.12)' : '#ecfdf5',
+              border: `1.5px solid ${isDark ? '#10b981' : '#10b981'}`,
+              color: isDark ? '#f1f5f9' : '#0f172a'
+            }}
+          >
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+              <CheckCircle sx={{ color: '#10b981', fontSize: 32 }} />
+              <Box>
+                <Typography variant="subtitle1" sx={{ fontWeight: 800, color: '#10b981' }}>
+                  {language === 'am' ? 'የኪራይ ውሉ በይፋ ተቋርጧል — ቤቱ ለሌላ ኪራይ ክፍት ሆኗል' : 'Lease Agreement Terminated — Property is Available for Other Rent'}
+                </Typography>
+                <Typography variant="body2" sx={{ color: isDark ? '#cbd5e1' : '#475569' }}>
+                  {language === 'am' ? 'ይህ ውል ተቋርጧል፤ ቤቱ በሲስተሙ ላይ ወዲያውኑ ወደ "ክፍት (Available)" ተመልሷል።' : 'This contract was officially stopped. The property status is restored to "AVAILABLE" for other tenants.'}
+                </Typography>
+                {(localLease.terminationReason || localLease.terminationRequest?.reason) && (
+                  <Typography variant="caption" sx={{ display: 'block', mt: 0.5, color: isDark ? '#94a3b8' : '#64748b' }}>
+                    {language === 'am' ? 'የማቋረጫ ምክንያት፡' : 'Termination Reason:'} {localLease.terminationReason || localLease.terminationRequest?.reason}
+                  </Typography>
+                )}
+              </Box>
+            </Box>
+          </Paper>
+        )}
 
         {/* Printable Document Box */}
         <Box id="printable-lease" sx={{ p: { xs: 1, sm: 2 } }}>
@@ -268,8 +498,22 @@ export default function LeaseAgreementModal({
               </Typography>
             </Box>
             <Chip
-              label={lease.status}
-              color={lease.status === 'ACTIVE' ? 'success' : lease.status === 'PENDING_SIGNATURE' ? 'warning' : 'default'}
+              label={
+                localLease.status === 'TERMINATION_REQUESTED'
+                  ? (language === 'am' ? 'ማቋረጥ ተጠይቋል' : 'STOP REQUESTED')
+                  : localLease.status === 'TERMINATED'
+                  ? (language === 'am' ? 'የተቋረጠ (ክፍት)' : 'TERMINATED (AVAILABLE)')
+                  : localLease.status
+              }
+              color={
+                localLease.status === 'ACTIVE'
+                  ? 'success'
+                  : localLease.status === 'TERMINATION_REQUESTED'
+                  ? 'warning'
+                  : localLease.status === 'TERMINATED'
+                  ? 'error'
+                  : 'default'
+              }
               sx={{ fontWeight: 700 }}
             />
           </Box>
@@ -848,20 +1092,44 @@ export default function LeaseAgreementModal({
       </DialogContent>
 
       <DialogActions sx={{ p: 2.5, borderTop: `1px solid ${isDark ? '#233554' : '#e2e8f0'}`, display: 'flex', flexDirection: { xs: 'column-reverse', sm: 'row' }, justifyContent: 'space-between', gap: 1.5 }}>
-        <Button
-          onClick={handlePrint}
-          startIcon={<Print />}
-          variant="outlined"
-          sx={{
-            borderRadius: '10px',
-            borderColor: isDark ? '#233554' : '#cbd5e1',
-            color: isDark ? '#f1f5f9' : '#0f172a',
-            textTransform: 'none',
-            width: { xs: '100%', sm: 'auto' }
-          }}
-        >
-          {language === 'am' ? 'አትም / ፒዲኤፍ አውርድ' : 'Print / PDF Export'}
-        </Button>
+        <Box sx={{ display: 'flex', gap: 1.5, flexWrap: 'wrap' }}>
+          <Button
+            onClick={handlePrint}
+            startIcon={<Print />}
+            variant="outlined"
+            sx={{
+              borderRadius: '10px',
+              borderColor: isDark ? '#233554' : '#cbd5e1',
+              color: isDark ? '#f1f5f9' : '#0f172a',
+              textTransform: 'none'
+            }}
+          >
+            {language === 'am' ? 'አትም / ፒዲኤፍ አውርድ' : 'Print / PDF Export'}
+          </Button>
+
+          {/* Stop / Terminate Lease Button (available if ACTIVE) */}
+          {localLease.status === 'ACTIVE' && (
+            <Button
+              onClick={() => {
+                setStopModalOpen(true);
+                setStopReasonType('Relocation / Moving Out');
+                setStopReasonText('');
+                setStopEffectiveDate('');
+                setStopImmediate(false);
+              }}
+              variant="outlined"
+              color="error"
+              startIcon={<EventBusy />}
+              sx={{
+                borderRadius: '10px',
+                textTransform: 'none',
+                fontWeight: 600
+              }}
+            >
+              {language === 'am' ? 'የኪራይ ውል አቋርጥ (Stop Lease)' : 'Stop Lease Agreement'}
+            </Button>
+          )}
+        </Box>
 
         <Box sx={{ display: 'flex', gap: 1.5, width: { xs: '100%', sm: 'auto' } }}>
           <Button
@@ -875,7 +1143,7 @@ export default function LeaseAgreementModal({
             {t('action.close', 'Close')}
           </Button>
 
-          {isTenant && !lease.signedByTenant && (
+          {isTenant && !localLease.signedByTenant && (
             <Button
               onClick={handleSign}
               variant="contained"
@@ -896,6 +1164,239 @@ export default function LeaseAgreementModal({
           )}
         </Box>
       </DialogActions>
+
+      {/* ─── STOP LEASE AGREEMENT MODAL ─── */}
+      {stopModalOpen && (
+        <Dialog
+          open={stopModalOpen}
+          onClose={() => !submittingStop && setStopModalOpen(false)}
+          maxWidth="sm"
+          fullWidth
+          PaperProps={{
+            sx: {
+              borderRadius: 3,
+              bgcolor: isDark ? '#112240' : '#ffffff',
+              border: `1px solid ${isDark ? '#233554' : '#e2e8f0'}`,
+              color: isDark ? '#f1f5f9' : '#0f172a'
+            }
+          }}
+        >
+          <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', pb: 1 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <EventBusy sx={{ color: '#ef4444', fontSize: 28 }} />
+              <Typography variant="h6" sx={{ fontWeight: 800, color: isDark ? '#f1f5f9' : '#0f172a' }}>
+                {language === 'am' ? 'የኪራይ ውል ማቋረጫ ጥያቄ' : 'Stop Lease Agreement'}
+              </Typography>
+            </Box>
+            <IconButton size="small" onClick={() => setStopModalOpen(false)} disabled={submittingStop} sx={{ color: isDark ? '#94a3b8' : '#64748b' }}>
+              <Close />
+            </IconButton>
+          </DialogTitle>
+
+          <DialogContent sx={{ pt: 2 }}>
+            <Typography variant="body2" sx={{ color: isDark ? '#94a3b8' : '#64748b', mb: 2.5 }}>
+              {language === 'am'
+                ? `ውል #${localLease.agreementNumber}ን ለማቋረጥ እባክዎ ምክንያቱንና የሚለቁበትን ቀን ይግለጹ። ውሉ ሲቋረጥ ቤቱ በሲስተሙ ላይ ወዲያውኑ ለሌላ ኪራይ ዝግጁ (Available) ይሆናል።`
+                : `Submit a stop request for Lease #${localLease.agreementNumber}. Once stopped, this property will automatically be returned to "AVAILABLE" status for other rent.`}
+            </Typography>
+
+            <Box component="form" onSubmit={handleRequestStop} sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
+              <FormControl fullWidth size="small">
+                <InputLabel sx={{ color: isDark ? '#94a3b8' : '#64748b' }}>
+                  {language === 'am' ? 'የማቋረጫ ዋና ምክንያት *' : 'Termination Reason Category *'}
+                </InputLabel>
+                <Select
+                  value={stopReasonType}
+                  label={language === 'am' ? 'የማቋረጫ ዋና ምክንያት *' : 'Termination Reason Category *'}
+                  onChange={(e) => setStopReasonType(e.target.value)}
+                  sx={{
+                    bgcolor: isDark ? '#0a192f' : '#ffffff',
+                    color: isDark ? '#f1f5f9' : '#0f172a',
+                    borderRadius: 2
+                  }}
+                >
+                  <MenuItem value="Relocation / Moving Out">
+                    {language === 'am' ? 'ወደ ሌላ ቦታ መዘዋወር (Relocation)' : 'Relocation / Moving to Another Area'}
+                  </MenuItem>
+                  <MenuItem value="Early Lease Termination Notice">
+                    {language === 'am' ? 'ቅድመ የውል ማቋረጫ ማስታወቂያ (Early Termination Notice)' : 'Early Lease Termination Notice'}
+                  </MenuItem>
+                  <MenuItem value="Mutual Agreement to End Tenancy">
+                    {language === 'am' ? 'በስምምነት ማቋረጥ (Mutual Agreement)' : 'Mutual Agreement to End Tenancy'}
+                  </MenuItem>
+                  <MenuItem value="Financial Hardship / Personal Reasons">
+                    {language === 'am' ? 'የግል ወይም የገንዘብ ችግር (Financial/Personal Reasons)' : 'Financial Hardship / Personal Reasons'}
+                  </MenuItem>
+                  <MenuItem value="Breach of Lease Terms">
+                    {language === 'am' ? 'የውል ስምምነት መጣስ (Breach of Terms)' : 'Breach of Lease Terms'}
+                  </MenuItem>
+                  <MenuItem value="Property Owner Requirement / Repossession">
+                    {language === 'am' ? 'በባለቤቱ ጥያቄ (Property Owner Requirement)' : 'Property Owner Requirement / Repossession'}
+                  </MenuItem>
+                  <MenuItem value="Other Reasons">
+                    {language === 'am' ? 'ሌላ ምክንያት (Other)' : 'Other Custom Reason'}
+                  </MenuItem>
+                </Select>
+              </FormControl>
+
+              <TextField
+                fullWidth
+                size="small"
+                type="date"
+                label={language === 'am' ? 'የመልቀቂያ / ስራ የሚቆምበት ቀን' : 'Effective Move-Out Date'}
+                InputLabelProps={{ shrink: true }}
+                value={stopEffectiveDate}
+                onChange={(e) => setStopEffectiveDate(e.target.value)}
+                sx={{
+                  '& .MuiOutlinedInput-root': {
+                    bgcolor: isDark ? '#0a192f' : '#ffffff',
+                    color: isDark ? '#f1f5f9' : '#0f172a',
+                    borderRadius: 2
+                  }
+                }}
+              />
+
+              <TextField
+                fullWidth
+                multiline
+                rows={3}
+                label={language === 'am' ? 'ዝርዝር ማብራሪያ (አስፈላጊ ከሆነ)' : 'Detailed Reason / Notes'}
+                placeholder={language === 'am' ? 'የውል ማቋረጫውን ዝርዝር ምክንያት እዚህ ያስገቡ...' : 'Please specify reasons or terms for ending the lease...'}
+                value={stopReasonText}
+                onChange={(e) => setStopReasonText(e.target.value)}
+                sx={{
+                  '& .MuiOutlinedInput-root': {
+                    bgcolor: isDark ? '#0a192f' : '#ffffff',
+                    color: isDark ? '#f1f5f9' : '#0f172a',
+                    borderRadius: 2
+                  }
+                }}
+              />
+
+              {/* Immediate cancellation option for Landlord/Agent/Admin */}
+              {(isLandlordOrAgent || isAdmin) && (
+                <FormControlLabel
+                  control={
+                    <Checkbox
+                      checked={stopImmediate}
+                      onChange={(e) => setStopImmediate(e.target.checked)}
+                      sx={{ color: '#ef4444', '&.Mui-checked': { color: '#ef4444' } }}
+                    />
+                  }
+                  label={
+                    <Typography variant="body2" sx={{ color: isDark ? '#f1f5f9' : '#0f172a', fontWeight: 600 }}>
+                      {language === 'am'
+                        ? 'ውሉን ወዲያውኑ አቋርጥና ቤቱን ለሌላ ኪራይ ክፍት (Available) አድርግ'
+                        : 'Terminate lease immediately and make house AVAILABLE for other rent right now'}
+                    </Typography>
+                  }
+                />
+              )}
+
+              <DialogActions sx={{ p: 0, pt: 1, display: 'flex', justifyContent: 'flex-end', gap: 1.5 }}>
+                <Button onClick={() => setStopModalOpen(false)} disabled={submittingStop} sx={{ color: isDark ? '#94a3b8' : '#64748b', textTransform: 'none' }}>
+                  {t('action.cancel', 'Cancel')}
+                </Button>
+                <Button
+                  type="submit"
+                  variant="contained"
+                  color="error"
+                  disabled={submittingStop}
+                  startIcon={submittingStop ? <CircularProgress size={18} color="inherit" /> : <EventBusy />}
+                  sx={{
+                    borderRadius: 2,
+                    px: 3,
+                    fontWeight: 700,
+                    textTransform: 'none'
+                  }}
+                >
+                  {submittingStop
+                    ? (language === 'am' ? 'በማስገባት ላይ...' : 'Processing...')
+                    : stopImmediate
+                    ? (language === 'am' ? 'ውሉን ወዲያውኑ አቋርጥ' : 'Terminate Immediately')
+                    : (language === 'am' ? 'የማቋረጫ ጥያቄ ላክ' : 'Submit Stop Request')}
+                </Button>
+              </DialogActions>
+            </Box>
+          </DialogContent>
+        </Dialog>
+      )}
+
+      {/* ─── RESPOND TO TERMINATION MODAL (APPROVE / REJECT) ─── */}
+      {responseModalOpen && (
+        <Dialog
+          open={responseModalOpen}
+          onClose={() => !submittingResponse && setResponseModalOpen(false)}
+          maxWidth="xs"
+          fullWidth
+          PaperProps={{
+            sx: {
+              borderRadius: 3,
+              bgcolor: isDark ? '#112240' : '#ffffff',
+              border: `1px solid ${isDark ? '#233554' : '#e2e8f0'}`,
+              color: isDark ? '#f1f5f9' : '#0f172a'
+            }
+          }}
+        >
+          <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <Typography variant="h6" sx={{ fontWeight: 800, color: responseAction === 'APPROVE' ? '#10b981' : '#ef4444' }}>
+              {responseAction === 'APPROVE'
+                ? (language === 'am' ? 'የውል ማቋረጫውን አጽድቅ' : 'Approve Lease Stop')
+                : (language === 'am' ? 'የማቋረጫ ጥያቄውን ውድቅ አድርግ' : 'Reject Lease Stop')}
+            </Typography>
+            <IconButton size="small" onClick={() => setResponseModalOpen(false)} sx={{ color: isDark ? '#94a3b8' : '#64748b' }}><Close /></IconButton>
+          </DialogTitle>
+
+          <DialogContent sx={{ pt: 1 }}>
+            <Typography variant="body2" sx={{ mb: 2, color: isDark ? '#cbd5e1' : '#475569' }}>
+              {responseAction === 'APPROVE'
+                ? (language === 'am'
+                    ? 'ይህንን ማቋረጫ ሲያጸድቁ የኪራይ ውሉ በይፋ ይቋረጣል፤ ንብረቱም ወዲያውኑ በሲስተሙ ላይ ለሌላ ኪራይ ክፍት (AVAILABLE) ይሆናል።'
+                    : 'Approving will terminate this lease agreement and immediately restore the house status to "AVAILABLE" for other rent.')
+                : (language === 'am'
+                    ? 'ጥያቄውን ውድቅ ሲያደርጉ የኪራይ ውሉ እንዳለ ንቁ (ACTIVE) ሆኖ ይቀጥላል።'
+                    : 'Rejecting this request will keep the lease agreement active.')}
+            </Typography>
+
+            <TextField
+              fullWidth
+              multiline
+              rows={2}
+              label={language === 'am' ? 'ምላሽ / ማስታወሻ (አስፈላጊ ከሆነ)' : 'Notes / Response Remarks'}
+              placeholder={language === 'am' ? 'ማስታወሻ...' : 'Any remarks for the other party...'}
+              value={responseNotes}
+              onChange={(e) => setResponseNotes(e.target.value)}
+              sx={{
+                '& .MuiOutlinedInput-root': {
+                  bgcolor: isDark ? '#0a192f' : '#ffffff',
+                  color: isDark ? '#f1f5f9' : '#0f172a',
+                  borderRadius: 2
+                }
+              }}
+            />
+          </DialogContent>
+
+          <DialogActions sx={{ p: 2, borderTop: `1px solid ${isDark ? '#233554' : '#e2e8f0'}` }}>
+            <Button onClick={() => setResponseModalOpen(false)} disabled={submittingResponse} sx={{ color: isDark ? '#94a3b8' : '#64748b', textTransform: 'none' }}>
+              {t('action.cancel', 'Cancel')}
+            </Button>
+            <Button
+              variant="contained"
+              color={responseAction === 'APPROVE' ? 'success' : 'error'}
+              onClick={handleRespondStop}
+              disabled={submittingResponse}
+              startIcon={submittingResponse ? <CircularProgress size={18} color="inherit" /> : (responseAction === 'APPROVE' ? <CheckCircle /> : <Cancel />)}
+              sx={{ borderRadius: 2, fontWeight: 700, px: 3, textTransform: 'none' }}
+            >
+              {submittingResponse
+                ? (language === 'am' ? 'በማስገባት ላይ...' : 'Saving...')
+                : responseAction === 'APPROVE'
+                ? (language === 'am' ? 'አጽድቅና ቤቱን ክፍት አድርግ' : 'Confirm & Release House')
+                : (language === 'am' ? 'ውድቅ አድርግ' : 'Confirm Rejection')}
+            </Button>
+          </DialogActions>
+        </Dialog>
+      )}
     </Dialog>
   );
 }

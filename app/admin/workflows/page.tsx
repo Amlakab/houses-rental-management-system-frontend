@@ -23,6 +23,8 @@ import {
   ListingReport, House, RentalApplication
 } from '@/types/houses';
 import LeaseAgreementModal from '@/components/LeaseAgreementModal';
+import PurchaseReceiptModal from '@/components/PurchaseReceiptModal';
+import PurchaseMilestonePaymentModal from '@/components/PurchaseMilestonePaymentModal';
 import Link from 'next/link';
 import { useLanguage } from '@/lib/language-context';
 
@@ -49,6 +51,12 @@ export default function AdminWorkflowManagementPage() {
 
   // Modals state
   const [selectedLease, setSelectedLease] = useState<LeaseAgreement | null>(null);
+
+  // Purchase Receipt & Milestone Payment Modals
+  const [receiptOffer, setReceiptOffer] = useState<PurchaseOffer | null>(null);
+  const [receiptMilestone, setReceiptMilestone] = useState<any | null>(null);
+  const [directPayOffer, setDirectPayOffer] = useState<PurchaseOffer | null>(null);
+  const [directPayMilestone, setDirectPayMilestone] = useState<any | null>(null);
 
   // Rental Application Review Modal
   const [selectedApp, setSelectedApp] = useState<RentalApplication | null>(null);
@@ -207,6 +215,22 @@ export default function AdminWorkflowManagementPage() {
       fetchData();
     } catch (err: any) {
       setSnackbar(err?.response?.data?.message || 'Failed to send counter-offer');
+      setSnackbarSeverity('error');
+    }
+  };
+
+  // Milestone Approval Handler
+  const handleApproveMilestone = async (offerId: string, milestoneId: string, amount: number) => {
+    try {
+      await api.post(`/workflows/offers/${offerId}/milestone`, {
+        milestoneId,
+        amount
+      });
+      setSnackbar('Purchase milestone payment approved and official sales receipt issued!');
+      setSnackbarSeverity('success');
+      fetchData();
+    } catch (err: any) {
+      setSnackbar(err?.response?.data?.message || 'Failed to approve milestone');
       setSnackbarSeverity('error');
     }
   };
@@ -741,8 +765,18 @@ export default function AdminWorkflowManagementPage() {
                               </Typography>
                               <Chip
                                 size="small"
-                                label={lease.status}
-                                color={lease.status === 'ACTIVE' ? 'success' : lease.status === 'PENDING_SIGNATURE' ? 'warning' : 'default'}
+                                label={lease.status.replace(/_/g, ' ')}
+                                color={
+                                  lease.status === 'ACTIVE'
+                                    ? 'success'
+                                    : lease.status === 'TERMINATION_REQUESTED'
+                                    ? 'error'
+                                    : lease.status === 'TERMINATED'
+                                    ? 'default'
+                                    : lease.status === 'PENDING_SIGNATURE'
+                                    ? 'warning'
+                                    : 'default'
+                                }
                                 sx={{ fontWeight: 700 }}
                               />
                             </Box>
@@ -761,6 +795,33 @@ export default function AdminWorkflowManagementPage() {
                             </Typography>
                           </Box>
                         </Box>
+
+                        {/* Lease Termination Request Alerts */}
+                        {lease.status === 'TERMINATION_REQUESTED' && (
+                          <Alert
+                            severity="error"
+                            sx={{ my: 1.5, borderRadius: 2 }}
+                            action={
+                              <Button
+                                color="error"
+                                variant="contained"
+                                size="small"
+                                onClick={() => setSelectedLease(lease)}
+                                sx={{ fontWeight: 700, textTransform: 'none' }}
+                              >
+                                Review Stop Request
+                              </Button>
+                            }
+                          >
+                            <strong>Stop Lease Agreement Requested:</strong> {lease.terminationRequest?.requestedByRole === 'tenant' ? 'Tenant requested termination' : 'Stop notice initiated'}.
+                            {lease.terminationRequest?.reason ? ` Reason: "${lease.terminationRequest.reason}"` : ''}
+                          </Alert>
+                        )}
+                        {lease.status === 'TERMINATED' && (
+                          <Alert severity="info" sx={{ my: 1.5, borderRadius: 2 }}>
+                            <strong>Lease Terminated & Property Vacated:</strong> Contract has been terminated and this property was automatically returned to <strong>Available</strong> status for other rent.
+                          </Alert>
+                        )}
 
                         <Divider sx={{ my: 2, borderColor: isDark ? 'rgba(255, 255, 255, 0.08)' : '#e2e8f0' }} />
 
@@ -794,19 +855,16 @@ export default function AdminWorkflowManagementPage() {
                           >
                             Inspect Legal Agreement
                           </Button>
-                          {/* <Button
-                            variant="contained"
-                            color="success"
-                            startIcon={<AttachMoney />}
-                            onClick={() => {
-                              setPaymentLease(lease);
-                              setPaymentForm({ installmentNumber: '1', amount: String(lease.rentAmount || ''), method: 'cbe', reference: '' });
-                              setRecordPaymentModalOpen(true);
-                            }}
-                            sx={{ borderRadius: 2, textTransform: 'none' }}
-                          >
-                            Record Rent Payment
-                          </Button> */}
+                          {lease.status === 'TERMINATION_REQUESTED' && (
+                            <Button
+                              variant="contained"
+                              color="error"
+                              onClick={() => setSelectedLease(lease)}
+                              sx={{ borderRadius: 2, textTransform: 'none' }}
+                            >
+                              Respond to Stop Request
+                            </Button>
+                          )}
                         </Stack>
                       </CardContent>
                     </Card>
@@ -839,7 +897,15 @@ export default function AdminWorkflowManagementPage() {
                               <Chip
                                 size="small"
                                 label={offer.status.replace(/_/g, ' ')}
-                                color={offer.status === 'OFFER_ACCEPTED' ? 'success' : offer.status === 'UNDER_NEGOTIATION' ? 'primary' : 'warning'}
+                                color={
+                                  offer.status === 'COMPLETED_SALE'
+                                    ? 'success'
+                                    : offer.status === 'PAYMENT_MILESTONES_ACTIVE' || offer.status === 'RESERVATION_DEPOSIT_PAID' || offer.status === 'OFFER_ACCEPTED'
+                                    ? 'primary'
+                                    : offer.status === 'UNDER_NEGOTIATION'
+                                    ? 'info'
+                                    : 'warning'
+                                }
                                 sx={{ fontWeight: 700 }}
                               />
                             </Box>
@@ -862,35 +928,157 @@ export default function AdminWorkflowManagementPage() {
                         <Divider sx={{ my: 1.5, borderColor: isDark ? 'rgba(255, 255, 255, 0.08)' : '#e2e8f0' }} />
 
                         {/* Negotiation Chat Timeline */}
-                        <Typography variant="subtitle2" sx={{ fontWeight: 700, color: isDark ? '#f1f5f9' : '#0f172a', mb: 1 }}>
-                          Negotiation Trail
-                        </Typography>
-                        <Stack spacing={1} sx={{ mb: 2 }}>
-                          {offer.negotiationTimeline?.map((item, idx) => (
-                            <Box
-                              key={idx}
-                              sx={{
-                                p: 1.2,
-                                borderRadius: 2,
-                                bgcolor: item.senderRole === 'buyer' ? 'rgba(6, 182, 212, 0.08)' : 'rgba(16, 185, 129, 0.08)',
-                                borderLeft: '4px solid',
-                                borderColor: item.senderRole === 'buyer' ? '#06b6d4' : '#10b981'
-                              }}
-                            >
-                              <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                                <Typography variant="caption" sx={{ fontWeight: 700, textTransform: 'capitalize', color: isDark ? '#f1f5f9' : '#0f172a' }}>
-                                  {item.senderRole}: ETB {item.proposedAmount?.toLocaleString()}
-                                </Typography>
-                                <Typography variant="caption" sx={{ color: isDark ? '#94a3b8' : '#64748b' }}>
-                                  {new Date(item.timestamp).toLocaleDateString()}
-                                </Typography>
-                              </Box>
-                              <Typography variant="body2" sx={{ mt: 0.5, color: isDark ? '#e2e8f0' : '#334155' }}>
-                                {item.message}
+                        {offer.negotiationTimeline && offer.negotiationTimeline.length > 0 && (
+                          <Box sx={{ mb: 2 }}>
+                            <Typography variant="subtitle2" sx={{ fontWeight: 700, color: isDark ? '#f1f5f9' : '#0f172a', mb: 1 }}>
+                              Negotiation Trail
+                            </Typography>
+                            <Stack spacing={1} sx={{ mb: 1.5 }}>
+                              {offer.negotiationTimeline.map((item, idx) => (
+                                <Box
+                                  key={idx}
+                                  sx={{
+                                    p: 1.2,
+                                    borderRadius: 2,
+                                    bgcolor: item.senderRole === 'buyer' ? 'rgba(6, 182, 212, 0.08)' : 'rgba(16, 185, 129, 0.08)',
+                                    borderLeft: '4px solid',
+                                    borderColor: item.senderRole === 'buyer' ? '#06b6d4' : '#10b981'
+                                  }}
+                                >
+                                  <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                                    <Typography variant="caption" sx={{ fontWeight: 700, textTransform: 'capitalize', color: isDark ? '#f1f5f9' : '#0f172a' }}>
+                                      {item.senderRole}: ETB {item.proposedAmount?.toLocaleString()}
+                                    </Typography>
+                                    <Typography variant="caption" sx={{ color: isDark ? '#94a3b8' : '#64748b' }}>
+                                      {new Date(item.timestamp).toLocaleDateString()}
+                                    </Typography>
+                                  </Box>
+                                  <Typography variant="body2" sx={{ mt: 0.5, color: isDark ? '#e2e8f0' : '#334155' }}>
+                                    {item.message}
+                                  </Typography>
+                                </Box>
+                              ))}
+                            </Stack>
+                          </Box>
+                        )}
+
+                        {/* Purchase Escrow & Payment Milestones Schedule */}
+                        {offer.milestones && offer.milestones.length > 0 && (
+                          <Box sx={{ mb: 2.5, p: 2, borderRadius: 2.5, bgcolor: isDark ? '#0a192f' : '#f8fafc', border: `1px solid ${isDark ? '#233554' : '#e2e8f0'}` }}>
+                            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1.5, flexWrap: 'wrap', gap: 1 }}>
+                              <Typography variant="subtitle2" sx={{ fontWeight: 800, color: isDark ? '#f1f5f9' : '#0f172a', display: 'flex', alignItems: 'center', gap: 1 }}>
+                                <Shield sx={{ fontSize: 18, color: '#10b981' }} />
+                                Property Purchase Payment Schedule & Escrow Milestones
+                              </Typography>
+                              <Typography variant="caption" sx={{ color: isDark ? '#94a3b8' : '#64748b' }}>
+                                Settled: ETB {offer.milestones.filter(m => m.status === 'PAID' || m.status === 'VERIFIED').reduce((sum, m) => sum + (m.amount || 0), 0).toLocaleString()} / ETB {offer.currentOfferAmount?.toLocaleString()}
                               </Typography>
                             </Box>
-                          ))}
-                        </Stack>
+
+                            <Grid container spacing={1.5}>
+                              {offer.milestones.map((m: any, idx: number) => {
+                                const isPaid = m.status === 'PAID' || m.status === 'VERIFIED';
+                                const isReview = m.status === 'UNDER_REVIEW';
+
+                                return (
+                                  <Grid item xs={12} sm={4} key={m._id || m.id || idx}>
+                                    <Paper
+                                      elevation={0}
+                                      sx={{
+                                        p: 1.8,
+                                        borderRadius: 2,
+                                        bgcolor: isDark ? '#112240' : '#ffffff',
+                                        border: `1.5px solid ${isPaid ? '#10b981' : isReview ? '#f59e0b' : isDark ? '#233554' : '#cbd5e1'}`,
+                                        height: '100%',
+                                        display: 'flex',
+                                        flexDirection: 'column',
+                                        justifyContent: 'space-between'
+                                      }}
+                                    >
+                                      <Box>
+                                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1 }}>
+                                          <Typography variant="caption" sx={{ fontWeight: 700, color: isDark ? '#94a3b8' : '#64748b' }}>
+                                            Milestone {idx + 1} ({m.percentage}%)
+                                          </Typography>
+                                          <Chip
+                                            size="small"
+                                            label={isPaid ? 'PAID ✓' : isReview ? 'VERIFICATION REQ' : 'PENDING'}
+                                            color={isPaid ? 'success' : isReview ? 'warning' : 'default'}
+                                            sx={{ fontWeight: 800, fontSize: '0.65rem', height: 20 }}
+                                          />
+                                        </Box>
+                                        <Typography variant="body2" sx={{ fontWeight: 700, color: isDark ? '#f1f5f9' : '#0f172a', mb: 0.5 }}>
+                                          {m.title}
+                                        </Typography>
+                                        <Typography variant="h6" sx={{ fontWeight: 800, color: '#10b981', mb: 0.5 }}>
+                                          ETB {m.amount?.toLocaleString()}
+                                        </Typography>
+                                        <Typography variant="caption" sx={{ display: 'block', color: isDark ? '#94a3b8' : '#64748b' }}>
+                                          Due: {new Date(m.dueDate).toLocaleDateString()}
+                                        </Typography>
+                                        {m.transactionReference && (
+                                          <Typography variant="caption" sx={{ display: 'block', mt: 0.5, color: '#06b6d4', fontWeight: 600 }}>
+                                            Tx Ref: {m.transactionReference}
+                                          </Typography>
+                                        )}
+                                        {m.receiptNumber && (
+                                          <Typography variant="caption" sx={{ display: 'block', color: '#10b981', fontWeight: 600 }}>
+                                            Receipt: {m.receiptNumber}
+                                          </Typography>
+                                        )}
+                                      </Box>
+
+                                      <Box sx={{ mt: 1.5 }}>
+                                        {isReview && (
+                                          <Button
+                                            fullWidth
+                                            size="small"
+                                            variant="contained"
+                                            color="success"
+                                            onClick={() => handleApproveMilestone(offer._id, m._id || m.id, m.amount)}
+                                            sx={{ borderRadius: 1.5, fontWeight: 700, textTransform: 'none', py: 0.5 }}
+                                          >
+                                            Verify & Approve
+                                          </Button>
+                                        )}
+                                        {isPaid && (
+                                          <Button
+                                            fullWidth
+                                            size="small"
+                                            variant="outlined"
+                                            color="success"
+                                            startIcon={<Receipt sx={{ fontSize: 16 }} />}
+                                            onClick={() => {
+                                              setReceiptOffer(offer);
+                                              setReceiptMilestone(m);
+                                            }}
+                                            sx={{ borderRadius: 1.5, fontWeight: 700, textTransform: 'none', py: 0.5 }}
+                                          >
+                                            View Sales Receipt
+                                          </Button>
+                                        )}
+                                        {!isPaid && !isReview && (
+                                          <Button
+                                            fullWidth
+                                            size="small"
+                                            variant="outlined"
+                                            onClick={() => {
+                                              setDirectPayOffer(offer);
+                                              setDirectPayMilestone(m);
+                                            }}
+                                            sx={{ borderRadius: 1.5, textTransform: 'none', py: 0.5 }}
+                                          >
+                                            Record Payment
+                                          </Button>
+                                        )}
+                                      </Box>
+                                    </Paper>
+                                  </Grid>
+                                );
+                              })}
+                            </Grid>
+                          </Box>
+                        )}
 
                         {/* Offer Actions */}
                         {offer.status !== 'OFFER_ACCEPTED' && offer.status !== 'COMPLETED_SALE' && offer.status !== 'OFFER_REJECTED' && (
@@ -927,14 +1115,14 @@ export default function AdminWorkflowManagementPage() {
                           </Stack>
                         )}
 
-                        {offer.status === 'OFFER_ACCEPTED' && (
+                        {(offer.status === 'OFFER_ACCEPTED' || offer.status === 'PAYMENT_MILESTONES_ACTIVE' || offer.status === 'RESERVATION_DEPOSIT_PAID') && (
                           <Button
                             variant="contained"
                             color="primary"
                             onClick={() => handleOfferStatus(offer._id, 'COMPLETED_SALE')}
                             sx={{ borderRadius: 2, textTransform: 'none' }}
                           >
-                            Mark Sale as Finalized & Transferred
+                            Mark Sale as Finalized & Transfer Deed
                           </Button>
                         )}
                       </CardContent>
@@ -1484,6 +1672,33 @@ export default function AdminWorkflowManagementPage() {
           onSuccess={() => fetchData(false)}
         />
       )}
+
+      {/* 8. Purchase Official Receipt Modal */}
+      <PurchaseReceiptModal
+        open={Boolean(receiptOffer && receiptMilestone)}
+        onClose={() => {
+          setReceiptOffer(null);
+          setReceiptMilestone(null);
+        }}
+        offer={receiptOffer}
+        milestone={receiptMilestone}
+      />
+
+      {/* 9. Purchase Milestone Direct Payment Modal */}
+      <PurchaseMilestonePaymentModal
+        open={Boolean(directPayOffer && directPayMilestone)}
+        onClose={() => {
+          setDirectPayOffer(null);
+          setDirectPayMilestone(null);
+        }}
+        offer={directPayOffer}
+        milestone={directPayMilestone}
+        onSuccess={() => {
+          setDirectPayOffer(null);
+          setDirectPayMilestone(null);
+          fetchData(false);
+        }}
+      />
 
       {/* Feedback Snackbar */}
       <Snackbar open={Boolean(snackbar)} autoHideDuration={5000} onClose={() => setSnackbar('')} anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}>
