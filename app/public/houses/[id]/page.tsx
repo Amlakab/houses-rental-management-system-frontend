@@ -506,18 +506,18 @@ export default function PublicHouseDetailPage() {
             {/* Specifications */}
             <Section title="Property Specifications">
               <Box sx={{ display: 'grid', gridTemplateColumns: { xs: 'repeat(2,1fr)', sm: 'repeat(3,1fr)' }, gap: 1.2 }}>
-                <KV k="Property Type" v={label(house.propertyType)} />
+                {/* <KV k="Property Type" v={label(house.propertyType)} />
                 <KV k="Transaction" v={label(house.transactionType)} />
                 <KV k="Intended Purpose" v={label(house.intendedPurpose)} />
                 <KV k="Status" v={label(house.status)} />
                 <KV k="Approval" v={label(house.approvalStatus)} />
-                <KV k="Verification" v={label(house.verificationStatus)} />
+                <KV k="Verification" v={label(house.verificationStatus)} /> */}
                 <KV k="Year Built" v={house.details?.yearBuilt ?? '—'} />
                 <KV k="Floors" v={house.details?.floors ?? '—'} />
                 <KV k="Lot Size" v={house.details?.lotSize ? `${house.details.lotSize} m²` : '—'} />
-                <KV k="Furnished" v={house.details?.furnished ? 'Yes' : 'No'} />
+                {/* <KV k="Furnished" v={house.details?.furnished ? 'Yes' : 'No'} />
                 <KV k="Furnishing" v={label(house.details?.furnishingStatus)} />
-                <KV k="Price / sqft" v={house.pricing?.pricePerSqft ? `ETB ${fmt(house.pricing.pricePerSqft)}` : '—'} />
+                <KV k="Price / sqft" v={house.pricing?.pricePerSqft ? `ETB ${fmt(house.pricing.pricePerSqft)}` : '—'} /> */}
               </Box>
             </Section>
 
