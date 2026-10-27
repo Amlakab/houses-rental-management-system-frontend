@@ -19,13 +19,14 @@ import { motion } from 'framer-motion';
 import { useTheme } from '@/lib/theme-context';
 import { useLanguage } from '@/lib/language-context';
 import { ICON_MAP, ICON_NAMES, resolveIcon, type IconName } from '@/lib/icon-map';
-import { ALL_ROLES, type Role, type MenuDoc } from '@/lib/menu-types';
+import { ALL_ROLES, type Role, type MenuDoc, type MenuType } from '@/lib/menu-types';
 import api from '@/app/utils/api';
 
 interface MenuFormData {
   name: string;
   href: string;
   icon: IconName;
+  type: MenuType;
   allowedRoles: Role[];
   order: number;
   isActive: boolean;
@@ -35,6 +36,7 @@ const emptyForm: MenuFormData = {
   name: '',
   href: '',
   icon: 'Home',
+  type: 'web',
   allowedRoles: [],
   order: 0,
   isActive: true,
@@ -47,6 +49,7 @@ export default function MenuManagementPage() {
   const isMobile = useMediaQuery('(max-width: 768px)');
 
   const [menus, setMenus] = useState<MenuDoc[]>([]);
+  const [platformFilter, setPlatformFilter] = useState<'all' | 'web' | 'mobile'>('all');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -170,6 +173,7 @@ export default function MenuManagementPage() {
       name: menu.name,
       href: menu.href,
       icon: menu.icon as IconName,
+      type: menu.type || 'web',
       allowedRoles: menu.allowedRoles,
       order: menu.order,
       isActive: menu.isActive,
@@ -211,33 +215,25 @@ export default function MenuManagementPage() {
 
       <Box sx={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 2 }}>
         <FormControl fullWidth size="small">
-          <InputLabel sx={labelStyle}>{t('menus.icon', 'Icon')}</InputLabel>
+          <InputLabel sx={labelStyle}>{t('menus.platform_type', 'Platform (Target)')}</InputLabel>
           <Select
-            value={data.icon}
-            label={t('menus.icon', 'Icon')}
-            onChange={(e) => setData((p) => ({ ...p, icon: e.target.value as IconName }))}
+            value={data.type || 'web'}
+            label={t('menus.platform_type', 'Platform (Target)')}
+            onChange={(e) => setData((p) => ({ ...p, type: e.target.value as MenuType }))}
             sx={selectStyle}
-            renderValue={(val) => {
-              const Icon = ICON_MAP[val as IconName];
-              return (
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                  {Icon ? <Icon className="h-4 w-4" /> : null}
-                  <span>{val}</span>
-                </Box>
-              );
-            }}
           >
-            {ICON_NAMES.map((name) => {
-              const Icon = ICON_MAP[name];
-              return (
-                <MenuItem key={name} value={name}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    <Icon className="h-4 w-4" />
-                    <span>{name}</span>
-                  </Box>
-                </MenuItem>
-              );
-            })}
+            <MenuItem value="web">
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <Chip label="WEB" size="small" color="primary" sx={{ height: 20, fontSize: 10, fontWeight: 700 }} />
+                <span>Web Platform (Sidebar & Web Routes)</span>
+              </Box>
+            </MenuItem>
+            <MenuItem value="mobile">
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <Chip label="MOBILE" size="small" color="secondary" sx={{ height: 20, fontSize: 10, fontWeight: 700 }} />
+                <span>Mobile App (Portal & Mobile Screens)</span>
+              </Box>
+            </MenuItem>
           </Select>
         </FormControl>
 
@@ -250,6 +246,37 @@ export default function MenuManagementPage() {
           sx={textFieldStyle}
         />
       </Box>
+
+      <FormControl fullWidth size="small">
+        <InputLabel sx={labelStyle}>{t('menus.icon', 'Icon')}</InputLabel>
+        <Select
+          value={data.icon}
+          label={t('menus.icon', 'Icon')}
+          onChange={(e) => setData((p) => ({ ...p, icon: e.target.value as IconName }))}
+          sx={selectStyle}
+          renderValue={(val) => {
+            const Icon = ICON_MAP[val as IconName];
+            return (
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                {Icon ? <Icon className="h-4 w-4" /> : null}
+                <span>{val}</span>
+              </Box>
+            );
+          }}
+        >
+          {ICON_NAMES.map((name) => {
+            const Icon = ICON_MAP[name];
+            return (
+              <MenuItem key={name} value={name}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <Icon className="h-4 w-4" />
+                  <span>{name}</span>
+                </Box>
+              </MenuItem>
+            );
+          })}
+        </Select>
+      </FormControl>
 
       <FormControl fullWidth size="small">
         <InputLabel sx={labelStyle}>{t('menus.allowed_roles', 'Allowed Roles')}</InputLabel>
@@ -361,6 +388,45 @@ export default function MenuManagementPage() {
           </Box>
         </motion.div>
 
+        {/* Platform filter tabs */}
+        <Box sx={{ display: 'flex', gap: 1, mb: 3 }}>
+          {[
+            { key: 'all', label: isAmharic ? 'ሁሉም' : 'All Platforms', count: menus.length },
+            { key: 'web', label: 'Web', count: menus.filter((m) => m.type !== 'mobile').length },
+            { key: 'mobile', label: 'Mobile', count: menus.filter((m) => m.type === 'mobile').length },
+          ].map((tab) => {
+            const active = platformFilter === tab.key;
+            return (
+              <Button
+                key={tab.key}
+                size="small"
+                variant={active ? 'contained' : 'outlined'}
+                onClick={() => setPlatformFilter(tab.key as any)}
+                sx={{
+                  borderRadius: '20px',
+                  textTransform: 'none',
+                  fontWeight: active ? 700 : 500,
+                  fontSize: '0.82rem',
+                  borderColor: isDark ? '#334155' : '#cbd5e1',
+                  color: active ? '#ffffff' : (isDark ? '#cbd5e1' : '#475569'),
+                  backgroundColor: active
+                    ? tab.key === 'mobile'
+                      ? '#9333ea'
+                      : isDark
+                      ? '#0284c7'
+                      : '#2563eb'
+                    : 'transparent',
+                  '&:hover': {
+                    borderColor: isDark ? '#38bdf8' : '#2563eb',
+                  },
+                }}
+              >
+                {tab.label} ({tab.count})
+              </Button>
+            );
+          })}
+        </Box>
+
         {/* Table / Cards */}
         {loading ? (
           <Box sx={{ display: 'flex', justifyContent: 'center', py: 10 }}>
@@ -368,85 +434,102 @@ export default function MenuManagementPage() {
           </Box>
         ) : isMobile ? (
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-            {menus.map((menu) => {
-              const Icon = resolveIcon(menu.icon);
-              return (
-                <Card
-                  key={menu._id}
-                  sx={{
-                    borderRadius: 3,
-                    backgroundColor: isDark ? '#112240' : '#ffffff',
-                    border: `1px solid ${isDark ? '#233554' : '#e2e8f0'}`,
-                    boxShadow: isDark ? '0 4px 20px rgba(0,0,0,0.3)' : '0 2px 8px rgba(0,0,0,0.05)',
-                  }}
-                >
-                  <CardContent sx={{ p: 2.5 }}>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1.5 }}>
-                      <Box sx={{ p: 1, borderRadius: 2, bgcolor: isDark ? 'rgba(56, 189, 248, 0.1)' : 'rgba(37, 99, 235, 0.08)', color: isDark ? '#38bdf8' : '#2563eb' }}>
-                        <Icon className="h-5 w-5" />
+            {menus
+              .filter((m) =>
+                platformFilter === 'all'
+                  ? true
+                  : platformFilter === 'mobile'
+                  ? m.type === 'mobile'
+                  : m.type !== 'mobile'
+              )
+              .map((menu) => {
+                const Icon = resolveIcon(menu.icon);
+                return (
+                  <Card
+                    key={menu._id}
+                    sx={{
+                      borderRadius: 3,
+                      backgroundColor: isDark ? '#112240' : '#ffffff',
+                      border: `1px solid ${isDark ? '#233554' : '#e2e8f0'}`,
+                      boxShadow: isDark ? '0 4px 20px rgba(0,0,0,0.3)' : '0 2px 8px rgba(0,0,0,0.05)',
+                    }}
+                  >
+                    <CardContent sx={{ p: 2.5 }}>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1.5 }}>
+                        <Box sx={{ p: 1, borderRadius: 2, bgcolor: isDark ? 'rgba(56, 189, 248, 0.1)' : 'rgba(37, 99, 235, 0.08)', color: isDark ? '#38bdf8' : '#2563eb' }}>
+                          <Icon className="h-5 w-5" />
+                        </Box>
+                        <Box sx={{ flex: 1 }}>
+                          <Typography variant="subtitle1" sx={{ fontWeight: 700, color: isDark ? '#f1f5f9' : '#0f172a' }}>
+                            {menu.name}
+                          </Typography>
+                          <Typography variant="caption" sx={{ color: isDark ? '#94a3b8' : '#64748b' }}>
+                            {menu.href} · {t('menus.order', 'Order')}: {menu.order}
+                          </Typography>
+                        </Box>
+                        <Box sx={{ display: 'flex', gap: 0.5, alignItems: 'center' }}>
+                          <Chip
+                            label={menu.type === 'mobile' ? 'Mobile' : 'Web'}
+                            color={menu.type === 'mobile' ? 'secondary' : 'primary'}
+                            size="small"
+                            variant="outlined"
+                            sx={{ fontWeight: 700, borderRadius: '6px' }}
+                          />
+                          <Chip
+                            label={menu.isActive ? (isAmharic ? 'ንቁ' : 'Active') : (isAmharic ? 'ቦዝኗል' : 'Inactive')}
+                            color={menu.isActive ? 'success' : 'default'}
+                            size="small"
+                            sx={{ fontWeight: 600, borderRadius: '6px' }}
+                          />
+                        </Box>
                       </Box>
-                      <Box sx={{ flex: 1 }}>
-                        <Typography variant="subtitle1" sx={{ fontWeight: 700, color: isDark ? '#f1f5f9' : '#0f172a' }}>
-                          {menu.name}
-                        </Typography>
-                        <Typography variant="caption" sx={{ color: isDark ? '#94a3b8' : '#64748b' }}>
-                          {menu.href} · {t('menus.order', 'Order')}: {menu.order}
-                        </Typography>
+                      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, mb: 2 }}>
+                        {menu.allowedRoles.map((r) => (
+                          <Chip 
+                            key={r} 
+                            label={r} 
+                            size="small" 
+                            variant="outlined" 
+                            sx={{ 
+                              borderRadius: '6px', 
+                              fontSize: '0.75rem', 
+                              borderColor: isDark ? '#334155' : '#cbd5e1', 
+                              color: isDark ? '#94a3b8' : '#64748b' 
+                            }} 
+                          />
+                        ))}
                       </Box>
-                      <Chip
-                        label={menu.isActive ? (isAmharic ? 'ንቁ' : 'Active') : (isAmharic ? 'ቦዝኗል' : 'Inactive')}
-                        color={menu.isActive ? 'success' : 'default'}
-                        size="small"
-                        sx={{ fontWeight: 600, borderRadius: '6px' }}
-                      />
-                    </Box>
-                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, mb: 2 }}>
-                      {menu.allowedRoles.map((r) => (
-                        <Chip 
-                          key={r} 
-                          label={r} 
+                      <Box sx={{ display: 'flex', gap: 1, pt: 1, borderTop: `1px solid ${isDark ? '#233554' : '#f1f5f9'}` }}>
+                        <Button 
                           size="small" 
-                          variant="outlined" 
-                          sx={{ 
-                            borderRadius: '6px', 
-                            fontSize: '0.75rem', 
-                            borderColor: isDark ? '#334155' : '#cbd5e1', 
-                            color: isDark ? '#94a3b8' : '#64748b' 
-                          }} 
-                        />
-                      ))}
-                    </Box>
-                    <Box sx={{ display: 'flex', gap: 1, pt: 1, borderTop: `1px solid ${isDark ? '#233554' : '#f1f5f9'}` }}>
-                      <Button 
-                        size="small" 
-                        startIcon={<Edit />} 
-                        onClick={() => openEdit(menu)}
-                        sx={{ color: isDark ? '#38bdf8' : '#2563eb', textTransform: 'none', fontWeight: 600 }}
-                      >
-                        {t('common.edit', 'Edit')}
-                      </Button>
-                      <Button
-                        size="small"
-                        startIcon={menu.isActive ? <VisibilityOff /> : <Visibility />}
-                        onClick={() => handleToggleActive(menu)}
-                        sx={{ color: isDark ? '#94a3b8' : '#64748b', textTransform: 'none' }}
-                      >
-                        {menu.isActive ? (isAmharic ? 'አቦዝን' : 'Deactivate') : (isAmharic ? 'አንቃ' : 'Activate')}
-                      </Button>
-                      <Button 
-                        size="small" 
-                        color="error" 
-                        startIcon={<Delete />} 
-                        onClick={() => openDelete(menu)}
-                        sx={{ ml: 'auto', textTransform: 'none' }}
-                      >
-                        {t('common.delete', 'Delete')}
-                      </Button>
-                    </Box>
-                  </CardContent>
-                </Card>
-              );
-            })}
+                          startIcon={<Edit />} 
+                          onClick={() => openEdit(menu)}
+                          sx={{ color: isDark ? '#38bdf8' : '#2563eb', textTransform: 'none', fontWeight: 600 }}
+                        >
+                          {t('common.edit', 'Edit')}
+                        </Button>
+                        <Button
+                          size="small"
+                          startIcon={menu.isActive ? <VisibilityOff /> : <Visibility />}
+                          onClick={() => handleToggleActive(menu)}
+                          sx={{ color: isDark ? '#94a3b8' : '#64748b', textTransform: 'none' }}
+                        >
+                          {menu.isActive ? (isAmharic ? 'አቦዝን' : 'Deactivate') : (isAmharic ? 'አንቃ' : 'Activate')}
+                        </Button>
+                        <Button 
+                          size="small" 
+                          color="error" 
+                          startIcon={<Delete />} 
+                          onClick={() => openDelete(menu)}
+                          sx={{ ml: 'auto', textTransform: 'none' }}
+                        >
+                          {t('common.delete', 'Delete')}
+                        </Button>
+                      </Box>
+                    </CardContent>
+                  </Card>
+                );
+              })}
           </Box>
         ) : (
           <Card
@@ -470,6 +553,7 @@ export default function MenuManagementPage() {
                     {[
                       t('menus.order', 'Order'),
                       t('menus.name', 'Menu'),
+                      t('menus.platform', 'Platform'),
                       t('menus.href', 'Route Path'),
                       t('menus.icon', 'Icon'),
                       t('menus.allowed_roles', 'Allowed Roles'),
@@ -490,7 +574,15 @@ export default function MenuManagementPage() {
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {menus.map((menu) => {
+                  {menus
+                    .filter((m) =>
+                      platformFilter === 'all'
+                        ? true
+                        : platformFilter === 'mobile'
+                        ? m.type === 'mobile'
+                        : m.type !== 'mobile'
+                    )
+                    .map((menu) => {
                     const Icon = resolveIcon(menu.icon);
                     return (
                       <TableRow
@@ -508,6 +600,20 @@ export default function MenuManagementPage() {
                           </Box>
                         </TableCell>
                         <TableCell sx={{ fontWeight: 700, color: isDark ? '#f1f5f9' : '#0f172a' }}>{menu.name}</TableCell>
+                        <TableCell>
+                          <Chip
+                            label={menu.type === 'mobile' ? 'Mobile' : 'Web'}
+                            size="small"
+                            color={menu.type === 'mobile' ? 'secondary' : 'primary'}
+                            variant="outlined"
+                            sx={{
+                              fontWeight: 700,
+                              fontSize: '0.72rem',
+                              borderRadius: '6px',
+                              bgcolor: menu.type === 'mobile' ? 'rgba(168, 85, 247, 0.12)' : 'rgba(59, 130, 246, 0.12)',
+                            }}
+                          />
+                        </TableCell>
                         <TableCell sx={{ fontFamily: 'monospace', fontSize: '0.85rem', color: isDark ? '#38bdf8' : '#2563eb' }}>{menu.href}</TableCell>
                         <TableCell>
                           <Tooltip title={menu.icon}>

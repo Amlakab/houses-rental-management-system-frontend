@@ -55,10 +55,11 @@ export default function AdminSidebar({
     ? t(`role.${userRole}`, userRole) 
     : userRole.charAt(0).toUpperCase() + userRole.slice(1);
 
-  // Visible menus based on permissions and allowedRoles
+  // Visible menus based on permissions and allowedRoles (Web only)
   const visibleMenus: MenuDoc[] = (u?.permissions ?? [])
     .filter((m) => m.isActive)
     .filter((m) => m.allowedRoles.includes(userRole))
+    .filter((m) => m.type !== 'mobile')
     .sort((a, b) => a.order - b.order);
 
   const handleLogout = () => {

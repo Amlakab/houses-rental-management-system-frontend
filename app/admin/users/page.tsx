@@ -140,6 +140,7 @@ const UsersPage = () => {
   const [permissionsUser, setPermissionsUser] = useState<User | null>(null);
   const [allMenus, setAllMenus] = useState<MenuDoc[]>([]);
   const [permissionsChecked, setPermissionsChecked] = useState<Record<string, boolean>>({});
+  const [permPlatformFilter, setPermPlatformFilter] = useState<'all' | 'web' | 'mobile'>('all');
   const [savingPermissions, setSavingPermissions] = useState(false);
   const [permissionsLoading, setPermissionsLoading] = useState(false);
 
@@ -1908,13 +1909,29 @@ const UsersPage = () => {
               </Box>
             ) : (
               <>
-                <Box sx={{ display: 'flex', gap: 1, mb: 2, alignItems: 'center' }}>
+                <Box sx={{ display: 'flex', gap: 1, mb: 2, alignItems: 'center', flexWrap: 'wrap' }}>
                   <Button size="small" onClick={handleSelectAllPermissions}>
                     Select all
                   </Button>
                   <Button size="small" onClick={handleClearAllPermissions}>
                     Clear all
                   </Button>
+                  <Box sx={{ display: 'flex', gap: 0.5, ml: 1 }}>
+                    {(['all', 'web', 'mobile'] as const).map((pKey) => {
+                      const active = permPlatformFilter === pKey;
+                      return (
+                        <Chip
+                          key={pKey}
+                          label={pKey === 'all' ? 'All' : pKey === 'web' ? 'Web' : 'Mobile'}
+                          size="small"
+                          onClick={() => setPermPlatformFilter(pKey)}
+                          color={active ? (pKey === 'mobile' ? 'secondary' : 'primary') : 'default'}
+                          variant={active ? 'filled' : 'outlined'}
+                          sx={{ fontWeight: active ? 700 : 500, cursor: 'pointer' }}
+                        />
+                      );
+                    })}
+                  </Box>
                   <Box sx={{ flex: 1 }} />
                   <Typography variant="caption" sx={{ opacity: 0.7 }}>
                     {Object.values(permissionsChecked).filter(Boolean).length} /{' '}
@@ -1927,7 +1944,12 @@ const UsersPage = () => {
                     .filter(
                       (m) =>
                         permissionsUser &&
-                        m.allowedRoles.includes(permissionsUser.role)
+                        m.allowedRoles.includes(permissionsUser.role) &&
+                        (permPlatformFilter === 'all'
+                          ? true
+                          : permPlatformFilter === 'mobile'
+                          ? m.type === 'mobile'
+                          : m.type !== 'mobile')
                     )
                     .sort((a, b) => a.order - b.order);
 
@@ -1937,7 +1959,7 @@ const UsersPage = () => {
                         sx={{ textAlign: 'center', py: 4, opacity: 0.7 }}
                       >
                         No menus are available for the{' '}
-                        <strong>{permissionsUser?.role}</strong> role.
+                        <strong>{permissionsUser?.role}</strong> role ({permPlatformFilter}).
                       </Typography>
                     );
                   }
@@ -1965,18 +1987,36 @@ const UsersPage = () => {
                               />
                             }
                             label={
-                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, width: '100%' }}>
                                 <Icon
                                   className="h-4 w-4"
                                   style={{ opacity: 0.8 }}
                                 />
-                                <Box>
-                                  <Typography
-                                    variant="body2"
-                                    sx={{ fontWeight: 500 }}
-                                  >
-                                    {menu.name}
-                                  </Typography>
+                                <Box sx={{ flex: 1 }}>
+                                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                    <Typography
+                                      variant="body2"
+                                      sx={{ fontWeight: 500 }}
+                                    >
+                                      {menu.name}
+                                    </Typography>
+                                    <Chip
+                                      label={menu.type === 'mobile' ? 'Mobile' : 'Web'}
+                                      size="small"
+                                      color={menu.type === 'mobile' ? 'secondary' : 'primary'}
+                                      variant="outlined"
+                                      sx={{
+                                        height: 18,
+                                        fontSize: '0.65rem',
+                                        fontWeight: 700,
+                                        borderRadius: '4px',
+                                        bgcolor:
+                                          menu.type === 'mobile'
+                                            ? 'rgba(168, 85, 247, 0.12)'
+                                            : 'rgba(59, 130, 246, 0.12)',
+                                      }}
+                                    />
+                                  </Box>
                                   <Typography
                                     variant="caption"
                                     sx={{ opacity: 0.6, fontFamily: 'monospace' }}
